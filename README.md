@@ -1,4 +1,4 @@
-(Forked from godotengine/godot).
+(Forked from https://godotengine/godot).
 
 ![GODOT](/logo.png)
 
