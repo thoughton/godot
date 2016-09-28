@@ -553,7 +553,7 @@ void VisualScriptOperator::_bind_methods() {
 		argt+=","+Variant::get_type_name(Variant::Type(i));
 	}
 
-	ADD_PROPERTY(PropertyInfo(Variant::INT,"operator_value/type",PROPERTY_HINT_ENUM,types,PROPERTY_USAGE_NOEDITOR),_SCS("set_operator"),_SCS("get_operator"));
+	ADD_PROPERTY(PropertyInfo(Variant::INT,"operator_value/type",PROPERTY_HINT_ENUM,types),_SCS("set_operator"),_SCS("get_operator"));
 	ADD_PROPERTY(PropertyInfo(Variant::INT,"typed_value/typed",PROPERTY_HINT_ENUM,argt),_SCS("set_typed"),_SCS("get_typed"));
 
 }
@@ -1071,7 +1071,13 @@ PropertyInfo VisualScriptPreload::get_input_value_port_info(int p_idx) const{
 
 PropertyInfo VisualScriptPreload::get_output_value_port_info(int p_idx) const{
 
-	return PropertyInfo(Variant::OBJECT,"res");
+	PropertyInfo pinfo=PropertyInfo(Variant::OBJECT,"res");
+	if (preload.is_valid()) {
+		pinfo.hint=PROPERTY_HINT_RESOURCE_TYPE;
+		pinfo.hint_string=preload->get_type();
+	}
+
+	return pinfo;
 }
 
 
@@ -1927,6 +1933,19 @@ VisualScriptNodeInstance* VisualScriptEngineSingleton::instance(VisualScriptInst
 	return instance;
 }
 
+VisualScriptEngineSingleton::TypeGuess VisualScriptEngineSingleton::guess_output_type(TypeGuess* p_inputs, int p_output) const {
+
+	Object *obj=Globals::get_singleton()->get_singleton_object(singleton);
+	TypeGuess tg;
+	tg.type=Variant::OBJECT;
+	if (obj) {
+		tg.obj_type=obj->get_type();
+		tg.script=obj->get_script();
+	}
+
+	return tg;
+}
+
 
 void VisualScriptEngineSingleton::_bind_methods() {
 
@@ -2064,6 +2083,8 @@ VisualScriptNodeInstance* VisualScriptSceneNode::instance(VisualScriptInstance* 
 }
 
 
+
+
 #ifdef TOOLS_ENABLED
 
 static Node* _find_script_node(Node* p_edited_scene,Node* p_current_node,const Ref<Script> &script) {
@@ -2086,6 +2107,49 @@ static Node* _find_script_node(Node* p_edited_scene,Node* p_current_node,const R
 }
 
 #endif
+
+VisualScriptSceneNode::TypeGuess VisualScriptSceneNode::guess_output_type(TypeGuess* p_inputs, int p_output) const {
+
+
+	VisualScriptSceneNode::TypeGuess tg;
+	tg.type=Variant::OBJECT;
+	tg.obj_type="Node";
+
+#ifdef TOOLS_ENABLED
+	Ref<Script> script = get_visual_script();
+	if (!script.is_valid())
+		return tg;
+
+	MainLoop * main_loop = OS::get_singleton()->get_main_loop();
+	if (!main_loop)
+		return tg;
+
+	SceneTree *scene_tree = main_loop->cast_to<SceneTree>();
+
+	if (!scene_tree)
+		return tg;
+
+	Node *edited_scene = scene_tree->get_edited_scene_root();
+
+	if (!edited_scene)
+		return tg;
+
+	Node* script_node = _find_script_node(edited_scene,edited_scene,script);
+
+	if (!script_node)
+		return tg;
+
+	Node* another = script_node->get_node(path);
+
+	if (another) {
+		tg.obj_type=another->get_type();
+		tg.script=another->get_script();
+	}
+#endif
+	return tg;
+
+}
+
 
 void VisualScriptSceneNode::_validate_property(PropertyInfo& property) const {
 
@@ -2224,6 +2288,13 @@ VisualScriptNodeInstance* VisualScriptSceneTree::instance(VisualScriptInstance* 
 	return instance;
 }
 
+VisualScriptSceneTree::TypeGuess VisualScriptSceneTree::guess_output_type(TypeGuess* p_inputs, int p_output) const {
+
+	TypeGuess tg;
+	tg.type=Variant::OBJECT;
+	tg.obj_type="SceneTree";
+	return tg;
+}
 
 void VisualScriptSceneTree::_validate_property(PropertyInfo& property) const {
 
@@ -2415,6 +2486,23 @@ VisualScriptNodeInstance* VisualScriptSelf::instance(VisualScriptInstance* p_ins
 	return instance;
 }
 
+VisualScriptSelf::TypeGuess VisualScriptSelf::guess_output_type(TypeGuess* p_inputs, int p_output) const {
+
+	VisualScriptSceneNode::TypeGuess tg;
+	tg.type=Variant::OBJECT;
+	tg.obj_type="Object";
+
+	Ref<Script> script = get_visual_script();
+	if (!script.is_valid())
+		return tg;
+
+	tg.obj_type=script->get_instance_base_type();
+	tg.script=script;
+
+	return tg;
+
+
+}
 
 
 void VisualScriptSelf::_bind_methods() {

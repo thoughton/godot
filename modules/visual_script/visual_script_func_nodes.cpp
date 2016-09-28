@@ -12,7 +12,7 @@
 
 int VisualScriptFunctionCall::get_output_sequence_port_count() const {
 
-	if (method_cache.flags&METHOD_FLAG_CONST)
+	if (method_cache.flags&METHOD_FLAG_CONST || call_mode==CALL_MODE_BASIC_TYPE)
 		return 0;
 	else
 		return 1;
@@ -20,7 +20,7 @@ int VisualScriptFunctionCall::get_output_sequence_port_count() const {
 
 bool VisualScriptFunctionCall::has_input_sequence_port() const{
 
-	if (method_cache.flags&METHOD_FLAG_CONST)
+	if (method_cache.flags&METHOD_FLAG_CONST || call_mode==CALL_MODE_BASIC_TYPE)
 		return false;
 	else
 		return true;
@@ -417,6 +417,14 @@ void VisualScriptFunctionCall::_update_method_cache() {
 
 		method_cache.return_val = mb->get_argument_info(-1);
 #endif
+
+		if (mb->is_vararg()) {
+			//for vararg just give it 10 arguments (should be enough for most use cases)
+			for(int i=0;i<10;i++) {
+				method_cache.arguments.push_back(PropertyInfo(Variant::NIL,"arg"+itos(i)));
+				use_default_args++;
+			}
+		}
 	} else if (script.is_valid() && script->has_method(function)) {
 
 		method_cache = script->get_method_info(function);
@@ -920,6 +928,18 @@ VisualScriptNodeInstance* VisualScriptFunctionCall::instance(VisualScriptInstanc
 	instance->validate=validate;
 	return instance;
 }
+
+
+VisualScriptFunctionCall::TypeGuess VisualScriptFunctionCall::guess_output_type(TypeGuess* p_inputs, int p_output) const {
+
+	if (p_output==0 && call_mode==CALL_MODE_INSTANCE) {
+		return p_inputs[0];
+	}
+
+	return VisualScriptNode::guess_output_type(p_inputs,p_output);
+
+}
+
 VisualScriptFunctionCall::VisualScriptFunctionCall() {
 
 	validate=true;
@@ -1600,6 +1620,17 @@ VisualScriptNodeInstance* VisualScriptPropertySet::instance(VisualScriptInstance
 	return instance;
 }
 
+
+
+VisualScriptPropertySet::TypeGuess VisualScriptPropertySet::guess_output_type(TypeGuess* p_inputs, int p_output) const {
+
+	if (p_output==0 && call_mode==CALL_MODE_INSTANCE) {
+		return p_inputs[0];
+	}
+
+	return VisualScriptNode::guess_output_type(p_inputs,p_output);
+
+}
 VisualScriptPropertySet::VisualScriptPropertySet() {
 
 	call_mode=CALL_MODE_SELF;

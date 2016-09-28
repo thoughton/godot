@@ -3,7 +3,7 @@
 #include "scene/main/node.h"
 #include "os/os.h"
 #include "globals.h"
-#define SCRIPT_VARIABLES_PREFIX "script_variables/"
+
 
 
 //used by editor, this is not really saved
@@ -574,6 +574,23 @@ bool VisualScript::is_input_value_port_connected(const StringName& p_func,int p_
 	return false;
 }
 
+bool VisualScript::get_input_value_port_connection_source(const StringName& p_func,int p_node,int p_port,int *r_node,int *r_port) const {
+
+	ERR_FAIL_COND_V(!functions.has(p_func),false);
+	const Function &func = functions[p_func];
+
+	for (const Set<DataConnection>::Element *E=func.data_connections.front();E;E=E->next()) {
+		if (E->get().to_node==p_node && E->get().to_port==p_port) {
+			*r_node=E->get().from_node;
+			*r_port=E->get().from_port;
+			return true;
+		}
+	}
+
+	return false;
+
+}
+
 void VisualScript::get_data_connection_list(const StringName& p_func,List<DataConnection> *r_connection) const {
 
 	ERR_FAIL_COND(!functions.has(p_func));
@@ -598,8 +615,6 @@ void VisualScript::add_variable(const StringName& p_name,const Variant& p_defaul
 	v._export=p_export;
 
 	variables[p_name]=v;
-	script_variable_remap[SCRIPT_VARIABLES_PREFIX+String(p_name)]=p_name;
-
 
 #ifdef TOOLS_ENABLED
 	_update_placeholders();
@@ -616,7 +631,6 @@ void VisualScript::remove_variable(const StringName& p_name) {
 
 	ERR_FAIL_COND(!variables.has(p_name));
 	variables.erase(p_name);
-	script_variable_remap.erase(SCRIPT_VARIABLES_PREFIX+String(p_name));
 
 #ifdef TOOLS_ENABLED
 	_update_placeholders();
@@ -911,7 +925,7 @@ void VisualScript::_update_placeholders() {
 			continue;
 
 		PropertyInfo p = E->get().info;
-		p.name=SCRIPT_VARIABLES_PREFIX+String(E->key());
+		p.name=String(E->key());
 		pinfo.push_back(p);
 		values[p.name]=E->get().default_value;
 	}
@@ -947,7 +961,7 @@ ScriptInstance* VisualScript::instance_create(Object *p_this) {
 				continue;
 
 			PropertyInfo p = E->get().info;
-			p.name=SCRIPT_VARIABLES_PREFIX+String(E->key());
+			p.name=String(E->key());
 			pinfo.push_back(p);
 			values[p.name]=E->get().default_value;
 		}
@@ -1045,10 +1059,10 @@ void VisualScript::get_script_signal_list(List<MethodInfo> *r_signals) const {
 
 bool VisualScript::get_property_default_value(const StringName& p_property,Variant& r_value) const {
 
-	if (!script_variable_remap.has(p_property))
+	if (!variables.has(p_property))
 		return false;
 
-	r_value=variables[ script_variable_remap[p_property] ].default_value;
+	r_value=variables[ p_property ].default_value;
 	return true;
 }
 void VisualScript::get_script_method_list(List<MethodInfo> *p_list) const {
@@ -1116,6 +1130,7 @@ void VisualScript::get_script_property_list(List<PropertyInfo> *p_list) const {
 	}
 }
 
+#ifdef TOOLS_ENABLED
 bool VisualScript::are_subnodes_edited() const {
 
 	for(const Map<StringName,Function>::Element *E=functions.front();E;E=E->next()) {
@@ -1129,7 +1144,7 @@ bool VisualScript::are_subnodes_edited() const {
 
 	return false;
 }
-
+#endif
 
 void VisualScript::_set_data(const Dictionary& p_data) {
 
@@ -1385,12 +1400,10 @@ VisualScript::~VisualScript() {
 
 bool VisualScriptInstance::set(const StringName& p_name, const Variant& p_value) {
 
-	const Map<StringName,StringName>::Element *remap = script->script_variable_remap.find(p_name);
-	if (!remap)
-		return false;
 
-	Map<StringName,Variant>::Element *E=variables.find(remap->get());
-	ERR_FAIL_COND_V(!E,false);
+	Map<StringName,Variant>::Element *E=variables.find(p_name);
+	if (!E)
+		return false;
 
 	E->get()=p_value;
 
@@ -1400,14 +1413,12 @@ bool VisualScriptInstance::set(const StringName& p_name, const Variant& p_value)
 
 bool VisualScriptInstance::get(const StringName& p_name, Variant &r_ret) const {
 
-	const Map<StringName,StringName>::Element *remap = script->script_variable_remap.find(p_name);
-	if (!remap)
+	const Map<StringName,Variant>::Element *E=variables.find(p_name);
+	if (!E)
 		return false;
 
-	const Map<StringName,Variant>::Element *E=variables.find(remap->get());
-	ERR_FAIL_COND_V(!E,false);
-
-	return E->get();
+	r_ret=E->get();
+	return true;
 }
 void VisualScriptInstance::get_property_list(List<PropertyInfo> *p_properties) const{
 
@@ -1416,21 +1427,15 @@ void VisualScriptInstance::get_property_list(List<PropertyInfo> *p_properties) c
 		if (!E->get()._export)
 			continue;
 		PropertyInfo p = E->get().info;
-		p.name=SCRIPT_VARIABLES_PREFIX+String(E->key());
+		p.name=String(E->key());
 		p_properties->push_back(p);
 
 	}
 }
 Variant::Type VisualScriptInstance::get_property_type(const StringName& p_name,bool *r_is_valid) const{
 
-	const Map<StringName,StringName>::Element *remap = script->script_variable_remap.find(p_name);
-	if (!remap) {
-		if (r_is_valid)
-			*r_is_valid=false;
-		return Variant::NIL;
-	}
 
-	const Map<StringName,VisualScript::Variable>::Element *E=script->variables.find(remap->get());
+	const Map<StringName,VisualScript::Variable>::Element *E=script->variables.find(p_name);
 	if (!E) {
 		if (r_is_valid)
 			*r_is_valid=false;
@@ -1892,17 +1897,21 @@ Variant VisualScriptInstance::_call_internal(const StringName& p_method, void* p
 
 		if (node && (r_error.error!=Variant::CallError::CALL_ERROR_INVALID_METHOD || error_str==String())) {
 
+			if (error_str!=String()) {
+				error_str+=" ";
+			}
+
 			if (r_error.error==Variant::CallError::CALL_ERROR_INVALID_ARGUMENT) {
 				int errorarg=r_error.argument;
-				error_str="Cannot convert argument "+itos(errorarg+1)+" to "+Variant::get_type_name(r_error.expected)+".";
+				error_str+="Cannot convert argument "+itos(errorarg+1)+" to "+Variant::get_type_name(r_error.expected)+".";
 			} else if (r_error.error==Variant::CallError::CALL_ERROR_TOO_MANY_ARGUMENTS) {
-				error_str="Expected "+itos(r_error.argument)+" arguments.";
+				error_str+="Expected "+itos(r_error.argument)+" arguments.";
 			} else if (r_error.error==Variant::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS) {
-				error_str="Expected "+itos(r_error.argument)+" arguments.";
+				error_str+="Expected "+itos(r_error.argument)+" arguments.";
 			} else if (r_error.error==Variant::CallError::CALL_ERROR_INVALID_METHOD) {
-				error_str="Invalid Call.";
+				error_str+="Invalid Call.";
 			} else if (r_error.error==Variant::CallError::CALL_ERROR_INSTANCE_IS_NULL) {
-				error_str="Instance is null";
+				error_str+="Base Instance is null";
 			}
 		}
 
@@ -2430,7 +2439,7 @@ void VisualScriptFunctionState::_bind_methods() {
 	ObjectTypeDB::bind_method(_MD("connect_to_signal","obj","signals","args"),&VisualScriptFunctionState::connect_to_signal);
 	ObjectTypeDB::bind_method(_MD("resume:Array","args"),&VisualScriptFunctionState::resume,DEFVAL(Variant()));
 	ObjectTypeDB::bind_method(_MD("is_valid"),&VisualScriptFunctionState::is_valid);
-	ObjectTypeDB::bind_native_method(METHOD_FLAGS_DEFAULT,"_signal_callback",&VisualScriptFunctionState::_signal_callback,MethodInfo("_signal_callback"));
+	ObjectTypeDB::bind_vararg_method(METHOD_FLAGS_DEFAULT,"_signal_callback",&VisualScriptFunctionState::_signal_callback,MethodInfo("_signal_callback"));
 }
 
 VisualScriptFunctionState::VisualScriptFunctionState() {

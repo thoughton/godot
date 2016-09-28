@@ -360,7 +360,8 @@ bool GraphEdit::_filter_input(const Point2& p_point) {
 
 	Ref<Texture> port =get_icon("port","GraphNode");
 
-	float grab_r=port->get_width()*0.5;
+	float grab_r_extend = 2.0;
+	float grab_r=port->get_width()*0.5*grab_r_extend;
 	for(int i=get_child_count()-1;i>=0;i--) {
 
 		GraphNode *gn=get_child(i)->cast_to<GraphNode>();
@@ -379,8 +380,9 @@ bool GraphEdit::_filter_input(const Point2& p_point) {
 		for(int j=0;j<gn->get_connection_input_count();j++) {
 
 			Vector2 pos = gn->get_connection_input_pos(j)+gn->get_pos();
-			if (pos.distance_to(p_point)<grab_r)
+			if (pos.distance_to(p_point)<grab_r) {
 				return true;
+			}
 
 
 		}
@@ -392,11 +394,13 @@ bool GraphEdit::_filter_input(const Point2& p_point) {
 
 void GraphEdit::_top_layer_input(const InputEvent& p_ev) {
 
+
+	float grab_r_extend = 2.0;
 	if (p_ev.type==InputEvent::MOUSE_BUTTON && p_ev.mouse_button.button_index==BUTTON_LEFT && p_ev.mouse_button.pressed) {
 
 		Ref<Texture> port =get_icon("port","GraphNode");
 		Vector2 mpos(p_ev.mouse_button.x,p_ev.mouse_button.y);
-		float grab_r=port->get_width()*0.5;
+		float grab_r=port->get_width()*0.5*grab_r_extend;
 		for(int i=get_child_count()-1;i>=0;i--) {
 
 			GraphNode *gn=get_child(i)->cast_to<GraphNode>();
@@ -425,6 +429,7 @@ void GraphEdit::_top_layer_input(const InputEvent& p_ev) {
 									connecting_color=to->cast_to<GraphNode>()->get_connection_input_color(E->get().to_port);
 									connecting_target=false;
 									connecting_to=pos;
+									just_disconected=true;
 
 									emit_signal("disconnection_request",E->get().from,E->get().from_port,E->get().to,E->get().to_port);
 									to = get_node(String(connecting_from)); //maybe it was erased
@@ -446,6 +451,7 @@ void GraphEdit::_top_layer_input(const InputEvent& p_ev) {
 					connecting_color=gn->get_connection_output_color(j);
 					connecting_target=false;
 					connecting_to=pos;
+					just_disconected=false;
 					return;
 				}
 
@@ -474,6 +480,7 @@ void GraphEdit::_top_layer_input(const InputEvent& p_ev) {
 									connecting_color=fr->cast_to<GraphNode>()->get_connection_output_color(E->get().from_port);
 									connecting_target=false;
 									connecting_to=pos;
+									just_disconected=true;
 
 									emit_signal("disconnection_request",E->get().from,E->get().from_port,E->get().to,E->get().to_port);
 									fr = get_node(String(connecting_from)); //maybe it was erased
@@ -496,6 +503,8 @@ void GraphEdit::_top_layer_input(const InputEvent& p_ev) {
 					connecting_color=gn->get_connection_input_color(j);
 					connecting_target=false;
 					connecting_to=pos;
+					just_disconected=true;
+
 					return;
 				}
 
@@ -512,7 +521,7 @@ void GraphEdit::_top_layer_input(const InputEvent& p_ev) {
 
 		Ref<Texture> port =get_icon("port","GraphNode");
 		Vector2 mpos(p_ev.mouse_button.x,p_ev.mouse_button.y);
-		float grab_r=port->get_width()*0.5;
+		float grab_r=port->get_width()*0.5*grab_r_extend;
 		for(int i=get_child_count()-1;i>=0;i--) {
 
 			GraphNode *gn=get_child(i)->cast_to<GraphNode>();
@@ -568,7 +577,7 @@ void GraphEdit::_top_layer_input(const InputEvent& p_ev) {
 			}
 			emit_signal("connection_request",from,from_slot,to,to_slot);
 
-		} else {
+		} else if (!just_disconected) {
 			String from = connecting_from;
 			int from_slot = connecting_index;
 			Vector2 ofs = Vector2(p_ev.mouse_button.x,p_ev.mouse_button.y);
@@ -1323,6 +1332,7 @@ GraphEdit::GraphEdit() {
 	zoom_hb->add_child(snap_amount);
 
 	setting_scroll_ofs=false;
+	just_disconected=false;
 
 
 
