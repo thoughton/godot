@@ -5,7 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,12 +28,30 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "export.h"
-#include "platform/x11/logo.h"
-#include "tools/editor/editor_import_export.h"
+#include "editor/editor_export.h"
+#include "platform/x11/logo.gen.h"
 #include "scene/resources/texture.h"
 
 void register_x11_exporter() {
 
+	Ref<EditorExportPlatformPC> platform;
+	platform.instance();
+
+	Ref<Image> img = memnew(Image(_x11_logo));
+	Ref<ImageTexture> logo;
+	logo.instance();
+	logo->create_from_image(img);
+	platform->set_logo(logo);
+	platform->set_name("Linux/X11");
+	platform->set_extension("bin");
+	platform->set_release_32("linux_x11_32_release");
+	platform->set_debug_32("linux_x11_32_debug");
+	platform->set_release_64("linux_x11_64_release");
+	platform->set_debug_64("linux_x11_64_debug");
+
+	EditorExport::get_singleton()->add_export_platform(platform);
+
+#if 0
 	Image img(_x11_logo);
 	Ref<ImageTexture> logo = memnew( ImageTexture );
 	logo->create_from_image(img);
@@ -49,4 +68,5 @@ void register_x11_exporter() {
 		EditorImportExport::get_singleton()->add_export_platform(exporter);
 	}
 
+#endif
 }

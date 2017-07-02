@@ -5,7 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,16 +28,18 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "resource_format_image.h"
-#include "scene/resources/texture.h"
+
+#if 0
+#include "global_config.h"
 #include "io/image_loader.h"
-#include "globals.h"
 #include "os/os.h"
+#include "scene/resources/texture.h"
 RES ResourceFormatLoaderImage::load(const String &p_path, const String& p_original_path, Error *r_error) {
 
 	if (r_error)
 		*r_error=ERR_CANT_OPEN;
 
-	if (p_path.extension()=="cube") {
+	if (p_path.get_extension()=="cube") {
 		// open as cubemap txture
 
 		CubeMap* ptr = memnew(CubeMap);
@@ -125,7 +128,7 @@ RES ResourceFormatLoaderImage::load(const String &p_path, const String& p_origin
 		if (max_texture_size && (image.get_width() > max_texture_size || image.get_height() > max_texture_size)) {
 
 
-			if (bool(Globals::get_singleton()->get("debug/max_texture_size_alert"))) {
+			if (bool(GlobalConfig::get_singleton()->get("debug/image_loader/max_texture_size_alert"))) {
 				OS::get_singleton()->alert("Texture is too large: '"+p_path+"', at "+itos(image.get_width())+"x"+itos(image.get_height())+". Max allowed size is: "+itos(max_texture_size)+"x"+itos(max_texture_size)+".","BAD ARTIST, NO COOKIE!");
 			}
 
@@ -136,61 +139,7 @@ RES ResourceFormatLoaderImage::load(const String &p_path, const String& p_origin
 #endif
 
 
-		uint32_t flags=0;
-
-		FileAccess *f2 = FileAccess::open(p_path+".flags",FileAccess::READ);
-		Map<String,bool> flags_found;
-		if (f2) {
-
-			while(!f2->eof_reached()) {
-				String l2 = f2->get_line();
-				int eqpos = l2.find("=");
-				if (eqpos!=-1) {
-					String flag=l2.substr(0,eqpos).strip_edges();
-					String val=l2.substr(eqpos+1,l2.length()).strip_edges().to_lower();
-					flags_found[flag]=(val=="true" || val=="1")?true:false;
-				}
-			}
-			memdelete(f2);
-		}
-
-
-		if (flags_found.has("filter")) {
-			if (flags_found["filter"])
-				flags|=Texture::FLAG_FILTER;
-		} else if (bool(GLOBAL_DEF("image_loader/filter",true))) {
-			flags|=Texture::FLAG_FILTER;
-		}
-
-
-		if (flags_found.has("gen_mipmaps")) {
-			if (flags_found["gen_mipmaps"])
-				flags|=Texture::FLAG_MIPMAPS;
-		} else if (bool(GLOBAL_DEF("image_loader/gen_mipmaps",true))) {
-			flags|=Texture::FLAG_MIPMAPS;
-		}
-
-		if (flags_found.has("repeat")) {
-			if (flags_found["repeat"])
-				flags|=Texture::FLAG_REPEAT;
-		} else if (bool(GLOBAL_DEF("image_loader/repeat",true))) {
-			flags|=Texture::FLAG_REPEAT;
-		}
-
-		if (flags_found.has("anisotropic")) {
-			if (flags_found["anisotropic"])
-				flags|=Texture::FLAG_ANISOTROPIC_FILTER;
-		}
-
-		if (flags_found.has("tolinear")) {
-			if (flags_found["tolinear"])
-				flags|=Texture::FLAG_CONVERT_TO_LINEAR;
-		}
-
-		if (flags_found.has("mirroredrepeat")) {
-			if (flags_found["mirroredrepeat"])
-				flags|=Texture::FLAG_MIRRORED_REPEAT;
-		}
+		uint32_t flags=load_image_flags(p_path);
 
 		if (debug_load_times)
 			begtime=OS::get_singleton()->get_ticks_usec();
@@ -214,9 +163,71 @@ RES ResourceFormatLoaderImage::load(const String &p_path, const String& p_origin
 
 }
 
+uint32_t ResourceFormatLoaderImage::load_image_flags(const String &p_path) {
+
+
+	FileAccess *f2 = FileAccess::open(p_path+".flags",FileAccess::READ);
+	Map<String,bool> flags_found;
+	if (f2) {
+
+		while(!f2->eof_reached()) {
+			String l2 = f2->get_line();
+			int eqpos = l2.find("=");
+			if (eqpos!=-1) {
+				String flag=l2.substr(0,eqpos).strip_edges();
+				String val=l2.substr(eqpos+1,l2.length()).strip_edges().to_lower();
+				flags_found[flag]=(val=="true" || val=="1")?true:false;
+			}
+		}
+		memdelete(f2);
+	}
+
+
+	uint32_t flags=0;
+
+	if (flags_found.has("filter")) {
+		if (flags_found["filter"])
+			flags|=Texture::FLAG_FILTER;
+	} else if (bool(GLOBAL_DEF("rendering/image_loader/filter",true))) {
+		flags|=Texture::FLAG_FILTER;
+	}
+
+
+	if (flags_found.has("gen_mipmaps")) {
+		if (flags_found["gen_mipmaps"])
+			flags|=Texture::FLAG_MIPMAPS;
+	} else if (bool(GLOBAL_DEF("rendering/image_loader/gen_mipmaps",true))) {
+		flags|=Texture::FLAG_MIPMAPS;
+	}
+
+	if (flags_found.has("repeat")) {
+		if (flags_found["repeat"])
+			flags|=Texture::FLAG_REPEAT;
+	} else if (bool(GLOBAL_DEF("rendering/image_loader/repeat",true))) {
+		flags|=Texture::FLAG_REPEAT;
+	}
+
+	if (flags_found.has("anisotropic")) {
+		if (flags_found["anisotropic"])
+			flags|=Texture::FLAG_ANISOTROPIC_FILTER;
+	}
+
+	if (flags_found.has("tolinear")) {
+		if (flags_found["tolinear"])
+			flags|=Texture::FLAG_CONVERT_TO_LINEAR;
+	}
+
+	if (flags_found.has("mirroredrepeat")) {
+		if (flags_found["mirroredrepeat"])
+			flags|=Texture::FLAG_MIRRORED_REPEAT;
+	}
+
+	return flags;
+}
+
 bool ResourceFormatLoaderImage::handles_type(const String& p_type) const {
 
-	return ObjectTypeDB::is_type(p_type,"Texture") || ObjectTypeDB::is_type(p_type,"CubeMap");
+	return ClassDB::is_parent_class(p_type,"Texture") || ClassDB::is_parent_class(p_type,"CubeMap");
 }
 
 void ResourceFormatLoaderImage::get_recognized_extensions(List<String> *p_extensions) const {
@@ -227,7 +238,7 @@ void ResourceFormatLoaderImage::get_recognized_extensions(List<String> *p_extens
 
 String ResourceFormatLoaderImage::get_resource_type(const String &p_path) const {
 
-	String ext=p_path.extension().to_lower();
+	String ext=p_path.get_extension().to_lower();
 	if (ext=="cube")
 		return "CubeMap";
 
@@ -244,11 +255,12 @@ String ResourceFormatLoaderImage::get_resource_type(const String &p_path) const 
 
 ResourceFormatLoaderImage::ResourceFormatLoaderImage() {
 
-	max_texture_size = GLOBAL_DEF("debug/max_texture_size",0);
-	GLOBAL_DEF("debug/max_texture_size_alert",false);
-	debug_load_times=GLOBAL_DEF("debug/image_load_times",false);
-	GLOBAL_DEF("image_loader/filter",true);
-	GLOBAL_DEF("image_loader/gen_mipmaps",true);
-	GLOBAL_DEF("image_loader/repeat",false);
+	max_texture_size = GLOBAL_DEF("debug/image_loader/max_texture_size",0);
+	GLOBAL_DEF("debug/image_loader/max_texture_size_alert",false);
+	debug_load_times=GLOBAL_DEF("debug/image_loader/image_load_times",false);
+	GLOBAL_DEF("rendering/image_loader/filter",true);
+	GLOBAL_DEF("rendering/image_loader/gen_mipmaps",true);
+	GLOBAL_DEF("rendering/image_loader/repeat",false);
 
 }
+#endif

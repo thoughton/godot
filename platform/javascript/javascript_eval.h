@@ -5,7 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -35,16 +36,15 @@
 
 class JavaScript : public Object {
 private:
-	OBJ_TYPE( JavaScript, Object );
+	GDCLASS(JavaScript, Object);
 
 	static JavaScript *singleton;
-
 
 protected:
 	static void _bind_methods();
 
 public:
-	Variant eval(const String& p_code, bool p_use_global_exec_context = false);
+	Variant eval(const String &p_code, bool p_use_global_exec_context = false);
 
 	static JavaScript *get_singleton();
 	JavaScript();

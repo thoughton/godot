@@ -5,7 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,16 +32,21 @@
 #include "javascript_eval.h"
 #include "emscripten.h"
 
-JavaScript *JavaScript::singleton=NULL;
+JavaScript *JavaScript::singleton = NULL;
 
 JavaScript *JavaScript::get_singleton() {
 
 	return singleton;
 }
 
-Variant JavaScript::eval(const String& p_code, bool p_use_global_exec_context) {
+Variant JavaScript::eval(const String &p_code, bool p_use_global_exec_context) {
 
-	union { int i; double d; char* s; } js_data[4];
+	union {
+		int i;
+		double d;
+		char *s;
+	} js_data[4];
+	/* clang-format off */
 	Variant::Type return_type = static_cast<Variant::Type>(EM_ASM_INT({
 
 		var eval_ret;
@@ -49,8 +55,7 @@ Variant JavaScript::eval(const String& p_code, bool p_use_global_exec_context) {
 				// indirect eval call grants global execution context
 				var global_eval = eval;
 				eval_ret = global_eval(UTF8ToString($2));
-			}
-			else {
+			} else {
 				eval_ret = eval(UTF8ToString($2));
 			}
 		} catch (e) {
@@ -125,20 +130,22 @@ Variant JavaScript::eval(const String& p_code, bool p_use_global_exec_context) {
 		return 0; // NIL
 
 	}, js_data, sizeof *js_data, p_code.utf8().get_data(), p_use_global_exec_context));
+	/* clang-format on */
 
-	switch(return_type) {
+	switch (return_type) {
 		case Variant::BOOL:
 			return !!js_data->i;
 		case Variant::INT:
 			return js_data->i;
 		case Variant::REAL:
 			return js_data->d;
-		case Variant::STRING:
-			{
-				String str = String::utf8(js_data->s);
+		case Variant::STRING: {
+			String str = String::utf8(js_data->s);
+			/* clang-format off */
 				EM_ASM_({ _free($0); }, js_data->s);
-				return str;
-			}
+			/* clang-format on */
+			return str;
+		}
 		case Variant::VECTOR2:
 			return Vector2(js_data[0].d, js_data[1].d);
 		case Variant::VECTOR3:
@@ -146,14 +153,14 @@ Variant JavaScript::eval(const String& p_code, bool p_use_global_exec_context) {
 		case Variant::RECT2:
 			return Rect2(js_data[0].d, js_data[1].d, js_data[2].d, js_data[3].d);
 		case Variant::COLOR:
-			return Color(js_data[0].d/255., js_data[1].d/255., js_data[2].d/255., js_data[3].d);
+			return Color(js_data[0].d / 255., js_data[1].d / 255., js_data[2].d / 255., js_data[3].d);
 	}
 	return Variant();
 }
 
 void JavaScript::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("eval", "code", "use_global_execution_context"), &JavaScript::eval, false);
+	ClassDB::bind_method(D_METHOD("eval", "code", "use_global_execution_context"), &JavaScript::eval, false);
 }
 
 JavaScript::JavaScript() {
@@ -163,7 +170,6 @@ JavaScript::JavaScript() {
 }
 
 JavaScript::~JavaScript() {
-
 }
 
 #endif // JAVASCRIPT_EVAL_ENABLED
