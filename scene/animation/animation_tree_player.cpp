@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -1481,14 +1481,14 @@ AnimationTreePlayer::Track *AnimationTreePlayer::_find_track(const NodePath &p_p
 		return NULL;
 	}
 
-	ObjectID id = child->get_instance_ID();
+	ObjectID id = child->get_instance_id();
 	StringName property;
 	int bone_idx = -1;
 
 	if (p_path.get_property()) {
 
-		if (child->cast_to<Skeleton>())
-			bone_idx = child->cast_to<Skeleton>()->find_bone(p_path.get_property());
+		if (Object::cast_to<Skeleton>(child))
+			bone_idx = Object::cast_to<Skeleton>(child)->find_bone(p_path.get_property());
 		if (bone_idx == -1)
 			property = p_path.get_property();
 	}
@@ -1503,8 +1503,8 @@ AnimationTreePlayer::Track *AnimationTreePlayer::_find_track(const NodePath &p_p
 		Track tr;
 		tr.id = id;
 		tr.object = resource.is_valid() ? (Object *)resource.ptr() : (Object *)child;
-		tr.skeleton = child->cast_to<Skeleton>();
-		tr.spatial = child->cast_to<Spatial>();
+		tr.skeleton = Object::cast_to<Skeleton>(child);
+		tr.spatial = Object::cast_to<Spatial>(child);
 		tr.bone_idx = bone_idx;
 		tr.property = property;
 
@@ -1644,7 +1644,7 @@ void AnimationTreePlayer::_update_sources() {
 		ERR_FAIL_COND(!m);
 	}
 
-	AnimationPlayer *ap = m->cast_to<AnimationPlayer>();
+	AnimationPlayer *ap = Object::cast_to<AnimationPlayer>(m);
 
 	if (!ap) {
 
@@ -1709,8 +1709,8 @@ void AnimationTreePlayer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("node_get_input_count", "id"), &AnimationTreePlayer::node_get_input_count);
 	ClassDB::bind_method(D_METHOD("node_get_input_source", "id", "idx"), &AnimationTreePlayer::node_get_input_source);
 
-	ClassDB::bind_method(D_METHOD("animation_node_set_animation", "id", "animation:Animation"), &AnimationTreePlayer::animation_node_set_animation);
-	ClassDB::bind_method(D_METHOD("animation_node_get_animation:Animation", "id"), &AnimationTreePlayer::animation_node_get_animation);
+	ClassDB::bind_method(D_METHOD("animation_node_set_animation", "id", "animation"), &AnimationTreePlayer::animation_node_set_animation);
+	ClassDB::bind_method(D_METHOD("animation_node_get_animation", "id"), &AnimationTreePlayer::animation_node_get_animation);
 
 	ClassDB::bind_method(D_METHOD("animation_node_set_master_animation", "id", "source"), &AnimationTreePlayer::animation_node_set_master_animation);
 	ClassDB::bind_method(D_METHOD("animation_node_get_master_animation", "id"), &AnimationTreePlayer::animation_node_get_master_animation);
@@ -1797,16 +1797,16 @@ void AnimationTreePlayer::_bind_methods() {
 	ADD_GROUP("Playback", "playback_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "playback_process_mode", PROPERTY_HINT_ENUM, "Fixed,Idle"), "set_animation_process_mode", "get_animation_process_mode");
 
-	BIND_CONSTANT(NODE_OUTPUT);
-	BIND_CONSTANT(NODE_ANIMATION);
-	BIND_CONSTANT(NODE_ONESHOT);
-	BIND_CONSTANT(NODE_MIX);
-	BIND_CONSTANT(NODE_BLEND2);
-	BIND_CONSTANT(NODE_BLEND3);
-	BIND_CONSTANT(NODE_BLEND4);
-	BIND_CONSTANT(NODE_TIMESCALE);
-	BIND_CONSTANT(NODE_TIMESEEK);
-	BIND_CONSTANT(NODE_TRANSITION);
+	BIND_ENUM_CONSTANT(NODE_OUTPUT);
+	BIND_ENUM_CONSTANT(NODE_ANIMATION);
+	BIND_ENUM_CONSTANT(NODE_ONESHOT);
+	BIND_ENUM_CONSTANT(NODE_MIX);
+	BIND_ENUM_CONSTANT(NODE_BLEND2);
+	BIND_ENUM_CONSTANT(NODE_BLEND3);
+	BIND_ENUM_CONSTANT(NODE_BLEND4);
+	BIND_ENUM_CONSTANT(NODE_TIMESCALE);
+	BIND_ENUM_CONSTANT(NODE_TIMESEEK);
+	BIND_ENUM_CONSTANT(NODE_TRANSITION);
 }
 
 AnimationTreePlayer::AnimationTreePlayer() {

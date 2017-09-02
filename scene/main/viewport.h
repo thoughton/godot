@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -140,6 +140,13 @@ public:
 		DEBUG_DRAW_WIREFRAME,
 	};
 
+	enum ClearMode {
+
+		CLEAR_MODE_ALWAYS,
+		CLEAR_MODE_NEVER,
+		CLEAR_MODE_ONLY_NEXT_FRAME
+	};
+
 private:
 	friend class ViewportTexture;
 
@@ -147,6 +154,8 @@ private:
 
 	Listener *listener;
 	Set<Listener *> listeners;
+
+	bool arvr;
 
 	Camera *camera;
 	Set<Camera *> cameras;
@@ -180,7 +189,7 @@ private:
 
 	bool transparent_bg;
 	bool vflip;
-	bool clear_on_new_frame;
+	ClearMode clear_mode;
 	bool filter;
 	bool gen_mipmaps;
 
@@ -349,6 +358,9 @@ public:
 	Listener *get_listener() const;
 	Camera *get_camera() const;
 
+	void set_use_arvr(bool p_use_arvr);
+	bool use_arvr();
+
 	void set_as_audio_listener(bool p_enable);
 	bool is_audio_listener() const;
 
@@ -390,9 +402,8 @@ public:
 	void set_vflip(bool p_enable);
 	bool get_vflip() const;
 
-	void set_clear_on_new_frame(bool p_enable);
-	bool get_clear_on_new_frame() const;
-	void clear();
+	void set_clear_mode(ClearMode p_mode);
+	ClearMode get_clear_mode() const;
 
 	void set_update_mode(UpdateMode p_mode);
 	UpdateMode get_update_mode() const;
@@ -461,6 +472,7 @@ VARIANT_ENUM_CAST(Viewport::ShadowAtlasQuadrantSubdiv);
 VARIANT_ENUM_CAST(Viewport::MSAA);
 VARIANT_ENUM_CAST(Viewport::Usage);
 VARIANT_ENUM_CAST(Viewport::DebugDraw);
+VARIANT_ENUM_CAST(Viewport::ClearMode);
 VARIANT_ENUM_CAST(Viewport::RenderInfo);
 
 #endif

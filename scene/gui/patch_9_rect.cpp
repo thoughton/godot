@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -61,7 +61,7 @@ void NinePatchRect::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_region_rect", "rect"), &NinePatchRect::set_region_rect);
 	ClassDB::bind_method(D_METHOD("get_region_rect"), &NinePatchRect::get_region_rect);
 	ClassDB::bind_method(D_METHOD("set_draw_center", "draw_center"), &NinePatchRect::set_draw_center);
-	ClassDB::bind_method(D_METHOD("get_draw_center"), &NinePatchRect::get_draw_center);
+	ClassDB::bind_method(D_METHOD("is_draw_center_enabled"), &NinePatchRect::is_draw_center_enabled);
 	ClassDB::bind_method(D_METHOD("set_h_axis_stretch_mode", "mode"), &NinePatchRect::set_h_axis_stretch_mode);
 	ClassDB::bind_method(D_METHOD("get_h_axis_stretch_mode"), &NinePatchRect::get_h_axis_stretch_mode);
 	ClassDB::bind_method(D_METHOD("set_v_axis_stretch_mode", "mode"), &NinePatchRect::set_v_axis_stretch_mode);
@@ -70,7 +70,7 @@ void NinePatchRect::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("texture_changed"));
 
 	ADD_PROPERTYNZ(PropertyInfo(Variant::OBJECT, "texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture"), "set_texture", "get_texture");
-	ADD_PROPERTYNO(PropertyInfo(Variant::BOOL, "draw_center"), "set_draw_center", "get_draw_center");
+	ADD_PROPERTYNO(PropertyInfo(Variant::BOOL, "draw_center"), "set_draw_center", "is_draw_center_enabled");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::RECT2, "region_rect"), "set_region_rect", "get_region_rect");
 
 	ADD_GROUP("Patch Margin", "patch_margin_");
@@ -82,9 +82,9 @@ void NinePatchRect::_bind_methods() {
 	ADD_PROPERTYNZ(PropertyInfo(Variant::INT, "axis_stretch_horizontal", PROPERTY_HINT_ENUM, "Stretch,Tile,Tile Fit"), "set_h_axis_stretch_mode", "get_h_axis_stretch_mode");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::INT, "axis_stretch_vertical", PROPERTY_HINT_ENUM, "Stretch,Tile,Tile Fit"), "set_v_axis_stretch_mode", "get_v_axis_stretch_mode");
 
-	BIND_CONSTANT(AXIS_STRETCH_MODE_STRETCH);
-	BIND_CONSTANT(AXIS_STRETCH_MODE_TILE);
-	BIND_CONSTANT(AXIS_STRETCH_MODE_TILE_FIT);
+	BIND_ENUM_CONSTANT(AXIS_STRETCH_MODE_STRETCH);
+	BIND_ENUM_CONSTANT(AXIS_STRETCH_MODE_TILE);
+	BIND_ENUM_CONSTANT(AXIS_STRETCH_MODE_TILE_FIT);
 }
 
 void NinePatchRect::set_texture(const Ref<Texture> &p_tex) {
@@ -99,6 +99,7 @@ void NinePatchRect::set_texture(const Ref<Texture> &p_tex) {
 	*/
 	minimum_size_changed();
 	emit_signal("texture_changed");
+	_change_notify("texture");
 }
 
 Ref<Texture> NinePatchRect::get_texture() const {
@@ -150,13 +151,13 @@ Rect2 NinePatchRect::get_region_rect() const {
 	return region_rect;
 }
 
-void NinePatchRect::set_draw_center(bool p_draw) {
+void NinePatchRect::set_draw_center(bool p_enabled) {
 
-	draw_center = p_draw;
+	draw_center = p_enabled;
 	update();
 }
 
-bool NinePatchRect::get_draw_center() const {
+bool NinePatchRect::is_draw_center_enabled() const {
 
 	return draw_center;
 }

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -30,7 +30,7 @@
 #ifndef SCENE_STRING_NAMES_H
 #define SCENE_STRING_NAMES_H
 
-#include "path_db.h"
+#include "node_path.h"
 #include "string_db.h"
 class SceneStringNames {
 
@@ -172,8 +172,6 @@ public:
 	StringName area_exited;
 
 	StringName _get_minimum_size;
-
-	StringName play_play;
 
 	StringName _im_update;
 	StringName _queue_update;

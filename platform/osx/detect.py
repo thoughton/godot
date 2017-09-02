@@ -12,7 +12,7 @@ def get_name():
 
 def can_build():
 
-    if (sys.platform == "darwin" or os.environ.has_key("OSXCROSS_ROOT")):
+    if (sys.platform == "darwin" or ("OSXCROSS_ROOT" in os.environ)):
         return True
 
     return False
@@ -65,10 +65,14 @@ def configure(env):
 
     else: # osxcross build
         root = os.environ.get("OSXCROSS_ROOT", 0)
-        if env["bits"] == "64":
+        if env["bits"] == "fat":
             basecmd = root + "/target/bin/x86_64-apple-" + env["osxcross_sdk"] + "-"
-        else:
+            env.Append(CCFLAGS=['-arch', 'i386', '-arch', 'x86_64'])
+            env.Append(LINKFLAGS=['-arch', 'i386', '-arch', 'x86_64'])
+        elif env["bits"] == "32":
             basecmd = root + "/target/bin/i386-apple-" + env["osxcross_sdk"] + "-"
+        else: # 64-bit, default
+            basecmd = root + "/target/bin/x86_64-apple-" + env["osxcross_sdk"] + "-"
 
         env['CC'] = basecmd + "cc"
         env['CXX'] = basecmd + "c++"
@@ -90,7 +94,7 @@ def configure(env):
 
     env.Append(CPPPATH=['#platform/osx'])
     env.Append(CPPFLAGS=['-DOSX_ENABLED', '-DUNIX_ENABLED', '-DGLES2_ENABLED', '-DAPPLE_STYLE_KEYS'])
-    env.Append(LINKFLAGS=['-framework', 'Cocoa', '-framework', 'Carbon', '-framework', 'OpenGL', '-framework', 'AGL', '-framework', 'AudioUnit', '-lz', '-framework', 'IOKit', '-framework', 'ForceFeedback'])
+    env.Append(LINKFLAGS=['-framework', 'Cocoa', '-framework', 'Carbon', '-framework', 'OpenGL', '-framework', 'AGL', '-framework', 'AudioUnit', '-framework', 'CoreAudio', '-lz', '-framework', 'IOKit', '-framework', 'ForceFeedback'])
     env.Append(LIBS=['pthread'])
 
     env.Append(CPPFLAGS=['-mmacosx-version-min=10.9'])

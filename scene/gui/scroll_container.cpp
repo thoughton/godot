@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -40,7 +40,7 @@ Size2 ScrollContainer::get_minimum_size() const {
 
 	for (int i = 0; i < get_child_count(); i++) {
 
-		Control *c = get_child(i)->cast_to<Control>();
+		Control *c = Object::cast_to<Control>(get_child(i));
 		if (!c)
 			continue;
 		if (c->is_set_as_toplevel())
@@ -187,14 +187,14 @@ void ScrollContainer::_update_scrollbar_pos() {
 	Size2 hmin = h_scroll->get_combined_minimum_size();
 	Size2 vmin = v_scroll->get_combined_minimum_size();
 
-	v_scroll->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, vmin.width);
+	v_scroll->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, -vmin.width);
 	v_scroll->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 0);
 	v_scroll->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, 0);
 	v_scroll->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 0);
 
 	h_scroll->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_BEGIN, 0);
 	h_scroll->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 0);
-	h_scroll->set_anchor_and_margin(MARGIN_TOP, ANCHOR_END, hmin.height);
+	h_scroll->set_anchor_and_margin(MARGIN_TOP, ANCHOR_END, -hmin.height);
 	h_scroll->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 0);
 
 	h_scroll->raise();
@@ -220,7 +220,7 @@ void ScrollContainer::_notification(int p_what) {
 
 		for (int i = 0; i < get_child_count(); i++) {
 
-			Control *c = get_child(i)->cast_to<Control>();
+			Control *c = Object::cast_to<Control>(get_child(i));
 			if (!c)
 				continue;
 			if (c->is_set_as_toplevel())
@@ -423,7 +423,7 @@ String ScrollContainer::get_configuration_warning() const {
 
 	for (int i = 0; i < get_child_count(); i++) {
 
-		Control *c = get_child(i)->cast_to<Control>();
+		Control *c = Object::cast_to<Control>(get_child(i));
 		if (!c)
 			continue;
 		if (c->is_set_as_toplevel())

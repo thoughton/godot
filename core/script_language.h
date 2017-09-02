@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -57,7 +57,7 @@ public:
 
 	static void set_scripting_enabled(bool p_enabled);
 	static bool is_scripting_enabled();
-	static int get_language_count();
+	_FORCE_INLINE_ static int get_language_count() { return _language_count; }
 	static ScriptLanguage *get_language(int p_idx);
 	static void register_language(ScriptLanguage *p_language);
 	static void unregister_language(ScriptLanguage *p_language);
@@ -69,6 +69,7 @@ public:
 	static void thread_exit();
 
 	static void init_languages();
+	static void finish_languages();
 };
 
 class ScriptInstance;
@@ -206,7 +207,7 @@ public:
 	virtual String make_function(const String &p_class, const String &p_name, const PoolStringArray &p_args) const = 0;
 	virtual Error open_in_external_editor(const Ref<Script> &p_script, int p_line, int p_col) { return ERR_UNAVAILABLE; }
 
-	virtual Error complete_code(const String &p_code, const String &p_base_path, Object *p_owner, List<String> *r_options, String &r_call_hint) { return ERR_UNAVAILABLE; }
+	virtual Error complete_code(const String &p_code, const String &p_base_path, Object *p_owner, List<String> *r_options, bool &r_force, String &r_call_hint) { return ERR_UNAVAILABLE; }
 
 	struct LookupResult {
 		enum Type {
@@ -273,6 +274,9 @@ public:
 
 	virtual int profiling_get_accumulated_data(ProfilingInfo *p_info_arr, int p_info_max) = 0;
 	virtual int profiling_get_frame_data(ProfilingInfo *p_info_arr, int p_info_max) = 0;
+
+	virtual void *alloc_instance_binding_data(Object *p_object) { return NULL; } //optional, not used by all languages
+	virtual void free_instance_binding_data(void *p_data) {} //optional, not used by all languages
 
 	virtual void frame();
 

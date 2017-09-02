@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -125,6 +125,8 @@ class ScriptDebuggerRemote : public ScriptDebugger {
 	};
 
 	Vector<FrameData> profile_frame_data;
+
+	void _put_variable(const String &p_name, const Variant &p_variable);
 
 public:
 	struct ResourceUsage {

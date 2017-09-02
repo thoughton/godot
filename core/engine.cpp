@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -30,6 +30,7 @@
 #include "engine.h"
 
 #include "version.h"
+#include "version_hash.gen.h"
 
 void Engine::set_iterations_per_second(int p_ips) {
 
@@ -87,6 +88,9 @@ Dictionary Engine::get_version_info() const {
 	dict["revision"] = _MKSTR(VERSION_REVISION);
 	dict["year"] = VERSION_YEAR;
 
+	String hash = String(VERSION_HASH);
+	dict["hash"] = hash.length() == 0 ? String("unknown") : hash;
+
 	String stringver = String(dict["major"]) + "." + String(dict["minor"]);
 	if ((int)dict["patch"] != 0)
 		stringver += "." + String(dict["patch"]);
@@ -115,4 +119,7 @@ Engine::Engine() {
 	_fixed_frames = 0;
 	_idle_frames = 0;
 	_in_fixed = false;
+	_frame_ticks = 0;
+	_frame_step = 0;
+	editor_hint = false;
 }

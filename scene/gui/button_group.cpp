@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -56,7 +56,7 @@ void ButtonGroup::set_pressed_button(BaseButton *p_button) {
 void ButtonGroup::_pressed(Object *p_button) {
 
 	ERR_FAIL_NULL(p_button);
-	BaseButton *b=p_button->cast_to<BaseButton>();
+	BaseButton *b=Object::cast_to<BaseButton>(p_button);
 	ERR_FAIL_COND(!b);
 
 	for(Set<BaseButton*>::Element *E=buttons.front();E;E=E->next()) {
@@ -152,12 +152,12 @@ int ButtonGroup::get_pressed_button_index() const {
 
 void ButtonGroup::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("get_pressed_button:BaseButton"),&ButtonGroup::get_pressed_button);
+	ClassDB::bind_method(D_METHOD("get_pressed_button"),&ButtonGroup::get_pressed_button);
 	ClassDB::bind_method(D_METHOD("get_pressed_button_index"),&ButtonGroup::get_pressed_button_index);
-	ClassDB::bind_method(D_METHOD("get_focused_button:BaseButton"),&ButtonGroup::get_focused_button);
+	ClassDB::bind_method(D_METHOD("get_focused_button"),&ButtonGroup::get_focused_button);
 	ClassDB::bind_method(D_METHOD("get_button_list"),&ButtonGroup::_get_button_list);
 	ClassDB::bind_method(D_METHOD("_pressed"),&ButtonGroup::_pressed);
-	ClassDB::bind_method(D_METHOD("set_pressed_button","button:BaseButton"),&ButtonGroup::_pressed);
+	ClassDB::bind_method(D_METHOD("set_pressed_button","button"),&ButtonGroup::_pressed);
 
 	ADD_SIGNAL( MethodInfo("button_selected",PropertyInfo(Variant::OBJECT,"button",PROPERTY_HINT_RESOURCE_TYPE,"BaseButton")));
 }

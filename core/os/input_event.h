@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -307,6 +307,7 @@ public:
 	virtual bool action_match(const Ref<InputEvent> &p_event) const;
 
 	virtual bool is_action_type() const { return true; }
+	virtual String as_text() const;
 
 	InputEventMouseButton();
 };
@@ -328,6 +329,7 @@ public:
 	Vector2 get_speed() const;
 
 	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const;
+	virtual String as_text() const;
 
 	InputEventMouseMotion();
 };
@@ -348,9 +350,11 @@ public:
 	void set_axis_value(float p_value);
 	float get_axis_value() const;
 
+	virtual bool is_pressed() const;
 	virtual bool action_match(const Ref<InputEvent> &p_event) const;
 
 	virtual bool is_action_type() const { return true; }
+	virtual String as_text() const;
 
 	InputEventJoypadMotion();
 };
@@ -377,6 +381,7 @@ public:
 	virtual bool action_match(const Ref<InputEvent> &p_event) const;
 
 	virtual bool is_action_type() const { return true; }
+	virtual String as_text() const;
 
 	InputEventJoypadButton();
 };
@@ -401,6 +406,7 @@ public:
 	virtual bool is_pressed() const;
 
 	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const;
+	virtual String as_text() const;
 
 	InputEventScreenTouch();
 };
@@ -430,6 +436,7 @@ public:
 	Vector2 get_speed() const;
 
 	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const;
+	virtual String as_text() const;
 
 	InputEventScreenDrag();
 };
@@ -454,6 +461,7 @@ public:
 	virtual bool is_action(const StringName &p_action) const;
 
 	virtual bool is_action_type() const { return true; }
+	virtual String as_text() const;
 
 	InputEventAction();
 };

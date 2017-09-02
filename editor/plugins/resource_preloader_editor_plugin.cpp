@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -30,8 +30,8 @@
 #include "resource_preloader_editor_plugin.h"
 
 #include "editor/editor_settings.h"
-#include "global_config.h"
 #include "io/resource_loader.h"
+#include "project_settings.h"
 
 void ResourcePreloaderEditor::_gui_input(Ref<InputEvent> p_event) {
 }
@@ -157,7 +157,6 @@ void ResourcePreloaderEditor::_paste_pressed() {
 	if (!r.is_valid()) {
 		dialog->set_text(TTR("Resource clipboard is empty!"));
 		dialog->set_title(TTR("Error!"));
-		//dialog->get_cancel()->set_text("Close");
 		dialog->get_ok()->set_text(TTR("Close"));
 		dialog->popup_centered_minsize();
 		return; ///beh should show an error i guess
@@ -362,7 +361,7 @@ void ResourcePreloaderEditor::_bind_methods() {
 
 ResourcePreloaderEditor::ResourcePreloaderEditor() {
 
-	//add_style_override("panel", get_stylebox("panel","Panel"));
+	//add_style_override("panel", EditorNode::get_singleton()->get_gui_base()->get_stylebox("panel","Panel"));
 
 	VBoxContainer *vbc = memnew(VBoxContainer);
 	add_child(vbc);
@@ -410,7 +409,7 @@ ResourcePreloaderEditor::ResourcePreloaderEditor() {
 void ResourcePreloaderEditorPlugin::edit(Object *p_object) {
 
 	preloader_editor->set_undo_redo(&get_undo_redo());
-	ResourcePreloader *s = p_object->cast_to<ResourcePreloader>();
+	ResourcePreloader *s = Object::cast_to<ResourcePreloader>(p_object);
 	if (!s)
 		return;
 

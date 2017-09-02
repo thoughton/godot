@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "environment.h"
-#include "global_config.h"
+#include "project_settings.h"
 #include "servers/visual_server.h"
 #include "texture.h"
 
@@ -167,6 +167,7 @@ void Environment::set_tonemap_auto_exposure(bool p_enabled) {
 
 	tonemap_auto_exposure = p_enabled;
 	VS::get_singleton()->environment_set_tonemap(environment, VS::EnvironmentToneMapper(tone_mapper), tonemap_exposure, tonemap_white, tonemap_auto_exposure, tonemap_auto_exposure_min, tonemap_auto_exposure_max, tonemap_auto_exposure_speed, tonemap_auto_exposure_grey);
+	_change_notify();
 }
 bool Environment::get_tonemap_auto_exposure() const {
 
@@ -471,7 +472,7 @@ bool Environment::is_ssao_blur_enabled() const {
 void Environment::set_glow_enabled(bool p_enabled) {
 
 	glow_enabled = p_enabled;
-	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_treshold, glow_hdr_bleed_treshold, glow_bicubic_upscale);
+	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_threshold, glow_hdr_bleed_threshold, glow_bicubic_upscale);
 	_change_notify();
 }
 
@@ -489,7 +490,7 @@ void Environment::set_glow_level(int p_level, bool p_enabled) {
 	else
 		glow_levels &= ~(1 << p_level);
 
-	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_treshold, glow_hdr_bleed_treshold, glow_bicubic_upscale);
+	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_threshold, glow_hdr_bleed_threshold, glow_bicubic_upscale);
 }
 bool Environment::is_glow_level_enabled(int p_level) const {
 
@@ -502,7 +503,7 @@ void Environment::set_glow_intensity(float p_intensity) {
 
 	glow_intensity = p_intensity;
 
-	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_treshold, glow_hdr_bleed_treshold, glow_bicubic_upscale);
+	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_threshold, glow_hdr_bleed_threshold, glow_bicubic_upscale);
 }
 float Environment::get_glow_intensity() const {
 
@@ -512,18 +513,18 @@ float Environment::get_glow_intensity() const {
 void Environment::set_glow_strength(float p_strength) {
 
 	glow_strength = p_strength;
-	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_treshold, glow_hdr_bleed_treshold, glow_bicubic_upscale);
+	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_threshold, glow_hdr_bleed_threshold, glow_bicubic_upscale);
 }
 float Environment::get_glow_strength() const {
 
 	return glow_strength;
 }
 
-void Environment::set_glow_bloom(float p_treshold) {
+void Environment::set_glow_bloom(float p_threshold) {
 
-	glow_bloom = p_treshold;
+	glow_bloom = p_threshold;
 
-	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_treshold, glow_hdr_bleed_treshold, glow_bicubic_upscale);
+	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_threshold, glow_hdr_bleed_threshold, glow_bicubic_upscale);
 }
 float Environment::get_glow_bloom() const {
 
@@ -534,29 +535,29 @@ void Environment::set_glow_blend_mode(GlowBlendMode p_mode) {
 
 	glow_blend_mode = p_mode;
 
-	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_treshold, glow_hdr_bleed_treshold, glow_bicubic_upscale);
+	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_threshold, glow_hdr_bleed_threshold, glow_bicubic_upscale);
 }
 Environment::GlowBlendMode Environment::get_glow_blend_mode() const {
 
 	return glow_blend_mode;
 }
 
-void Environment::set_glow_hdr_bleed_treshold(float p_treshold) {
+void Environment::set_glow_hdr_bleed_threshold(float p_threshold) {
 
-	glow_hdr_bleed_treshold = p_treshold;
+	glow_hdr_bleed_threshold = p_threshold;
 
-	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_treshold, glow_hdr_bleed_treshold, glow_bicubic_upscale);
+	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_threshold, glow_hdr_bleed_threshold, glow_bicubic_upscale);
 }
-float Environment::get_glow_hdr_bleed_treshold() const {
+float Environment::get_glow_hdr_bleed_threshold() const {
 
-	return glow_hdr_bleed_treshold;
+	return glow_hdr_bleed_threshold;
 }
 
 void Environment::set_glow_hdr_bleed_scale(float p_scale) {
 
 	glow_hdr_bleed_scale = p_scale;
 
-	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_treshold, glow_hdr_bleed_treshold, glow_bicubic_upscale);
+	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_threshold, glow_hdr_bleed_threshold, glow_bicubic_upscale);
 }
 float Environment::get_glow_hdr_bleed_scale() const {
 
@@ -566,7 +567,7 @@ float Environment::get_glow_hdr_bleed_scale() const {
 void Environment::set_glow_bicubic_upscale(bool p_enable) {
 
 	glow_bicubic_upscale = p_enable;
-	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_treshold, glow_hdr_bleed_treshold, glow_bicubic_upscale);
+	VS::get_singleton()->environment_set_glow(environment, glow_enabled, glow_levels, glow_intensity, glow_strength, glow_bloom, VS::EnvironmentGlowBlendMode(glow_blend_mode), glow_hdr_bleed_threshold, glow_hdr_bleed_threshold, glow_bicubic_upscale);
 }
 
 bool Environment::is_glow_bicubic_upscale_enabled() const {
@@ -818,7 +819,7 @@ float Environment::get_fog_height_curve() const {
 void Environment::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_background", "mode"), &Environment::set_background);
-	ClassDB::bind_method(D_METHOD("set_sky", "sky:CubeMap"), &Environment::set_sky);
+	ClassDB::bind_method(D_METHOD("set_sky", "sky"), &Environment::set_sky);
 	ClassDB::bind_method(D_METHOD("set_sky_scale", "scale"), &Environment::set_sky_scale);
 	ClassDB::bind_method(D_METHOD("set_bg_color", "color"), &Environment::set_bg_color);
 	ClassDB::bind_method(D_METHOD("set_bg_energy", "energy"), &Environment::set_bg_energy);
@@ -828,7 +829,7 @@ void Environment::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_ambient_light_sky_contribution", "energy"), &Environment::set_ambient_light_sky_contribution);
 
 	ClassDB::bind_method(D_METHOD("get_background"), &Environment::get_background);
-	ClassDB::bind_method(D_METHOD("get_sky:CubeMap"), &Environment::get_sky);
+	ClassDB::bind_method(D_METHOD("get_sky"), &Environment::get_sky);
 	ClassDB::bind_method(D_METHOD("get_sky_scale"), &Environment::get_sky_scale);
 	ClassDB::bind_method(D_METHOD("get_bg_color"), &Environment::get_bg_color);
 	ClassDB::bind_method(D_METHOD("get_bg_energy"), &Environment::get_bg_energy);
@@ -993,10 +994,10 @@ void Environment::_bind_methods() {
 
 	ADD_GROUP("SSAO", "ssao_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "ssao_enabled"), "set_ssao_enabled", "is_ssao_enabled");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "ssao_radius", PROPERTY_HINT_RANGE, "0.1,16,0.1"), "set_ssao_radius", "get_ssao_radius");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "ssao_intensity", PROPERTY_HINT_RANGE, "0.0,9,0.1"), "set_ssao_intensity", "get_ssao_intensity");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "ssao_radius2", PROPERTY_HINT_RANGE, "0.0,16,0.1"), "set_ssao_radius2", "get_ssao_radius2");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "ssao_intensity2", PROPERTY_HINT_RANGE, "0.0,9,0.1"), "set_ssao_intensity2", "get_ssao_intensity2");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "ssao_radius", PROPERTY_HINT_RANGE, "0.1,128,0.1"), "set_ssao_radius", "get_ssao_radius");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "ssao_intensity", PROPERTY_HINT_RANGE, "0.0,128,0.1"), "set_ssao_intensity", "get_ssao_intensity");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "ssao_radius2", PROPERTY_HINT_RANGE, "0.0,128,0.1"), "set_ssao_radius2", "get_ssao_radius2");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "ssao_intensity2", PROPERTY_HINT_RANGE, "0.0,128,0.1"), "set_ssao_intensity2", "get_ssao_intensity2");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "ssao_bias", PROPERTY_HINT_RANGE, "0.001,8,0.001"), "set_ssao_bias", "get_ssao_bias");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "ssao_light_affect", PROPERTY_HINT_RANGE, "0.00,1,0.01"), "set_ssao_direct_light_affect", "get_ssao_direct_light_affect");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "ssao_color", PROPERTY_HINT_COLOR_NO_ALPHA), "set_ssao_color", "get_ssao_color");
@@ -1064,8 +1065,8 @@ void Environment::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_glow_blend_mode", "mode"), &Environment::set_glow_blend_mode);
 	ClassDB::bind_method(D_METHOD("get_glow_blend_mode"), &Environment::get_glow_blend_mode);
 
-	ClassDB::bind_method(D_METHOD("set_glow_hdr_bleed_treshold", "treshold"), &Environment::set_glow_hdr_bleed_treshold);
-	ClassDB::bind_method(D_METHOD("get_glow_hdr_bleed_treshold"), &Environment::get_glow_hdr_bleed_treshold);
+	ClassDB::bind_method(D_METHOD("set_glow_hdr_bleed_threshold", "threshold"), &Environment::set_glow_hdr_bleed_threshold);
+	ClassDB::bind_method(D_METHOD("get_glow_hdr_bleed_threshold"), &Environment::get_glow_hdr_bleed_threshold);
 
 	ClassDB::bind_method(D_METHOD("set_glow_hdr_bleed_scale", "scale"), &Environment::set_glow_hdr_bleed_scale);
 	ClassDB::bind_method(D_METHOD("get_glow_hdr_bleed_scale"), &Environment::get_glow_hdr_bleed_scale);
@@ -1087,7 +1088,7 @@ void Environment::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "glow_strength", PROPERTY_HINT_RANGE, "0.0,2.0,0.01"), "set_glow_strength", "get_glow_strength");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "glow_bloom", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"), "set_glow_bloom", "get_glow_bloom");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "glow_blend_mode", PROPERTY_HINT_ENUM, "Additive,Screen,Softlight,Replace"), "set_glow_blend_mode", "get_glow_blend_mode");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "glow_hdr_treshold", PROPERTY_HINT_RANGE, "0.0,4.0,0.01"), "set_glow_hdr_bleed_treshold", "get_glow_hdr_bleed_treshold");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "glow_hdr_threshold", PROPERTY_HINT_RANGE, "0.0,4.0,0.01"), "set_glow_hdr_bleed_threshold", "get_glow_hdr_bleed_threshold");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "glow_hdr_scale", PROPERTY_HINT_RANGE, "0.0,4.0,0.01"), "set_glow_hdr_bleed_scale", "get_glow_hdr_bleed_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "glow_bicubic_upscale"), "set_glow_bicubic_upscale", "is_glow_bicubic_upscale_enabled");
 
@@ -1113,35 +1114,38 @@ void Environment::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "adjustment_saturation", PROPERTY_HINT_RANGE, "0.01,8,0.01"), "set_adjustment_saturation", "get_adjustment_saturation");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "adjustment_color_correction", PROPERTY_HINT_RESOURCE_TYPE, "Texture"), "set_adjustment_color_correction", "get_adjustment_color_correction");
 
-	GLOBAL_DEF("rendering/sky/irradiance_cube_resolution", 256);
+	BIND_ENUM_CONSTANT(BG_KEEP);
+	BIND_ENUM_CONSTANT(BG_CLEAR_COLOR);
+	BIND_ENUM_CONSTANT(BG_COLOR);
+	BIND_ENUM_CONSTANT(BG_SKY);
+	BIND_ENUM_CONSTANT(BG_CANVAS);
+	BIND_ENUM_CONSTANT(BG_MAX);
 
-	BIND_CONSTANT(BG_KEEP);
-	BIND_CONSTANT(BG_CLEAR_COLOR);
-	BIND_CONSTANT(BG_COLOR);
-	BIND_CONSTANT(BG_SKY);
-	BIND_CONSTANT(BG_CANVAS);
-	BIND_CONSTANT(BG_MAX);
-	BIND_CONSTANT(GLOW_BLEND_MODE_ADDITIVE);
-	BIND_CONSTANT(GLOW_BLEND_MODE_SCREEN);
-	BIND_CONSTANT(GLOW_BLEND_MODE_SOFTLIGHT);
-	BIND_CONSTANT(GLOW_BLEND_MODE_REPLACE);
-	BIND_CONSTANT(TONE_MAPPER_LINEAR);
-	BIND_CONSTANT(TONE_MAPPER_REINHARDT);
-	BIND_CONSTANT(TONE_MAPPER_FILMIC);
-	BIND_CONSTANT(TONE_MAPPER_ACES);
-	BIND_CONSTANT(DOF_BLUR_QUALITY_LOW);
-	BIND_CONSTANT(DOF_BLUR_QUALITY_MEDIUM);
-	BIND_CONSTANT(DOF_BLUR_QUALITY_HIGH);
+	BIND_ENUM_CONSTANT(GLOW_BLEND_MODE_ADDITIVE);
+	BIND_ENUM_CONSTANT(GLOW_BLEND_MODE_SCREEN);
+	BIND_ENUM_CONSTANT(GLOW_BLEND_MODE_SOFTLIGHT);
+	BIND_ENUM_CONSTANT(GLOW_BLEND_MODE_REPLACE);
+
+	BIND_ENUM_CONSTANT(TONE_MAPPER_LINEAR);
+	BIND_ENUM_CONSTANT(TONE_MAPPER_REINHARDT);
+	BIND_ENUM_CONSTANT(TONE_MAPPER_FILMIC);
+	BIND_ENUM_CONSTANT(TONE_MAPPER_ACES);
+
+	BIND_ENUM_CONSTANT(DOF_BLUR_QUALITY_LOW);
+	BIND_ENUM_CONSTANT(DOF_BLUR_QUALITY_MEDIUM);
+	BIND_ENUM_CONSTANT(DOF_BLUR_QUALITY_HIGH);
 }
 
 Environment::Environment() {
+
+	environment = VS::get_singleton()->environment_create();
 
 	bg_mode = BG_CLEAR_COLOR;
 	bg_sky_scale = 1.0;
 	bg_energy = 1.0;
 	bg_canvas_max_layer = 0;
 	ambient_energy = 1.0;
-	ambient_sky_contribution = 0;
+	ambient_sky_contribution = 1.0;
 
 	tone_mapper = TONE_MAPPER_LINEAR;
 	tonemap_exposure = 1.0;
@@ -1160,8 +1164,6 @@ Environment::Environment() {
 	adjustment_brightness = 1.0;
 
 	set_adjustment_enable(adjustment_enabled); //update
-
-	environment = VS::get_singleton()->environment_create();
 
 	ssr_enabled = false;
 	ssr_max_steps = 64;
@@ -1185,7 +1187,7 @@ Environment::Environment() {
 	glow_strength = 1.0;
 	glow_bloom = 0.0;
 	glow_blend_mode = GLOW_BLEND_MODE_SOFTLIGHT;
-	glow_hdr_bleed_treshold = 1.0;
+	glow_hdr_bleed_threshold = 1.0;
 	glow_hdr_bleed_scale = 2.0;
 	glow_bicubic_upscale = false;
 

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -56,6 +56,12 @@ class ScriptEditorDebugger : public Control {
 
 	GDCLASS(ScriptEditorDebugger, Control);
 
+	enum MessageType {
+		MESSAGE_ERROR,
+		MESSAGE_WARNING,
+		MESSAGE_SUCCESS,
+	};
+
 	AcceptDialog *msgdialog;
 
 	Button *debugger_button;
@@ -89,7 +95,7 @@ class ScriptEditorDebugger : public Control {
 
 	TabContainer *tabs;
 
-	LineEdit *reason;
+	Label *reason;
 	ScriptEditorDebuggerVariables *variables;
 
 	Button *step;
@@ -144,6 +150,7 @@ class ScriptEditorDebugger : public Control {
 	void _scene_tree_selected();
 	void _scene_tree_request();
 	void _parse_message(const String &p_msg, const Array &p_data);
+	void _set_reason_text(const String &p_msg, MessageType p_type);
 	void _scene_tree_property_select_object(ObjectID p_object);
 	void _scene_tree_property_value_edited(const String &p_prop, const Variant &p_value);
 

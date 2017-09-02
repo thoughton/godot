@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -28,8 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "rasterizer_canvas_gles3.h"
-#include "global_config.h"
 #include "os/os.h"
+#include "project_settings.h"
 #include "rasterizer_scene_gles3.h"
 #include "servers/visual/visual_server_raster.h"
 #ifndef GLES_OVER_GL
@@ -574,6 +574,7 @@ void RasterizerCanvasGLES3::_canvas_item_render_commands(Item *p_item, Item *cur
 
 					Size2 texpixel_size(1.0 / texture->width, 1.0 / texture->height);
 					Rect2 src_rect = (rect->flags & CANVAS_RECT_REGION) ? Rect2(rect->source.position * texpixel_size, rect->source.size * texpixel_size) : Rect2(0, 0, 1, 1);
+					Rect2 dst_rect = Rect2(rect->rect.position, rect->rect.size);
 
 					if (rect->flags & CANVAS_RECT_FLIP_H) {
 						src_rect.size.x *= -1;
@@ -584,12 +585,12 @@ void RasterizerCanvasGLES3::_canvas_item_render_commands(Item *p_item, Item *cur
 					}
 
 					if (rect->flags & CANVAS_RECT_TRANSPOSE) {
-						//err..
+						dst_rect.size.x *= -1; // Encoding in the dst_rect.z uniform
 					}
 
 					state.canvas_shader.set_uniform(CanvasShaderGLES3::COLOR_TEXPIXEL_SIZE, texpixel_size);
 
-					state.canvas_shader.set_uniform(CanvasShaderGLES3::DST_RECT, Color(rect->rect.position.x, rect->rect.position.y, rect->rect.size.x, rect->rect.size.y));
+					state.canvas_shader.set_uniform(CanvasShaderGLES3::DST_RECT, Color(dst_rect.position.x, dst_rect.position.y, dst_rect.size.x, dst_rect.size.y));
 					state.canvas_shader.set_uniform(CanvasShaderGLES3::SRC_RECT, Color(src_rect.position.x, src_rect.position.y, src_rect.size.x, src_rect.size.y));
 					state.canvas_shader.set_uniform(CanvasShaderGLES3::CLIP_RECT_UV, (rect->flags & CANVAS_RECT_CLIP_UV) ? true : false);
 
@@ -691,6 +692,13 @@ void RasterizerCanvasGLES3::_canvas_item_render_commands(Item *p_item, Item *cur
 					state.canvas_shader.set_uniform(CanvasShaderGLES3::COLOR_TEXPIXEL_SIZE, texpixel_size);
 				}
 				_draw_polygon(polygon->indices.ptr(), polygon->count, polygon->points.size(), polygon->points.ptr(), polygon->uvs.ptr(), polygon->colors.ptr(), polygon->colors.size() == 1);
+#ifdef GLES_OVER_GL
+				if (polygon->antialiased) {
+					glEnable(GL_LINE_SMOOTH);
+					_draw_generic(GL_LINE_LOOP, polygon->points.size(), polygon->points.ptr(), polygon->uvs.ptr(), polygon->colors.ptr(), polygon->colors.size() == 1);
+					glDisable(GL_LINE_SMOOTH);
+				}
+#endif
 
 			} break;
 			case Item::Command::TYPE_PARTICLES: {
@@ -941,6 +949,8 @@ void RasterizerGLES2::_canvas_item_setup_shader_params(ShaderMaterial *material,
 
 void RasterizerCanvasGLES3::_copy_texscreen(const Rect2 &p_rect) {
 
+	glDisable(GL_BLEND);
+
 	state.canvas_texscreen_used = true;
 	//blur diffuse into effect mipmaps using separatable convolution
 	//storage->shaders.copy.set_conditional(CopyShaderGLES3::GAUSSIAN_HORIZONTAL,true);
@@ -1003,12 +1013,16 @@ void RasterizerCanvasGLES3::_copy_texscreen(const Rect2 &p_rect) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->fbo); //back to front
 	glViewport(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height);
+
 	state.canvas_shader.bind(); //back to canvas
+	_bind_canvas_texture(state.current_tex, state.current_normal);
 
 	if (state.using_texture_rect) {
 		state.using_texture_rect = false;
 		_set_texture_rect_mode(state.using_texture_rect, state.using_ninepatch);
 	}
+
+	glEnable(GL_BLEND);
 }
 
 void RasterizerCanvasGLES3::canvas_render_items(Item *p_item_list, int p_z, const Color &p_modulate, Light *p_light) {
@@ -1201,11 +1215,7 @@ void RasterizerCanvasGLES3::canvas_render_items(Item *p_item_list, int p_z, cons
 			last_blend_mode = blend_mode;
 		}
 
-		state.canvas_item_modulate = unshaded ? ci->final_modulate : Color(
-																			 ci->final_modulate.r * p_modulate.r,
-																			 ci->final_modulate.g * p_modulate.g,
-																			 ci->final_modulate.b * p_modulate.b,
-																			 ci->final_modulate.a * p_modulate.a);
+		state.canvas_item_modulate = unshaded ? ci->final_modulate : Color(ci->final_modulate.r * p_modulate.r, ci->final_modulate.g * p_modulate.g, ci->final_modulate.b * p_modulate.b, ci->final_modulate.a * p_modulate.a);
 
 		state.final_transform = ci->final_transform;
 		state.extra_matrix = Transform2D();
@@ -1274,6 +1284,7 @@ void RasterizerCanvasGLES3::canvas_render_items(Item *p_item_list, int p_z, cons
 							case VS::CANVAS_LIGHT_FILTER_NONE: state.canvas_shader.set_conditional(CanvasShaderGLES3::SHADOW_FILTER_NEAREST, true); break;
 							case VS::CANVAS_LIGHT_FILTER_PCF3: state.canvas_shader.set_conditional(CanvasShaderGLES3::SHADOW_FILTER_PCF3, true); break;
 							case VS::CANVAS_LIGHT_FILTER_PCF5: state.canvas_shader.set_conditional(CanvasShaderGLES3::SHADOW_FILTER_PCF5, true); break;
+							case VS::CANVAS_LIGHT_FILTER_PCF7: state.canvas_shader.set_conditional(CanvasShaderGLES3::SHADOW_FILTER_PCF7, true); break;
 							case VS::CANVAS_LIGHT_FILTER_PCF9: state.canvas_shader.set_conditional(CanvasShaderGLES3::SHADOW_FILTER_PCF9, true); break;
 							case VS::CANVAS_LIGHT_FILTER_PCF13: state.canvas_shader.set_conditional(CanvasShaderGLES3::SHADOW_FILTER_PCF13, true); break;
 						}
@@ -1324,6 +1335,7 @@ void RasterizerCanvasGLES3::canvas_render_items(Item *p_item_list, int p_z, cons
 				state.canvas_shader.set_conditional(CanvasShaderGLES3::SHADOW_FILTER_NEAREST, false);
 				state.canvas_shader.set_conditional(CanvasShaderGLES3::SHADOW_FILTER_PCF3, false);
 				state.canvas_shader.set_conditional(CanvasShaderGLES3::SHADOW_FILTER_PCF5, false);
+				state.canvas_shader.set_conditional(CanvasShaderGLES3::SHADOW_FILTER_PCF7, false);
 				state.canvas_shader.set_conditional(CanvasShaderGLES3::SHADOW_FILTER_PCF9, false);
 				state.canvas_shader.set_conditional(CanvasShaderGLES3::SHADOW_FILTER_PCF13, false);
 
@@ -1595,6 +1607,67 @@ void RasterizerCanvasGLES3::draw_generic_textured_rect(const Rect2 &p_rect, cons
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
+void RasterizerCanvasGLES3::draw_window_margins(int *black_margin, RID *black_image) {
+
+	Vector2 window_size = OS::get_singleton()->get_window_size();
+	int window_h = window_size.height;
+	int window_w = window_size.width;
+
+	glBindFramebuffer(GL_FRAMEBUFFER, storage->system_fbo);
+	glViewport(0, 0, window_size.width, window_size.height);
+	canvas_begin();
+
+	if (black_image[MARGIN_LEFT].is_valid()) {
+		_bind_canvas_texture(black_image[MARGIN_LEFT], RID());
+		Size2 sz(storage->texture_get_width(black_image[MARGIN_LEFT]), storage->texture_get_height(black_image[MARGIN_LEFT]));
+		draw_generic_textured_rect(Rect2(0, 0, black_margin[MARGIN_LEFT], window_h), Rect2(0, 0, sz.x, sz.y));
+	} else if (black_margin[MARGIN_LEFT]) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, storage->resources.black_tex);
+
+		draw_generic_textured_rect(Rect2(0, 0, black_margin[MARGIN_LEFT], window_h), Rect2(0, 0, 1, 1));
+	}
+
+	if (black_image[MARGIN_RIGHT].is_valid()) {
+		_bind_canvas_texture(black_image[MARGIN_RIGHT], RID());
+		Size2 sz(storage->texture_get_width(black_image[MARGIN_RIGHT]), storage->texture_get_height(black_image[MARGIN_RIGHT]));
+		draw_generic_textured_rect(Rect2(window_w - black_margin[MARGIN_RIGHT], 0, black_margin[MARGIN_RIGHT], window_h), Rect2(0, 0, sz.x, sz.y));
+	} else if (black_margin[MARGIN_RIGHT]) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, storage->resources.black_tex);
+
+		draw_generic_textured_rect(Rect2(window_w - black_margin[MARGIN_RIGHT], 0, black_margin[MARGIN_RIGHT], window_h), Rect2(0, 0, 1, 1));
+	}
+
+	if (black_image[MARGIN_TOP].is_valid()) {
+		_bind_canvas_texture(black_image[MARGIN_TOP], RID());
+
+		Size2 sz(storage->texture_get_width(black_image[MARGIN_TOP]), storage->texture_get_height(black_image[MARGIN_TOP]));
+		draw_generic_textured_rect(Rect2(0, 0, window_w, black_margin[MARGIN_TOP]), Rect2(0, 0, sz.x, sz.y));
+
+	} else if (black_margin[MARGIN_TOP]) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, storage->resources.black_tex);
+
+		draw_generic_textured_rect(Rect2(0, 0, window_w, black_margin[MARGIN_TOP]), Rect2(0, 0, 1, 1));
+	}
+
+	if (black_image[MARGIN_BOTTOM].is_valid()) {
+
+		_bind_canvas_texture(black_image[MARGIN_BOTTOM], RID());
+
+		Size2 sz(storage->texture_get_width(black_image[MARGIN_BOTTOM]), storage->texture_get_height(black_image[MARGIN_BOTTOM]));
+		draw_generic_textured_rect(Rect2(0, window_h - black_margin[MARGIN_BOTTOM], window_w, black_margin[MARGIN_BOTTOM]), Rect2(0, 0, sz.x, sz.y));
+
+	} else if (black_margin[MARGIN_BOTTOM]) {
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, storage->resources.black_tex);
+
+		draw_generic_textured_rect(Rect2(0, window_h - black_margin[MARGIN_BOTTOM], window_w, black_margin[MARGIN_BOTTOM]), Rect2(0, 0, 1, 1));
+	}
+}
+
 void RasterizerCanvasGLES3::initialize() {
 
 	{
@@ -1658,7 +1731,7 @@ void RasterizerCanvasGLES3::initialize() {
 	}
 	{
 
-		uint32_t poly_size = GLOBAL_DEF("rendering/buffers/canvas_polygon_buffer_size_kb", 128);
+		uint32_t poly_size = GLOBAL_DEF("rendering/limits/buffers/canvas_polygon_buffer_size_kb", 128);
 		poly_size *= 1024; //kb
 		poly_size = MAX(poly_size, (2 + 2 + 4) * 4 * sizeof(float));
 		glGenBuffers(1, &data.polygon_buffer);
@@ -1704,7 +1777,7 @@ void RasterizerCanvasGLES3::initialize() {
 
 		glGenVertexArrays(1, &data.polygon_buffer_pointer_array);
 
-		uint32_t index_size = GLOBAL_DEF("rendering/buffers/canvas_polygon_index_buffer_size_kb", 128);
+		uint32_t index_size = GLOBAL_DEF("rendering/limits/buffers/canvas_polygon_index_buffer_size_kb", 128);
 		index_size *= 1024; //kb
 		glGenBuffers(1, &data.polygon_index_buffer);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.polygon_index_buffer);

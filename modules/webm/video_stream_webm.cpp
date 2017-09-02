@@ -1,9 +1,9 @@
 /*************************************************************************/
-/*  av_stream_webm.cpp.cpp                                              */
+/*  video_stream_webm.cpp                                                */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -34,8 +34,8 @@
 
 #include "mkvparser/mkvparser.h"
 
-#include "global_config.h"
 #include "os/file_access.h"
+#include "project_settings.h"
 
 #include "thirdparty/misc/yuv2rgb.h"
 
@@ -168,7 +168,7 @@ void VideoStreamPlaybackWebm::play() {
 
 	stop();
 
-	delay_compensation = GlobalConfig::get_singleton()->get("audio/video_delay_compensation_ms");
+	delay_compensation = ProjectSettings::get_singleton()->get("audio/video_delay_compensation_ms");
 	delay_compensation /= 1000.0;
 
 	playing = true;

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -28,6 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "base_button.h"
+
 #include "os/keyboard.h"
 #include "print_string.h"
 #include "scene/main/viewport.h"
@@ -508,19 +509,19 @@ void BaseButton::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("toggled", PropertyInfo(Variant::BOOL, "pressed")));
 	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "disabled"), "set_disabled", "is_disabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "toggle_mode"), "set_toggle_mode", "is_toggle_mode");
-	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "is_pressed"), "set_pressed", "is_pressed");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "pressed"), "set_pressed", "is_pressed");
 	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "action_mode", PROPERTY_HINT_ENUM, "Button Press,Button Release"), "set_action_mode", "get_action_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "enabled_focus_mode", PROPERTY_HINT_ENUM, "None,Click,All"), "set_enabled_focus_mode", "get_enabled_focus_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "shortcut", PROPERTY_HINT_RESOURCE_TYPE, "ShortCut"), "set_shortcut", "get_shortcut");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "group", PROPERTY_HINT_RESOURCE_TYPE, "ButtonGroup"), "set_button_group", "get_button_group");
 
-	BIND_CONSTANT(DRAW_NORMAL);
-	BIND_CONSTANT(DRAW_PRESSED);
-	BIND_CONSTANT(DRAW_HOVER);
-	BIND_CONSTANT(DRAW_DISABLED);
+	BIND_ENUM_CONSTANT(DRAW_NORMAL);
+	BIND_ENUM_CONSTANT(DRAW_PRESSED);
+	BIND_ENUM_CONSTANT(DRAW_HOVER);
+	BIND_ENUM_CONSTANT(DRAW_DISABLED);
 
-	BIND_CONSTANT(ACTION_MODE_BUTTON_PRESS);
-	BIND_CONSTANT(ACTION_MODE_BUTTON_RELEASE);
+	BIND_ENUM_CONSTANT(ACTION_MODE_BUTTON_PRESS);
+	BIND_ENUM_CONSTANT(ACTION_MODE_BUTTON_RELEASE);
 }
 
 BaseButton::BaseButton() {
@@ -563,7 +564,7 @@ BaseButton *ButtonGroup::get_pressed_button() {
 
 void ButtonGroup::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("get_pressed_button:BaseButton"), &ButtonGroup::get_pressed_button);
+	ClassDB::bind_method(D_METHOD("get_pressed_button"), &ButtonGroup::get_pressed_button);
 }
 
 ButtonGroup::ButtonGroup() {

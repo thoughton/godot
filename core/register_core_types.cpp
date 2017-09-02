@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -36,10 +36,10 @@
 #include "core_string_names.h"
 #include "func_ref.h"
 #include "geometry.h"
-#include "global_config.h"
 #include "input_map.h"
 #include "io/config_file.h"
 #include "io/http_client.h"
+#include "io/marshalls.h"
 #include "io/packet_peer.h"
 #include "io/packet_peer_udp.h"
 #include "io/pck_packer.h"
@@ -54,9 +54,9 @@
 #include "os/main_loop.h"
 #include "packed_data_container.h"
 #include "path_remap.h"
+#include "project_settings.h"
 #include "translation.h"
 #include "undo_redo.h"
-
 static ResourceFormatSaverBinary *resource_saver_binary = NULL;
 static ResourceFormatLoaderBinary *resource_loader_binary = NULL;
 static ResourceFormatImporter *resource_format_importer = NULL;
@@ -75,6 +75,8 @@ static _Geometry *_geometry = NULL;
 
 extern Mutex *_global_mutex;
 
+extern void register_global_constants();
+extern void unregister_global_constants();
 extern void register_variant_methods();
 extern void unregister_variant_methods();
 
@@ -88,6 +90,7 @@ void register_core_types() {
 
 	StringName::setup();
 
+	register_global_constants();
 	register_variant_methods();
 
 	CoreStringNames::create();
@@ -157,6 +160,7 @@ void register_core_types() {
 	ClassDB::register_class<PackedDataContainer>();
 	ClassDB::register_virtual_class<PackedDataContainerRef>();
 	ClassDB::register_class<AStar>();
+	ClassDB::register_class<EncodedObjectAsID>();
 
 	ip = IP::create();
 
@@ -172,23 +176,23 @@ void register_core_types() {
 
 void register_core_settings() {
 	//since in register core types, globals may not e present
-	GLOBAL_DEF("network/packets/packet_stream_peer_max_buffer_po2", (16));
+	GLOBAL_DEF("network/limits/packet_peer_stream/max_buffer_po2", (16));
 }
 
 void register_core_singletons() {
 
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("GlobalConfig", GlobalConfig::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("IP", IP::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("Geometry", _Geometry::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("ResourceLoader", _ResourceLoader::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("ResourceSaver", _ResourceSaver::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("OS", _OS::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("Engine", _Engine::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("ClassDB", _classdb));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("Marshalls", _Marshalls::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("TranslationServer", TranslationServer::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("Input", Input::get_singleton()));
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("InputMap", InputMap::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("ProjectSettings", ProjectSettings::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("IP", IP::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("Geometry", _Geometry::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("ResourceLoader", _ResourceLoader::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("ResourceSaver", _ResourceSaver::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("OS", _OS::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("Engine", _Engine::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("ClassDB", _classdb));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("Marshalls", _Marshalls::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("TranslationServer", TranslationServer::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("Input", Input::get_singleton()));
+	ProjectSettings::get_singleton()->add_singleton(ProjectSettings::Singleton("InputMap", InputMap::get_singleton()));
 }
 
 void unregister_core_types() {
@@ -217,6 +221,7 @@ void unregister_core_types() {
 	ObjectDB::cleanup();
 
 	unregister_variant_methods();
+	unregister_global_constants();
 
 	ClassDB::cleanup();
 	ResourceCache::clear();

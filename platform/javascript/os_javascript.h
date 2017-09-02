@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -59,7 +59,10 @@ class OS_JavaScript : public OS_Unix {
 	const char *gl_extensions;
 
 	InputDefault *input;
+	Vector2 windowed_size;
 	bool window_maximized;
+	bool soft_fs_enabled;
+	bool canvas_size_adjustment_requested;
 	VideoMode video_mode;
 	CursorShape cursor_shape;
 	MainLoop *main_loop;
@@ -121,7 +124,7 @@ public:
 	virtual VideoMode get_video_mode(int p_screen = 0) const;
 	virtual void get_fullscreen_mode_list(List<VideoMode> *p_list, int p_screen = 0) const;
 
-	virtual Size2 get_screen_size(int p_screen = 0) const;
+	virtual Size2 get_screen_size(int p_screen = -1) const;
 
 	virtual void set_window_size(const Size2);
 	virtual Size2 get_window_size() const;
@@ -129,6 +132,8 @@ public:
 	virtual bool is_window_maximized() const { return window_maximized; }
 	virtual void set_window_fullscreen(bool p_enable);
 	virtual bool is_window_fullscreen() const;
+
+	void request_canvas_size_adjustment();
 
 	virtual String get_name();
 	virtual MainLoop *get_main_loop() const;
@@ -163,6 +168,8 @@ public:
 	virtual PowerState get_power_state();
 	virtual int get_power_seconds_left();
 	virtual int get_power_percent_left();
+
+	virtual bool _check_internal_feature_support(const String &p_feature);
 
 	OS_JavaScript(const char *p_execpath, GetDataDirFunc p_get_data_dir_func);
 	~OS_JavaScript();

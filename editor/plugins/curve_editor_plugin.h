@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -141,6 +141,13 @@ private:
 	Ref<Resource> _current_ref;
 	EditorNode *_editor_node;
 	ToolButton *_toggle_button;
+};
+
+class CurvePreviewGenerator : public EditorResourcePreviewGenerator {
+	GDCLASS(CurvePreviewGenerator, EditorResourcePreviewGenerator)
+public:
+	bool handles(const String &p_type) const;
+	Ref<Texture> generate(const Ref<Resource> &p_from);
 };
 
 #endif // CURVE_EDITOR_PLUGIN_H

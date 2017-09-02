@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -28,12 +28,13 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "visual_server_viewport.h"
-#include "global_config.h"
+
+#include "project_settings.h"
 #include "visual_server_canvas.h"
 #include "visual_server_global.h"
 #include "visual_server_scene.h"
 
-void VisualServerViewport::_draw_viewport(Viewport *p_viewport) {
+void VisualServerViewport::_draw_viewport(Viewport *p_viewport, ARVRInterface::Eyes p_eye) {
 
 	/* Camera should always be BEFORE any other 3D */
 
@@ -51,36 +52,6 @@ void VisualServerViewport::_draw_viewport(Viewport *p_viewport) {
 	}
 
 	bool can_draw_3d = !p_viewport->disable_3d && !p_viewport->disable_3d_by_usage && VSG::scene->camera_owner.owns(p_viewport->camera);
-#if 0
-
-
-
-	if (scenario_draw_canvas_bg) {
-
-		rasterizer->begin_canvas_bg();
-	}
-
-	if (!scenario_draw_canvas_bg && can_draw_3d) {
-
-		_draw_viewport_camera(p_viewport,false);
-
-	} else if (true /*|| !p_viewport->canvas_list.empty()*/){
-
-		//clear the viewport black because of no camera? i seriously should..
-		if (p_viewport->render_target_clear_on_new_frame || p_viewport->render_target_clear) {
-			if (p_viewport->transparent_bg) {
-				rasterizer->clear_viewport(Color(0,0,0,0));
-			}
-			else {
-				Color cc=clear_color;
-				if (scenario_draw_canvas_bg)
-					cc.a=0;
-				rasterizer->clear_viewport(cc);
-			}
-			p_viewport->render_target_clear=false;
-		}
-	}
-#endif
 
 	if (p_viewport->clear_mode != VS::VIEWPORT_CLEAR_NEVER) {
 		VSG::rasterizer->clear_render_target(clear_color);
@@ -90,8 +61,13 @@ void VisualServerViewport::_draw_viewport(Viewport *p_viewport) {
 	}
 
 	if (!scenario_draw_canvas_bg && can_draw_3d) {
+		Ref<ARVRInterface> arvr_interface = ARVRServer::get_singleton()->get_primary_interface();
 
-		VSG::scene->render_camera(p_viewport->camera, p_viewport->scenario, p_viewport->size, p_viewport->shadow_atlas);
+		if (p_viewport->use_arvr && arvr_interface.is_valid()) {
+			VSG::scene->render_camera(arvr_interface, p_eye, p_viewport->camera, p_viewport->scenario, p_viewport->size, p_viewport->shadow_atlas);
+		} else {
+			VSG::scene->render_camera(p_viewport->camera, p_viewport->scenario, p_viewport->size, p_viewport->shadow_atlas);
+		}
 	}
 
 	if (!p_viewport->hide_canvas) {
@@ -260,15 +236,19 @@ void VisualServerViewport::_draw_viewport(Viewport *p_viewport) {
 }
 
 void VisualServerViewport::draw_viewports() {
+	// get our arvr interface in case we need it
+	Ref<ARVRInterface> arvr_interface = ARVRServer::get_singleton()->get_primary_interface();
+	if (arvr_interface.is_valid()) {
+		// update our positioning information as late as possible...
+		arvr_interface->process();
+	}
+
+	clear_color = GLOBAL_GET("rendering/environment/default_clear_color");
 
 	//sort viewports
-
-	//draw viewports
-
-	clear_color = GLOBAL_GET("rendering/viewport/default_clear_color");
-
 	active_viewports.sort_custom<ViewportSort>();
 
+	//draw viewports
 	for (int i = 0; i < active_viewports.size(); i++) {
 
 		Viewport *vp = active_viewports[i];
@@ -286,25 +266,47 @@ void VisualServerViewport::draw_viewports() {
 
 		VSG::storage->render_target_clear_used(vp->render_target);
 
-		VSG::rasterizer->set_current_render_target(vp->render_target);
+		if (vp->use_arvr && arvr_interface.is_valid()) {
+			// override our size, make sure it matches our required size
+			Size2 size = arvr_interface->get_recommended_render_targetsize();
+			VSG::storage->render_target_set_size(vp->render_target, size.x, size.y);
 
-		VSG::scene_render->set_debug_draw_mode(vp->debug_draw);
-		VSG::storage->render_info_begin_capture();
+			// render mono or left eye first
+			ARVRInterface::Eyes leftOrMono = arvr_interface->is_stereo() ? ARVRInterface::EYE_LEFT : ARVRInterface::EYE_MONO;
+			VSG::rasterizer->set_current_render_target(vp->render_target);
+			_draw_viewport(vp, leftOrMono);
+			arvr_interface->commit_for_eye(leftOrMono, vp->render_target, vp->viewport_to_screen_rect);
 
-		_draw_viewport(vp);
+			// render right eye
+			if (leftOrMono == ARVRInterface::EYE_LEFT) {
+				// commit for eye may have changed the render target
+				VSG::rasterizer->set_current_render_target(vp->render_target);
 
-		VSG::storage->render_info_end_capture();
-		vp->render_info[VS::VIEWPORT_RENDER_INFO_OBJECTS_IN_FRAME] = VSG::storage->get_captured_render_info(VS::INFO_OBJECTS_IN_FRAME);
-		vp->render_info[VS::VIEWPORT_RENDER_INFO_VERTICES_IN_FRAME] = VSG::storage->get_captured_render_info(VS::INFO_VERTICES_IN_FRAME);
-		vp->render_info[VS::VIEWPORT_RENDER_INFO_MATERIAL_CHANGES_IN_FRAME] = VSG::storage->get_captured_render_info(VS::INFO_MATERIAL_CHANGES_IN_FRAME);
-		vp->render_info[VS::VIEWPORT_RENDER_INFO_SHADER_CHANGES_IN_FRAME] = VSG::storage->get_captured_render_info(VS::INFO_SHADER_CHANGES_IN_FRAME);
-		vp->render_info[VS::VIEWPORT_RENDER_INFO_SURFACE_CHANGES_IN_FRAME] = VSG::storage->get_captured_render_info(VS::INFO_SURFACE_CHANGES_IN_FRAME);
-		vp->render_info[VS::VIEWPORT_RENDER_INFO_DRAW_CALLS_IN_FRAME] = VSG::storage->get_captured_render_info(VS::INFO_DRAW_CALLS_IN_FRAME);
+				_draw_viewport(vp, ARVRInterface::EYE_RIGHT);
+				arvr_interface->commit_for_eye(ARVRInterface::EYE_RIGHT, vp->render_target, vp->viewport_to_screen_rect);
+			}
+		} else {
+			VSG::rasterizer->set_current_render_target(vp->render_target);
 
-		if (vp->viewport_to_screen_rect != Rect2()) {
-			//copy to screen if set as such
-			VSG::rasterizer->set_current_render_target(RID());
-			VSG::rasterizer->blit_render_target_to_screen(vp->render_target, vp->viewport_to_screen_rect, vp->viewport_to_screen);
+			VSG::scene_render->set_debug_draw_mode(vp->debug_draw);
+			VSG::storage->render_info_begin_capture();
+
+			// render standard mono camera
+			_draw_viewport(vp);
+
+			VSG::storage->render_info_end_capture();
+			vp->render_info[VS::VIEWPORT_RENDER_INFO_OBJECTS_IN_FRAME] = VSG::storage->get_captured_render_info(VS::INFO_OBJECTS_IN_FRAME);
+			vp->render_info[VS::VIEWPORT_RENDER_INFO_VERTICES_IN_FRAME] = VSG::storage->get_captured_render_info(VS::INFO_VERTICES_IN_FRAME);
+			vp->render_info[VS::VIEWPORT_RENDER_INFO_MATERIAL_CHANGES_IN_FRAME] = VSG::storage->get_captured_render_info(VS::INFO_MATERIAL_CHANGES_IN_FRAME);
+			vp->render_info[VS::VIEWPORT_RENDER_INFO_SHADER_CHANGES_IN_FRAME] = VSG::storage->get_captured_render_info(VS::INFO_SHADER_CHANGES_IN_FRAME);
+			vp->render_info[VS::VIEWPORT_RENDER_INFO_SURFACE_CHANGES_IN_FRAME] = VSG::storage->get_captured_render_info(VS::INFO_SURFACE_CHANGES_IN_FRAME);
+			vp->render_info[VS::VIEWPORT_RENDER_INFO_DRAW_CALLS_IN_FRAME] = VSG::storage->get_captured_render_info(VS::INFO_DRAW_CALLS_IN_FRAME);
+
+			if (vp->viewport_to_screen_rect != Rect2()) {
+				//copy to screen if set as such
+				VSG::rasterizer->set_current_render_target(RID());
+				VSG::rasterizer->blit_render_target_to_screen(vp->render_target, vp->viewport_to_screen_rect, vp->viewport_to_screen);
+			}
 		}
 
 		if (vp->update_mode == VS::VIEWPORT_UPDATE_ONCE) {
@@ -327,6 +329,13 @@ RID VisualServerViewport::viewport_create() {
 	viewport->shadow_atlas = VSG::scene_render->shadow_atlas_create();
 
 	return rid;
+}
+
+void VisualServerViewport::viewport_set_use_arvr(RID p_viewport, bool p_use_arvr) {
+	Viewport *viewport = viewport_owner.getornull(p_viewport);
+	ERR_FAIL_COND(!viewport);
+
+	viewport->use_arvr = p_use_arvr;
 }
 
 void VisualServerViewport::viewport_set_size(RID p_viewport, int p_width, int p_height) {

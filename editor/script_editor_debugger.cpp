@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -32,8 +32,8 @@
 #include "editor_node.h"
 #include "editor_profiler.h"
 #include "editor_settings.h"
-#include "global_config.h"
 #include "main/performance.h"
+#include "project_settings.h"
 #include "property_editor.h"
 #include "scene/gui/dialogs.h"
 #include "scene/gui/label.h"
@@ -215,7 +215,7 @@ void ScriptEditorDebugger::_scene_tree_folded(Object *obj) {
 
 		return;
 	}
-	TreeItem *item = obj->cast_to<TreeItem>();
+	TreeItem *item = Object::cast_to<TreeItem>(obj);
 
 	if (!item)
 		return;
@@ -306,8 +306,7 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 		String error = p_data[1];
 		step->set_disabled(!can_continue);
 		next->set_disabled(!can_continue);
-		reason->set_text(error);
-		reason->set_tooltip(error);
+		_set_reason_text(error, MESSAGE_ERROR);
 		breaked = true;
 		dobreak->set_disabled(true);
 		docontinue->set_disabled(false);
@@ -372,7 +371,13 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 			if (has_icon(p_data[i + 2], "EditorIcons"))
 				it->set_icon(0, get_icon(p_data[i + 2], "EditorIcons"));
 			it->set_metadata(0, id);
+
 			if (id == inspected_object_id) {
+				TreeItem *cti = it->get_parent(); //ensure selected is always uncollapsed
+				while (cti) {
+					cti->set_collapsed(false);
+					cti = cti->get_parent();
+				}
 				it->select(0);
 			}
 
@@ -385,6 +390,7 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 					it->set_collapsed(true);
 				}
 			}
+
 			lv[level] = it;
 		}
 		updating_scene_tree = false;
@@ -439,11 +445,8 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 
 		inspected_object->last_edited_id = id;
 
-		if (tabs->get_current_tab() == 2) {
-			inspect_properties->edit(inspected_object);
-		} else {
-			editor->push_item(inspected_object);
-		}
+		tabs->set_current_tab(inspect_info->get_index());
+		inspect_properties->edit(inspected_object);
 
 	} else if (p_msg == "message:video_mem") {
 
@@ -637,7 +640,6 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 
 	} else if (p_msg == "profile_sig") {
 		//cache a signature
-		print_line("SIG: " + String(Variant(p_data)));
 		profiler_signature[p_data[1]] = p_data[0];
 
 	} else if (p_msg == "profile_frame" || p_msg == "profile_total") {
@@ -758,6 +760,21 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 	}
 }
 
+void ScriptEditorDebugger::_set_reason_text(const String &p_reason, MessageType p_type) {
+	switch (p_type) {
+		case MESSAGE_ERROR:
+			reason->add_color_override("font_color", get_color("error_color", "Editor"));
+			break;
+		case MESSAGE_WARNING:
+			reason->add_color_override("font_color", get_color("warning_color", "Editor"));
+			break;
+		default:
+			reason->add_color_override("font_color", get_color("success_color", "Editor"));
+	}
+	reason->set_text(p_reason);
+	reason->set_tooltip(p_reason);
+}
+
 void ScriptEditorDebugger::_performance_select(Object *, int, bool) {
 
 	perf_draw->update();
@@ -772,14 +789,17 @@ void ScriptEditorDebugger::_performance_draw() {
 			which.push_back(i);
 	}
 
-	if (which.empty())
-		return;
-
-	Ref<StyleBox> graph_sb = get_stylebox("normal", "TextEdit");
 	Ref<Font> graph_font = get_font("font", "TextEdit");
 
+	if (which.empty()) {
+		perf_draw->draw_string(graph_font, Point2(0, graph_font->get_ascent()), TTR("Pick one or more items from the list to display the graph."), get_color("font_color", "Label"), perf_draw->get_size().x);
+		return;
+	}
+
+	Ref<StyleBox> graph_sb = get_stylebox("normal", "TextEdit");
+
 	int cols = Math::ceil(Math::sqrt((float)which.size()));
-	int rows = (which.size() + 1) / cols;
+	int rows = Math::ceil((float)which.size() / cols);
 	if (which.size() == 1)
 		rows = 1;
 
@@ -796,8 +816,9 @@ void ScriptEditorDebugger::_performance_draw() {
 		r.position += graph_sb->get_offset();
 		r.size -= graph_sb->get_minimum_size();
 		int pi = which[i];
-		Color c = Color(0.7, 0.9, 0.5);
+		Color c = get_color("success_color", "Editor");
 		c.set_hsv(Math::fmod(c.get_h() + pi * 0.7654, 1), c.get_s(), c.get_v());
+		//c = c.linear_interpolate(get_color("base_color", "Editor"), 0.9);
 
 		c.a = 0.8;
 		perf_draw->draw_string(graph_font, r.position + Point2(0, graph_font->get_ascent()), perf_items[pi]->get_text(0), c, r.size.x);
@@ -847,6 +868,8 @@ void ScriptEditorDebugger::_notification(int p_what) {
 			error_list->connect("item_selected", this, "_error_selected");
 			error_stack->connect("item_selected", this, "_error_stack_selected");
 			vmem_refresh->set_icon(get_icon("Reload", "EditorIcons"));
+
+			reason->add_color_override("font_color", get_color("error_color", "Editor"));
 
 		} break;
 		case NOTIFICATION_PROCESS: {
@@ -915,8 +938,7 @@ void ScriptEditorDebugger::_notification(int p_what) {
 					dobreak->set_disabled(false);
 					tabs->set_current_tab(0);
 
-					reason->set_text(TTR("Child Process Connected"));
-					reason->set_tooltip(TTR("Child Process Connected"));
+					_set_reason_text(TTR("Child Process Connected"), MESSAGE_SUCCESS);
 					profiler->clear();
 
 					inspect_scene_tree->clear();
@@ -1084,9 +1106,6 @@ void ScriptEditorDebugger::stop() {
 	EditorNode::get_singleton()->get_pause_button()->set_pressed(false);
 	EditorNode::get_singleton()->get_pause_button()->set_disabled(true);
 
-	//avoid confusion when stopped debugging but an object is still edited
-	EditorNode::get_singleton()->push_item(NULL);
-
 	if (hide_on_stop) {
 		if (is_visible_in_tree())
 			EditorNode::get_singleton()->hide_bottom_panel();
@@ -1205,7 +1224,7 @@ void ScriptEditorDebugger::_method_changed(Object *p_base, const StringName &p_n
 	if (!p_base || !live_debug || !connection.is_valid() || !editor->get_edited_scene())
 		return;
 
-	Node *node = p_base->cast_to<Node>();
+	Node *node = Object::cast_to<Node>(p_base);
 
 	VARIANT_ARGPTRS
 
@@ -1233,7 +1252,7 @@ void ScriptEditorDebugger::_method_changed(Object *p_base, const StringName &p_n
 		return;
 	}
 
-	Resource *res = p_base->cast_to<Resource>();
+	Resource *res = Object::cast_to<Resource>(p_base);
 
 	if (res && res->get_path() != String()) {
 
@@ -1261,7 +1280,7 @@ void ScriptEditorDebugger::_property_changed(Object *p_base, const StringName &p
 	if (!p_base || !live_debug || !connection.is_valid() || !editor->get_edited_scene())
 		return;
 
-	Node *node = p_base->cast_to<Node>();
+	Node *node = Object::cast_to<Node>(p_base);
 
 	if (node) {
 
@@ -1292,7 +1311,7 @@ void ScriptEditorDebugger::_property_changed(Object *p_base, const StringName &p
 		return;
 	}
 
-	Resource *res = p_base->cast_to<Resource>();
+	Resource *res = Object::cast_to<Resource>(p_base);
 
 	if (res && res->get_path() != String()) {
 
@@ -1595,6 +1614,7 @@ void ScriptEditorDebugger::_bind_methods() {
 ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 
 	ppeer = Ref<PacketPeerStream>(memnew(PacketPeerStream));
+	ppeer->set_input_buffer_max_size(1024 * 1024 * 8); //8mb should be enough
 	editor = p_editor;
 
 	tabs = memnew(TabContainer);
@@ -1615,39 +1635,34 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 		HBoxContainer *hbc = memnew(HBoxContainer);
 		vbc->add_child(hbc);
 
-		reason = memnew(LineEdit);
+		reason = memnew(Label);
 		reason->set_text("");
-		reason->set_editable(false);
 		hbc->add_child(reason);
-		reason->add_color_override("font_color", Color(1, 0.4, 0.0, 0.8));
 		reason->set_h_size_flags(SIZE_EXPAND_FILL);
-		//reason->set_clip_text(true);
 
 		hbc->add_child(memnew(VSeparator));
 
-		step = memnew(Button);
+		step = memnew(ToolButton);
 		hbc->add_child(step);
 		step->set_tooltip(TTR("Step Into"));
 		step->connect("pressed", this, "debug_step");
 
-		next = memnew(Button);
+		next = memnew(ToolButton);
 		hbc->add_child(next);
 		next->set_tooltip(TTR("Step Over"));
 		next->connect("pressed", this, "debug_next");
 
 		hbc->add_child(memnew(VSeparator));
 
-		dobreak = memnew(Button);
+		dobreak = memnew(ToolButton);
 		hbc->add_child(dobreak);
 		dobreak->set_tooltip(TTR("Break"));
 		dobreak->connect("pressed", this, "debug_break");
 
-		docontinue = memnew(Button);
+		docontinue = memnew(ToolButton);
 		hbc->add_child(docontinue);
 		docontinue->set_tooltip(TTR("Continue"));
 		docontinue->connect("pressed", this, "debug_continue");
-
-		//hbc->add_child( memnew( VSeparator) );
 
 		back = memnew(Button);
 		hbc->add_child(back);
@@ -1690,10 +1705,6 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 		breaked = false;
 
 		tabs->add_child(dbg);
-		//tabs->move_child(vbc,0);
-
-		hbc = memnew(HBoxContainer);
-		vbc->add_child(hbc);
 	}
 
 	{ //errors
@@ -1816,12 +1827,12 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 		vmem_total->set_editable(false);
 		vmem_total->set_custom_minimum_size(Size2(100, 1) * EDSCALE);
 		vmem_hb->add_child(vmem_total);
-		vmem_refresh = memnew(Button);
+		vmem_refresh = memnew(ToolButton);
 		vmem_hb->add_child(vmem_refresh);
 		vmem_vb->add_child(vmem_hb);
 		vmem_refresh->connect("pressed", this, "_video_mem_request");
 
-		MarginContainer *vmmc = memnew(MarginContainer);
+		VBoxContainer *vmmc = memnew(VBoxContainer);
 		vmem_tree = memnew(Tree);
 		vmem_tree->set_v_size_flags(SIZE_EXPAND_FILL);
 		vmem_tree->set_h_size_flags(SIZE_EXPAND_FILL);
@@ -1849,30 +1860,31 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 	}
 
 	{ // misc
-		VBoxContainer *info_left = memnew(VBoxContainer);
-		info_left->set_h_size_flags(SIZE_EXPAND_FILL);
+		GridContainer *info_left = memnew(GridContainer);
+		info_left->set_columns(2);
 		info_left->set_name(TTR("Misc"));
 		tabs->add_child(info_left);
 		clicked_ctrl = memnew(LineEdit);
-		info_left->add_margin_child(TTR("Clicked Control:"), clicked_ctrl);
+		clicked_ctrl->set_h_size_flags(SIZE_EXPAND_FILL);
+		info_left->add_child(memnew(Label(TTR("Clicked Control:"))));
+		info_left->add_child(clicked_ctrl);
 		clicked_ctrl_type = memnew(LineEdit);
-		info_left->add_margin_child(TTR("Clicked Control Type:"), clicked_ctrl_type);
+		info_left->add_child(memnew(Label(TTR("Clicked Control Type:"))));
+		info_left->add_child(clicked_ctrl_type);
 
 		live_edit_root = memnew(LineEdit);
+		live_edit_root->set_h_size_flags(SIZE_EXPAND_FILL);
 
 		{
 			HBoxContainer *lehb = memnew(HBoxContainer);
 			Label *l = memnew(Label(TTR("Live Edit Root:")));
-			lehb->add_child(l);
-			l->set_h_size_flags(SIZE_EXPAND_FILL);
+			info_left->add_child(l);
+			lehb->add_child(live_edit_root);
 			le_set = memnew(Button(TTR("Set From Tree")));
 			lehb->add_child(le_set);
 			le_clear = memnew(Button(TTR("Clear")));
 			lehb->add_child(le_clear);
 			info_left->add_child(lehb);
-			MarginContainer *mc = memnew(MarginContainer);
-			mc->add_child(live_edit_root);
-			info_left->add_child(mc);
 			le_set->set_disabled(true);
 			le_clear->set_disabled(true);
 		}

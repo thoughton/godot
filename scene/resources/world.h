@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -75,6 +75,8 @@ public:
 
 	void set_fallback_environment(const Ref<Environment> &p_environment);
 	Ref<Environment> get_fallback_environment() const;
+
+	void get_camera_list(List<Camera *> *r_cameras);
 
 	PhysicsDirectSpaceState *get_direct_space_state();
 

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -74,6 +74,7 @@ public:
 		real_t valid_depth;
 		int max;
 		int amount;
+		int invalid_by_dir;
 		Vector2 *ptr;
 	};
 
@@ -128,13 +129,13 @@ public:
 	virtual void area_remove_shape(RID p_area, int p_shape_idx);
 	virtual void area_clear_shapes(RID p_area);
 
-	virtual void area_attach_object_instance_ID(RID p_area, ObjectID p_ID);
-	virtual ObjectID area_get_object_instance_ID(RID p_area) const;
+	virtual void area_attach_object_instance_id(RID p_area, ObjectID p_ID);
+	virtual ObjectID area_get_object_instance_id(RID p_area) const;
 
 	virtual void area_set_param(RID p_area, AreaParameter p_param, const Variant &p_value);
 	virtual void area_set_transform(RID p_area, const Transform2D &p_transform);
 
-	virtual Variant area_get_param(RID p_parea, AreaParameter p_param) const;
+	virtual Variant area_get_param(RID p_area, AreaParameter p_param) const;
 	virtual Transform2D area_get_transform(RID p_area) const;
 	virtual void area_set_monitorable(RID p_area, bool p_monitorable);
 	virtual void area_set_collision_mask(RID p_area, uint32_t p_mask);
@@ -169,11 +170,11 @@ public:
 	virtual void body_remove_shape(RID p_body, int p_shape_idx);
 	virtual void body_clear_shapes(RID p_body);
 
-	virtual void body_set_shape_disabled(RID p_body, int p_shape, bool p_disabled);
-	virtual void body_set_shape_as_one_way_collision(RID p_body, int p_shape, bool p_enabled);
+	virtual void body_set_shape_disabled(RID p_body, int p_shape_idx, bool p_disabled);
+	virtual void body_set_shape_as_one_way_collision(RID p_body, int p_shape_idx, bool p_enable);
 
-	virtual void body_attach_object_instance_ID(RID p_body, uint32_t p_ID);
-	virtual uint32_t body_get_object_instance_ID(RID p_body) const;
+	virtual void body_attach_object_instance_id(RID p_body, uint32_t p_ID);
+	virtual uint32_t body_get_object_instance_id(RID p_body) const;
 
 	virtual void body_set_continuous_collision_detection_mode(RID p_body, CCDMode p_mode);
 	virtual CCDMode body_get_continuous_collision_detection_mode(RID p_body) const;
@@ -182,7 +183,7 @@ public:
 	virtual uint32_t body_get_collision_layer(RID p_body) const;
 
 	virtual void body_set_collision_mask(RID p_body, uint32_t p_mask);
-	virtual uint32_t body_get_collision_mask(RID p_) const;
+	virtual uint32_t body_get_collision_mask(RID p_body) const;
 
 	virtual void body_set_param(RID p_body, BodyParameter p_param, real_t p_value);
 	virtual real_t body_get_param(RID p_body, BodyParameter p_param) const;
@@ -205,8 +206,8 @@ public:
 	virtual void body_remove_collision_exception(RID p_body, RID p_body_b);
 	virtual void body_get_collision_exceptions(RID p_body, List<RID> *p_exceptions);
 
-	virtual void body_set_contacts_reported_depth_treshold(RID p_body, real_t p_treshold);
-	virtual real_t body_get_contacts_reported_depth_treshold(RID p_body) const;
+	virtual void body_set_contacts_reported_depth_threshold(RID p_body, real_t p_threshold);
+	virtual real_t body_get_contacts_reported_depth_threshold(RID p_body) const;
 
 	virtual void body_set_omit_force_integration(RID p_body, bool p_omit);
 	virtual bool body_is_omitting_force_integration(RID p_body) const;

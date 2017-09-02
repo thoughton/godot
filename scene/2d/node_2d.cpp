@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -243,7 +243,7 @@ void Node2D::global_translate(const Vector2 &p_amount) {
 	set_global_position(get_global_position() + p_amount);
 }
 
-void Node2D::scale(const Size2 &p_amount) {
+void Node2D::apply_scale(const Size2 &p_amount) {
 
 	set_scale(get_scale() * p_amount);
 }
@@ -319,7 +319,7 @@ void Node2D::set_global_scale(const Size2 &p_scale) {
 	CanvasItem *pi = get_parent_item();
 	if (pi) {
 		const Size2 parent_global_scale = pi->get_global_transform().get_scale();
-		set_scale(p_scale - parent_global_scale);
+		set_scale(p_scale / parent_global_scale);
 	} else {
 		set_scale(p_scale);
 	}
@@ -379,7 +379,7 @@ Transform2D Node2D::get_relative_transform_to_parent(const Node *p_parent) const
 	if (p_parent == this)
 		return Transform2D();
 
-	Node2D *parent_2d = get_parent()->cast_to<Node2D>();
+	Node2D *parent_2d = Object::cast_to<Node2D>(get_parent());
 
 	ERR_FAIL_COND_V(!parent_2d, Transform2D());
 	if (p_parent == parent_2d)
@@ -396,6 +396,16 @@ void Node2D::look_at(const Vector2 &p_pos) {
 float Node2D::get_angle_to(const Vector2 &p_pos) const {
 
 	return (get_global_transform().affine_inverse().xform(p_pos)).angle();
+}
+
+Point2 Node2D::to_local(Point2 p_global) const {
+
+	return get_global_transform().affine_inverse().xform(p_global);
+}
+
+Point2 Node2D::to_global(Point2 p_local) const {
+
+	return get_global_transform().xform(p_local);
 }
 
 void Node2D::_bind_methods() {
@@ -419,7 +429,7 @@ void Node2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("move_local_y", "delta", "scaled"), &Node2D::move_y, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("translate", "offset"), &Node2D::translate);
 	ClassDB::bind_method(D_METHOD("global_translate", "offset"), &Node2D::global_translate);
-	ClassDB::bind_method(D_METHOD("scale", "ratio"), &Node2D::scale);
+	ClassDB::bind_method(D_METHOD("apply_scale", "ratio"), &Node2D::apply_scale);
 
 	ClassDB::bind_method(D_METHOD("set_global_position", "pos"), &Node2D::set_global_position);
 	ClassDB::bind_method(D_METHOD("get_global_position"), &Node2D::get_global_position);
@@ -435,6 +445,9 @@ void Node2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("look_at", "point"), &Node2D::look_at);
 	ClassDB::bind_method(D_METHOD("get_angle_to", "point"), &Node2D::get_angle_to);
+
+	ClassDB::bind_method(D_METHOD("to_local", "global_point"), &Node2D::to_local);
+	ClassDB::bind_method(D_METHOD("to_global", "local_point"), &Node2D::to_global);
 
 	ClassDB::bind_method(D_METHOD("set_z", "z"), &Node2D::set_z);
 	ClassDB::bind_method(D_METHOD("get_z"), &Node2D::get_z);

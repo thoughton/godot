@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -78,6 +78,9 @@ private:
 	bool ensure_selected_visible;
 	bool same_column_width;
 
+	bool auto_height;
+	float auto_height_value;
+
 	Vector<Item> items;
 	Vector<int> separators;
 
@@ -102,6 +105,9 @@ private:
 	bool allow_rmb_select;
 
 	real_t icon_scale;
+
+	Array _get_items() const;
+	void _set_items(const Array &p_items);
 
 	void _scroll_changed(double);
 	void _gui_input(const Ref<InputEvent> &p_event);
@@ -163,9 +169,9 @@ public:
 	int get_fixed_column_width() const;
 
 	void set_same_column_width(bool p_enable);
-	int is_same_column_width() const;
+	bool is_same_column_width() const;
 
-	void set_max_text_lines(int p_amount);
+	void set_max_text_lines(int p_lines);
 	int get_max_text_lines() const;
 
 	void set_max_columns(int p_amount);
@@ -194,6 +200,11 @@ public:
 
 	void set_icon_scale(real_t p_scale);
 	real_t get_icon_scale() const;
+
+	void set_auto_height(bool p_enable);
+	bool has_auto_height() const;
+
+	Size2 get_minimum_size() const;
 
 	VScrollBar *get_v_scroll() { return scroll_bar; }
 

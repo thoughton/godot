@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -38,6 +38,10 @@ Size2 Slider::get_minimum_size() const {
 }
 
 void Slider::_gui_input(Ref<InputEvent> p_event) {
+
+	if (!editable) {
+		return;
+	}
 
 	Ref<InputEventMouseButton> mb = p_event;
 
@@ -158,12 +162,13 @@ void Slider::_notification(int p_what) {
 			Size2i size = get_size();
 			Ref<StyleBox> style = get_stylebox("slider");
 			Ref<StyleBox> focus = get_stylebox("focus");
-			Ref<Texture> grabber = get_icon(mouse_inside || has_focus() ? "grabber_highlight" : "grabber");
+			Ref<Texture> grabber = get_icon(editable ? ((mouse_inside || has_focus()) ? "grabber_highlight" : "grabber") : "grabber_disabled");
 			Ref<Texture> tick = get_icon("tick");
 
 			if (orientation == VERTICAL) {
 
-				style->draw(ci, Rect2i(Point2i(), Size2i(style->get_minimum_size().width + style->get_center_size().width, size.height)));
+				int widget_width = style->get_minimum_size().width + style->get_center_size().width;
+				style->draw(ci, Rect2i(Point2i(size.width / 2 - widget_width / 2, 0), Size2i(widget_width, size.height)));
 				/*
 				if (mouse_inside||has_focus())
 					focus->draw(ci,Rect2i(Point2i(),Size2i(style->get_minimum_size().width+style->get_center_size().width,size.height)));
@@ -179,7 +184,9 @@ void Slider::_notification(int p_what) {
 				}
 				grabber->draw(ci, Point2i(size.width / 2 - grabber->get_size().width / 2, size.height - get_as_ratio() * areasize - grabber->get_size().height));
 			} else {
-				style->draw(ci, Rect2i(Point2i(), Size2i(size.width, style->get_minimum_size().height + style->get_center_size().height)));
+
+				int widget_height = style->get_minimum_size().height + style->get_center_size().height;
+				style->draw(ci, Rect2i(Point2i(0, size.height / 2 - widget_height / 2), Size2i(size.width, widget_height)));
 				/*
 				if (mouse_inside||has_focus())
 					focus->draw(ci,Rect2i(Point2i(),Size2i(size.width,style->get_minimum_size().height+style->get_center_size().height)));
@@ -231,6 +238,17 @@ void Slider::set_ticks_on_borders(bool _tob) {
 	update();
 }
 
+void Slider::set_editable(bool p_editable) {
+
+	editable = p_editable;
+	update();
+}
+
+bool Slider::is_editable() const {
+
+	return editable;
+}
+
 void Slider::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_gui_input"), &Slider::_gui_input);
@@ -240,6 +258,10 @@ void Slider::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_ticks_on_borders"), &Slider::get_ticks_on_borders);
 	ClassDB::bind_method(D_METHOD("set_ticks_on_borders", "ticks_on_border"), &Slider::set_ticks_on_borders);
 
+	ClassDB::bind_method(D_METHOD("set_editable", "editable"), &Slider::set_editable);
+	ClassDB::bind_method(D_METHOD("is_editable"), &Slider::is_editable);
+
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "editable"), "set_editable", "is_editable");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "tick_count", PROPERTY_HINT_RANGE, "0,4096,1"), "set_ticks", "get_ticks");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "ticks_on_borders"), "set_ticks_on_borders", "get_ticks_on_borders");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "focus_mode", PROPERTY_HINT_ENUM, "None,Click,All"), "set_focus_mode", "get_focus_mode");
@@ -251,5 +273,6 @@ Slider::Slider(Orientation p_orientation) {
 	grab.active = false;
 	ticks = 0;
 	custom_step = -1;
+	editable = true;
 	set_focus_mode(FOCUS_ALL);
 }

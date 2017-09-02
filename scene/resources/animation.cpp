@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -28,6 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "animation.h"
+
 #include "geometry.h"
 
 bool Animation::_set(const StringName &p_name, const Variant &p_value) {
@@ -83,44 +84,6 @@ bool Animation::_set(const StringName &p_name, const Variant &p_value) {
 				TransformTrack *tt = static_cast<TransformTrack *>(tracks[track]);
 				PoolVector<float> values = p_value;
 				int vcount = values.size();
-
-#if 0 // old compatibility hack
-				if ((vcount%11) == 0) {
-
-
-					PoolVector<float>::Read r = values.read();
-
-					tt->transforms.resize(vcount/11);
-
-
-					for(int i=0;i<(vcount/11);i++) {
-
-
-						TKey<TransformKey> &tk=tt->transforms[i];
-						const float *ofs=&r[i*11];
-						tk.time=ofs[0];
-
-						tk.value.loc.x=ofs[1];
-						tk.value.loc.y=ofs[2];
-						tk.value.loc.z=ofs[3];
-
-						tk.value.rot.x=ofs[4];
-						tk.value.rot.y=ofs[5];
-						tk.value.rot.z=ofs[6];
-						tk.value.rot.w=ofs[7];
-
-						tk.value.scale.x=ofs[8];
-						tk.value.scale.y=ofs[9];
-						tk.value.scale.z=ofs[10];
-
-
-					}
-					return true;
-
-
-
-				}
-#endif
 				ERR_FAIL_COND_V(vcount % 12, false); // shuld be multiple of 11
 
 				PoolVector<float>::Read r = values.read();
@@ -733,7 +696,7 @@ int Animation::track_find_key(int p_track, float p_time, bool p_exact) const {
 	return -1;
 }
 
-void Animation::track_insert_key(int p_track, float p_time, const Variant &p_value, float p_transition) {
+void Animation::track_insert_key(int p_track, float p_time, const Variant &p_key, float p_transition) {
 
 	ERR_FAIL_INDEX(p_track, tracks.size());
 	Track *t = tracks[p_track];
@@ -742,7 +705,7 @@ void Animation::track_insert_key(int p_track, float p_time, const Variant &p_val
 
 		case TYPE_TRANSFORM: {
 
-			Dictionary d = p_value;
+			Dictionary d = p_key;
 			Vector3 loc;
 			if (d.has("loc"))
 				loc = d["loc"];
@@ -766,7 +729,7 @@ void Animation::track_insert_key(int p_track, float p_time, const Variant &p_val
 			TKey<Variant> k;
 			k.time = p_time;
 			k.transition = p_transition;
-			k.value = p_value;
+			k.value = p_key;
 			_insert(p_time, vt->values, k);
 
 		} break;
@@ -774,9 +737,9 @@ void Animation::track_insert_key(int p_track, float p_time, const Variant &p_val
 
 			MethodTrack *mt = static_cast<MethodTrack *>(t);
 
-			ERR_FAIL_COND(p_value.get_type() != Variant::DICTIONARY);
+			ERR_FAIL_COND(p_key.get_type() != Variant::DICTIONARY);
 
-			Dictionary d = p_value;
+			Dictionary d = p_key;
 			ERR_FAIL_COND(!d.has("method") || d["method"].get_type() != Variant::STRING);
 			ERR_FAIL_COND(!d.has("args") || !d["args"].is_array());
 
@@ -1007,7 +970,12 @@ int Animation::_find(const Vector<K> &p_keys, float p_time) const {
 
 	int low = 0;
 	int high = len - 1;
-	int middle;
+	int middle = 0;
+
+#if DEBUG_ENABLED
+	if (low > high)
+		ERR_PRINT("low > high, this may be a bug");
+#endif
 
 	const K *keys = &p_keys[0];
 
@@ -1326,7 +1294,7 @@ Error Animation::transform_track_interpolate(int p_track, float p_time, Vector3 
 
 	TransformTrack *tt = static_cast<TransformTrack *>(t);
 
-	bool ok;
+	bool ok = false;
 
 	TransformKey tk = _interpolate(tt->transforms, p_time, tt->interpolation, tt->loop_wrap, &ok);
 
@@ -1352,7 +1320,7 @@ Variant Animation::value_track_interpolate(int p_track, float p_time) const {
 	ERR_FAIL_COND_V(t->type != TYPE_VALUE, Variant());
 	ValueTrack *vt = static_cast<ValueTrack *>(t);
 
-	bool ok;
+	bool ok = false;
 
 	Variant res = _interpolate(vt->values, p_time, vt->update_mode == UPDATE_CONTINUOUS ? vt->interpolation : INTERPOLATION_NEAREST, vt->loop_wrap, &ok);
 
@@ -1676,17 +1644,17 @@ void Animation::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("clear"), &Animation::clear);
 
-	BIND_CONSTANT(TYPE_VALUE);
-	BIND_CONSTANT(TYPE_TRANSFORM);
-	BIND_CONSTANT(TYPE_METHOD);
+	BIND_ENUM_CONSTANT(TYPE_VALUE);
+	BIND_ENUM_CONSTANT(TYPE_TRANSFORM);
+	BIND_ENUM_CONSTANT(TYPE_METHOD);
 
-	BIND_CONSTANT(INTERPOLATION_NEAREST);
-	BIND_CONSTANT(INTERPOLATION_LINEAR);
-	BIND_CONSTANT(INTERPOLATION_CUBIC);
+	BIND_ENUM_CONSTANT(INTERPOLATION_NEAREST);
+	BIND_ENUM_CONSTANT(INTERPOLATION_LINEAR);
+	BIND_ENUM_CONSTANT(INTERPOLATION_CUBIC);
 
-	BIND_CONSTANT(UPDATE_CONTINUOUS);
-	BIND_CONSTANT(UPDATE_DISCRETE);
-	BIND_CONSTANT(UPDATE_TRIGGER);
+	BIND_ENUM_CONSTANT(UPDATE_CONTINUOUS);
+	BIND_ENUM_CONSTANT(UPDATE_DISCRETE);
+	BIND_ENUM_CONSTANT(UPDATE_TRIGGER);
 }
 
 void Animation::clear() {
@@ -1871,7 +1839,7 @@ bool Animation::_transform_track_optimize_key(const TKey<TransformKey> &t0, cons
 	return erase;
 }
 
-void Animation::_transform_track_optimize(int p_idx, float p_alowed_linear_err, float p_alowed_angular_err, float p_max_optimizable_angle) {
+void Animation::_transform_track_optimize(int p_idx, float p_allowed_linear_err, float p_allowed_angular_err, float p_max_optimizable_angle) {
 
 	ERR_FAIL_INDEX(p_idx, tracks.size());
 	ERR_FAIL_COND(tracks[p_idx]->type != TYPE_TRANSFORM);
@@ -1887,12 +1855,12 @@ void Animation::_transform_track_optimize(int p_idx, float p_alowed_linear_err, 
 		TKey<TransformKey> &t1 = tt->transforms[i];
 		TKey<TransformKey> &t2 = tt->transforms[i + 1];
 
-		bool erase = _transform_track_optimize_key(t0, t1, t2, p_alowed_linear_err, p_alowed_angular_err, p_max_optimizable_angle, norm);
+		bool erase = _transform_track_optimize_key(t0, t1, t2, p_allowed_linear_err, p_allowed_angular_err, p_max_optimizable_angle, norm);
 		if (erase && !prev_erased) {
 			norm = (t2.value.loc - t1.value.loc).normalized();
 		}
 
-		if (prev_erased && !_transform_track_optimize_key(t0, first_erased, t2, p_alowed_linear_err, p_alowed_angular_err, p_max_optimizable_angle, norm)) {
+		if (prev_erased && !_transform_track_optimize_key(t0, first_erased, t2, p_allowed_linear_err, p_allowed_angular_err, p_max_optimizable_angle, norm)) {
 			//avoid error to go beyond first erased key
 			erase = false;
 		}
@@ -1914,12 +1882,12 @@ void Animation::_transform_track_optimize(int p_idx, float p_alowed_linear_err, 
 	}
 }
 
-void Animation::optimize(float p_allowed_linear_err, float p_allowed_angular_err, float p_angle_max) {
+void Animation::optimize(float p_allowed_linear_err, float p_allowed_angular_err, float p_max_optimizable_angle) {
 
 	for (int i = 0; i < tracks.size(); i++) {
 
 		if (tracks[i]->type == TYPE_TRANSFORM)
-			_transform_track_optimize(i, p_allowed_linear_err, p_allowed_angular_err, p_angle_max);
+			_transform_track_optimize(i, p_allowed_linear_err, p_allowed_angular_err, p_max_optimizable_angle);
 	}
 }
 

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -54,14 +54,15 @@ class ThemeEditor : public Control {
 
 	MenuButton *theme_menu;
 	ConfirmationDialog *add_del_dialog;
+	HBoxContainer *type_hbc;
 	MenuButton *type_menu;
 	LineEdit *type_edit;
+	HBoxContainer *name_hbc;
 	MenuButton *name_menu;
 	LineEdit *name_edit;
 	OptionButton *type_select;
 	Label *type_select_label;
 	Label *name_select_label;
-	Label *dtype_select_label;
 
 	enum PopupMode {
 		POPUP_ADD,

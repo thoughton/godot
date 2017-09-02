@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -53,6 +53,7 @@ void EditorFileDialog::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_ENTER_TREE) {
 
+		//_update_icons
 		mode_thumbnails->set_icon(get_icon("FileThumbnail", "EditorIcons"));
 		mode_list->set_icon(get_icon("FileList", "EditorIcons"));
 		dir_prev->set_icon(get_icon("ArrowLeft", "EditorIcons"));
@@ -92,6 +93,23 @@ void EditorFileDialog::_notification(int p_what) {
 		if (show_hidden_files != show_hidden)
 			set_show_hidden_files(show_hidden);
 		set_display_mode((DisplayMode)EditorSettings::get_singleton()->get("filesystem/file_dialog/display_mode").operator int());
+
+		//_update_icons
+		mode_thumbnails->set_icon(get_icon("FileThumbnail", "EditorIcons"));
+		mode_list->set_icon(get_icon("FileList", "EditorIcons"));
+		dir_prev->set_icon(get_icon("ArrowLeft", "EditorIcons"));
+		dir_next->set_icon(get_icon("ArrowRight", "EditorIcons"));
+		dir_up->set_icon(get_icon("ArrowUp", "EditorIcons"));
+		refresh->set_icon(get_icon("Reload", "EditorIcons"));
+		favorite->set_icon(get_icon("Favorites", "EditorIcons"));
+
+		fav_up->set_icon(get_icon("MoveUp", "EditorIcons"));
+		fav_down->set_icon(get_icon("MoveDown", "EditorIcons"));
+		fav_rm->set_icon(get_icon("RemoveSmall", "EditorIcons"));
+
+		Theme::get_default()->clear_icon("ResizedFile", "EditorIcons");
+		Theme::get_default()->clear_icon("ResizedFolder", "EditorIcons");
+		update_file_list();
 	}
 }
 
@@ -809,27 +827,27 @@ void EditorFileDialog::set_mode(Mode p_mode) {
 
 		case MODE_OPEN_FILE:
 			get_ok()->set_text(TTR("Open"));
-			set_title("Open a File");
+			set_title(TTR("Open a File"));
 			makedir->hide();
 			break;
 		case MODE_OPEN_FILES:
 			get_ok()->set_text(TTR("Open"));
-			set_title("Open File(s)");
+			set_title(TTR("Open File(s)"));
 			makedir->hide();
 			break;
 		case MODE_OPEN_DIR:
 			get_ok()->set_text(TTR("Open"));
-			set_title("Open a Directory");
+			set_title(TTR("Open a Directory"));
 			makedir->show();
 			break;
 		case MODE_OPEN_ANY:
 			get_ok()->set_text(TTR("Open"));
-			set_title("Open a File or Directory");
+			set_title(TTR("Open a File or Directory"));
 			makedir->show();
 			break;
 		case MODE_SAVE_FILE:
 			get_ok()->set_text(TTR("Save"));
-			set_title("Save a File");
+			set_title(TTR("Save a File"));
 			makedir->show();
 			break;
 	}
@@ -1154,7 +1172,7 @@ void EditorFileDialog::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_current_path", "path"), &EditorFileDialog::set_current_path);
 	ClassDB::bind_method(D_METHOD("set_mode", "mode"), &EditorFileDialog::set_mode);
 	ClassDB::bind_method(D_METHOD("get_mode"), &EditorFileDialog::get_mode);
-	ClassDB::bind_method(D_METHOD("get_vbox:VBoxContainer"), &EditorFileDialog::get_vbox);
+	ClassDB::bind_method(D_METHOD("get_vbox"), &EditorFileDialog::get_vbox);
 	ClassDB::bind_method(D_METHOD("set_access", "access"), &EditorFileDialog::set_access);
 	ClassDB::bind_method(D_METHOD("get_access"), &EditorFileDialog::get_access);
 	ClassDB::bind_method(D_METHOD("set_show_hidden_files", "show"), &EditorFileDialog::set_show_hidden_files);
@@ -1187,15 +1205,15 @@ void EditorFileDialog::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("files_selected", PropertyInfo(Variant::POOL_STRING_ARRAY, "paths")));
 	ADD_SIGNAL(MethodInfo("dir_selected", PropertyInfo(Variant::STRING, "dir")));
 
-	BIND_CONSTANT(MODE_OPEN_FILE);
-	BIND_CONSTANT(MODE_OPEN_FILES);
-	BIND_CONSTANT(MODE_OPEN_DIR);
-	BIND_CONSTANT(MODE_OPEN_ANY);
-	BIND_CONSTANT(MODE_SAVE_FILE);
+	BIND_ENUM_CONSTANT(MODE_OPEN_FILE);
+	BIND_ENUM_CONSTANT(MODE_OPEN_FILES);
+	BIND_ENUM_CONSTANT(MODE_OPEN_DIR);
+	BIND_ENUM_CONSTANT(MODE_OPEN_ANY);
+	BIND_ENUM_CONSTANT(MODE_SAVE_FILE);
 
-	BIND_CONSTANT(ACCESS_RESOURCES);
-	BIND_CONSTANT(ACCESS_USERDATA);
-	BIND_CONSTANT(ACCESS_FILESYSTEM);
+	BIND_ENUM_CONSTANT(ACCESS_RESOURCES);
+	BIND_ENUM_CONSTANT(ACCESS_USERDATA);
+	BIND_ENUM_CONSTANT(ACCESS_FILESYSTEM);
 }
 
 void EditorFileDialog::set_show_hidden_files(bool p_show) {
@@ -1454,9 +1472,9 @@ void EditorLineEditFileChooser::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_browse"), &EditorLineEditFileChooser::_browse);
 	ClassDB::bind_method(D_METHOD("_chosen"), &EditorLineEditFileChooser::_chosen);
-	ClassDB::bind_method(D_METHOD("get_button:Button"), &EditorLineEditFileChooser::get_button);
-	ClassDB::bind_method(D_METHOD("get_line_edit:LineEdit"), &EditorLineEditFileChooser::get_line_edit);
-	ClassDB::bind_method(D_METHOD("get_file_dialog:EditorFileDialog"), &EditorLineEditFileChooser::get_file_dialog);
+	ClassDB::bind_method(D_METHOD("get_button"), &EditorLineEditFileChooser::get_button);
+	ClassDB::bind_method(D_METHOD("get_line_edit"), &EditorLineEditFileChooser::get_line_edit);
+	ClassDB::bind_method(D_METHOD("get_file_dialog"), &EditorLineEditFileChooser::get_file_dialog);
 }
 
 void EditorLineEditFileChooser::_chosen(const String &p_text) {

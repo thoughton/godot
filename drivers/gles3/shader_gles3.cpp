@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -102,11 +102,11 @@ void ShaderGLES3::bind_uniforms() {
 	uniforms_dirty = false;
 }
 
-GLint ShaderGLES3::get_uniform_location(int p_idx) const {
+GLint ShaderGLES3::get_uniform_location(int p_index) const {
 
 	ERR_FAIL_COND_V(!version, -1);
 
-	return version->uniform_location[p_idx];
+	return version->uniform_location[p_index];
 }
 
 bool ShaderGLES3::bind() {
@@ -208,6 +208,7 @@ ShaderGLES3::Version *ShaderGLES3::get_current_version() {
 	Vector<const char *> strings;
 #ifdef GLES_OVER_GL
 	strings.push_back("#version 330\n");
+	strings.push_back("#define GLES_OVER_GL\n");
 #else
 	strings.push_back("#version 300 es\n");
 #endif
@@ -272,6 +273,11 @@ ShaderGLES3::Version *ShaderGLES3::get_current_version() {
 	//vertex precision is high
 	strings.push_back("precision highp float;\n");
 	strings.push_back("precision highp int;\n");
+#ifndef GLES_OVER_GL
+	strings.push_back("precision highp sampler2D;\n");
+	strings.push_back("precision highp samplerCube;\n");
+	strings.push_back("precision highp sampler2DArray;\n");
+#endif
 
 #if 0
 	if (cc) {
@@ -370,6 +376,11 @@ ShaderGLES3::Version *ShaderGLES3::get_current_version() {
 	//fragment precision is medium
 	strings.push_back("precision highp float;\n");
 	strings.push_back("precision highp int;\n");
+#ifndef GLES_OVER_GL
+	strings.push_back("precision highp sampler2D;\n");
+	strings.push_back("precision highp samplerCube;\n");
+	strings.push_back("precision highp sampler2DArray;\n");
+#endif
 
 #if 0
 	if (cc) {
@@ -416,7 +427,8 @@ ShaderGLES3::Version *ShaderGLES3::get_current_version() {
 	strings.push_back(fragment_code4.get_data());
 
 #ifdef DEBUG_SHADER
-	DEBUG_PRINT("\nFragment Code:\n\n" + String(code_string.get_data()));
+	DEBUG_PRINT("\nFragment Globals:\n\n" + String(code_globals.get_data()));
+	DEBUG_PRINT("\nFragment Code:\n\n" + String(code_string2.get_data()));
 	for (int i = 0; i < strings.size(); i++) {
 
 		//print_line("frag strings "+itos(i)+":"+String(strings[i]));

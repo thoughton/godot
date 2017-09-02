@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -585,7 +585,6 @@ Error VisualScriptExpression::_get_token(Token &r_token) {
 								r_token.type = TK_BASIC_TYPE;
 								r_token.value = i;
 								return OK;
-								break;
 							}
 						}
 
@@ -1180,7 +1179,7 @@ VisualScriptExpression::ENode *VisualScriptExpression::_parse_expression() {
 			if (expression[next_op + 1].is_op) {
 				// this is not invalid and can really appear
 				// but it becomes invalid anyway because no binary op
-				// can be followed by an unary op in a valid combination,
+				// can be followed by a unary op in a valid combination,
 				// due to how precedence works, unaries will always disappear first
 
 				_set_error("Unexpected two consecutive operators.");

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -290,8 +290,8 @@ Variant GDFunction::call(GDInstance *p_instance, const Variant **p_args, int p_a
 
 #ifdef DEBUG_ENABLED
 
-	uint64_t function_start_time;
-	uint64_t function_call_time;
+	uint64_t function_start_time = 0;
+	uint64_t function_call_time = 0;
 
 	if (GDScriptLanguage::get_singleton()->profiling) {
 		function_start_time = OS::get_singleton()->get_ticks_usec();
@@ -371,7 +371,7 @@ Variant GDFunction::call(GDInstance *p_instance, const Variant **p_args, int p_a
 				Object *obj_A = *a;
 				Object *obj_B = *b;
 
-				GDScript *scr_B = obj_B->cast_to<GDScript>();
+				GDScript *scr_B = Object::cast_to<GDScript>(obj_B);
 
 				bool extends_ok = false;
 
@@ -397,7 +397,7 @@ Variant GDFunction::call(GDInstance *p_instance, const Variant **p_args, int p_a
 
 				} else {
 
-					GDNativeClass *nc = obj_B->cast_to<GDNativeClass>();
+					GDNativeClass *nc = Object::cast_to<GDNativeClass>(obj_B);
 
 					if (!nc) {
 
@@ -691,7 +691,7 @@ Variant GDFunction::call(GDInstance *p_instance, const Variant **p_args, int p_a
 				}
 
 #ifdef DEBUG_ENABLED
-				uint64_t call_time;
+				uint64_t call_time = 0;
 
 				if (GDScriptLanguage::get_singleton()->profiling) {
 					call_time = OS::get_singleton()->get_ticks_usec();
@@ -888,8 +888,8 @@ Variant GDFunction::call(GDInstance *p_instance, const Variant **p_args, int p_a
 				gdfs->state._class = _class;
 				gdfs->state.ip = ip + ipofs;
 				gdfs->state.line = line;
-				gdfs->state.instance_id = (p_instance && p_instance->get_owner()) ? p_instance->get_owner()->get_instance_ID() : 0;
-				gdfs->state.script_id = _class->get_instance_ID();
+				gdfs->state.instance_id = (p_instance && p_instance->get_owner()) ? p_instance->get_owner()->get_instance_id() : 0;
+				gdfs->state.script_id = _class->get_instance_id();
 				//gdfs->state.result_pos=ip+ipofs-1;
 				gdfs->state.defarg = defarg;
 				gdfs->state.instance = p_instance;
@@ -1026,7 +1026,7 @@ Variant GDFunction::call(GDInstance *p_instance, const Variant **p_args, int p_a
 			}
 			case OPCODE_ITERATE_BEGIN: {
 
-				CHECK_SPACE(8); //space for this an regular iterate
+				CHECK_SPACE(8); //space for this a regular iterate
 
 				GET_VARIANT_PTR(counter, 1);
 				GET_VARIANT_PTR(container, 2);
@@ -1233,10 +1233,10 @@ int GDFunction::get_default_argument_count() const {
 
 	return default_arguments.size();
 }
-int GDFunction::get_default_argument_addr(int p_arg) const {
+int GDFunction::get_default_argument_addr(int p_idx) const {
 
-	ERR_FAIL_INDEX_V(p_arg, default_arguments.size(), -1);
-	return default_arguments[p_arg];
+	ERR_FAIL_INDEX_V(p_idx, default_arguments.size(), -1);
+	return default_arguments[p_idx];
 }
 
 StringName GDFunction::get_name() const {
@@ -1319,22 +1319,6 @@ void GDFunction::debug_get_stack_member_state(int p_line, List<Pair<StringName, 
 	}
 }
 
-#if 0
-void GDFunction::clear() {
-
-	name=StringName();
-	constants.clear();
-	_stack_size=0;
-	code.clear();
-	_constants_ptr=NULL;
-	_constant_count=0;
-	_global_names_ptr=NULL;
-	_global_names_count=0;
-	_code_ptr=NULL;
-	_code_size=0;
-
-}
-#endif
 GDFunction::GDFunction()
 	: function_list(this) {
 
@@ -1428,8 +1412,24 @@ Variant GDFunctionState::_signal_callback(const Variant **p_args, int p_argcount
 
 	state.result = arg;
 	Variant ret = function->call(NULL, NULL, 0, r_error, &state);
+
+	bool completed = true;
+
+	// If the return value is a GDFunctionState reference,
+	// then the function did yield again after resuming.
+	if (ret.is_ref()) {
+		GDFunctionState *gdfs = Object::cast_to<GDFunctionState>(ret);
+		if (gdfs && gdfs->function == function)
+			completed = false;
+	}
+
 	function = NULL; //cleaned up;
 	state.result = Variant();
+
+	if (completed) {
+		emit_signal("completed", ret);
+	}
+
 	return ret;
 }
 
@@ -1468,16 +1468,34 @@ Variant GDFunctionState::resume(const Variant &p_arg) {
 	state.result = p_arg;
 	Variant::CallError err;
 	Variant ret = function->call(NULL, NULL, 0, err, &state);
+
+	bool completed = true;
+
+	// If the return value is a GDFunctionState reference,
+	// then the function did yield again after resuming.
+	if (ret.is_ref()) {
+		GDFunctionState *gdfs = Object::cast_to<GDFunctionState>(ret);
+		if (gdfs && gdfs->function == function)
+			completed = false;
+	}
+
 	function = NULL; //cleaned up;
 	state.result = Variant();
+
+	if (completed) {
+		emit_signal("completed", ret);
+	}
+
 	return ret;
 }
 
 void GDFunctionState::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("resume:Variant", "arg"), &GDFunctionState::resume, DEFVAL(Variant()));
+	ClassDB::bind_method(D_METHOD("resume", "arg"), &GDFunctionState::resume, DEFVAL(Variant()));
 	ClassDB::bind_method(D_METHOD("is_valid", "extended_check"), &GDFunctionState::is_valid, DEFVAL(false));
 	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "_signal_callback", &GDFunctionState::_signal_callback, MethodInfo("_signal_callback"));
+
+	ADD_SIGNAL(MethodInfo("completed", PropertyInfo(Variant::NIL, "result")));
 }
 
 GDFunctionState::GDFunctionState() {

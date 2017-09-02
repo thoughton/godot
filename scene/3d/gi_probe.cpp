@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -95,6 +95,16 @@ float GIProbeData::get_bias() const {
 	return VS::get_singleton()->gi_probe_get_bias(probe);
 }
 
+void GIProbeData::set_normal_bias(float p_range) {
+
+	VS::get_singleton()->gi_probe_set_normal_bias(probe, p_range);
+}
+
+float GIProbeData::get_normal_bias() const {
+
+	return VS::get_singleton()->gi_probe_get_normal_bias(probe);
+}
+
 void GIProbeData::set_propagation(float p_range) {
 
 	VS::get_singleton()->gi_probe_set_propagation(probe, p_range);
@@ -158,6 +168,9 @@ void GIProbeData::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_bias", "bias"), &GIProbeData::set_bias);
 	ClassDB::bind_method(D_METHOD("get_bias"), &GIProbeData::get_bias);
 
+	ClassDB::bind_method(D_METHOD("set_normal_bias", "bias"), &GIProbeData::set_normal_bias);
+	ClassDB::bind_method(D_METHOD("get_normal_bias"), &GIProbeData::get_normal_bias);
+
 	ClassDB::bind_method(D_METHOD("set_propagation", "propagation"), &GIProbeData::set_propagation);
 	ClassDB::bind_method(D_METHOD("get_propagation"), &GIProbeData::get_propagation);
 
@@ -175,6 +188,7 @@ void GIProbeData::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "dynamic_range", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_dynamic_range", "get_dynamic_range");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "energy", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_energy", "get_energy");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "bias", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_bias", "get_bias");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "normal_bias", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_normal_bias", "get_normal_bias");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "propagation", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_propagation", "get_propagation");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "interior", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_interior", "is_interior");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "compress", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_compress", "is_compressed");
@@ -263,6 +277,18 @@ void GIProbe::set_bias(float p_bias) {
 float GIProbe::get_bias() const {
 
 	return bias;
+}
+
+void GIProbe::set_normal_bias(float p_normal_bias) {
+
+	normal_bias = p_normal_bias;
+	if (probe_data.is_valid()) {
+		probe_data->set_normal_bias(normal_bias);
+	}
+}
+float GIProbe::get_normal_bias() const {
+
+	return normal_bias;
 }
 
 void GIProbe::set_propagation(float p_propagation) {
@@ -522,8 +548,8 @@ void GIProbe::_plot_face(int p_idx, int p_level, int p_x, int p_y, int p_z, cons
 		//plot the face by guessing it's albedo and emission value
 
 		//find best axis to map to, for scanning values
-		int closest_axis;
-		float closest_dot;
+		int closest_axis = 0;
+		float closest_dot = 0;
 
 		Plane plane = Plane(p_vtx[0], p_vtx[1], p_vtx[2]);
 		Vector3 normal = plane.normal;
@@ -973,7 +999,7 @@ GIProbe::Baker::MaterialCache GIProbe::_get_material_cache(Ref<Material> p_mater
 	return mc;
 }
 
-void GIProbe::_plot_mesh(const Transform &p_xform, Ref<ArrayMesh> &p_mesh, Baker *p_baker, const Vector<Ref<Material> > &p_materials, const Ref<Material> &p_override_material) {
+void GIProbe::_plot_mesh(const Transform &p_xform, Ref<Mesh> &p_mesh, Baker *p_baker, const Vector<Ref<Material> > &p_materials, const Ref<Material> &p_override_material) {
 
 	for (int i = 0; i < p_mesh->get_surface_count(); i++) {
 
@@ -1065,9 +1091,9 @@ void GIProbe::_plot_mesh(const Transform &p_xform, Ref<ArrayMesh> &p_mesh, Baker
 
 void GIProbe::_find_meshes(Node *p_at_node, Baker *p_baker) {
 
-	MeshInstance *mi = p_at_node->cast_to<MeshInstance>();
+	MeshInstance *mi = Object::cast_to<MeshInstance>(p_at_node);
 	if (mi && mi->get_flag(GeometryInstance::FLAG_USE_BAKED_LIGHT)) {
-		Ref<ArrayMesh> mesh = mi->get_mesh();
+		Ref<Mesh> mesh = mi->get_mesh();
 		if (mesh.is_valid()) {
 
 			Rect3 aabb = mesh->get_aabb();
@@ -1087,14 +1113,13 @@ void GIProbe::_find_meshes(Node *p_at_node, Baker *p_baker) {
 		}
 	}
 
-	if (p_at_node->cast_to<Spatial>()) {
+	if (Spatial *s = Object::cast_to<Spatial>(p_at_node)) {
 
-		Spatial *s = p_at_node->cast_to<Spatial>();
 		Array meshes = p_at_node->call("get_meshes");
 		for (int i = 0; i < meshes.size(); i += 2) {
 
 			Transform mxf = meshes[i];
-			Ref<ArrayMesh> mesh = meshes[i + 1];
+			Ref<Mesh> mesh = meshes[i + 1];
 			if (!mesh.is_valid())
 				continue;
 
@@ -1261,6 +1286,7 @@ void GIProbe::bake(Node *p_from_node, bool p_create_visual_debug) {
 		probe_data->set_dynamic_range(dynamic_range);
 		probe_data->set_energy(energy);
 		probe_data->set_bias(bias);
+		probe_data->set_normal_bias(normal_bias);
 		probe_data->set_propagation(propagation);
 		probe_data->set_interior(interior);
 		probe_data->set_compress(compress);
@@ -1434,6 +1460,9 @@ void GIProbe::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_bias", "max"), &GIProbe::set_bias);
 	ClassDB::bind_method(D_METHOD("get_bias"), &GIProbe::get_bias);
 
+	ClassDB::bind_method(D_METHOD("set_normal_bias", "max"), &GIProbe::set_normal_bias);
+	ClassDB::bind_method(D_METHOD("get_normal_bias"), &GIProbe::get_normal_bias);
+
 	ClassDB::bind_method(D_METHOD("set_propagation", "max"), &GIProbe::set_propagation);
 	ClassDB::bind_method(D_METHOD("get_propagation"), &GIProbe::get_propagation);
 
@@ -1453,14 +1482,15 @@ void GIProbe::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "energy", PROPERTY_HINT_RANGE, "0,16,0.01"), "set_energy", "get_energy");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "propagation", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_propagation", "get_propagation");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "bias", PROPERTY_HINT_RANGE, "0,4,0.001"), "set_bias", "get_bias");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "normal_bias", PROPERTY_HINT_RANGE, "0,4,0.001"), "set_normal_bias", "get_normal_bias");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "interior"), "set_interior", "is_interior");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "compress"), "set_compress", "is_compressed");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "data", PROPERTY_HINT_RESOURCE_TYPE, "GIProbeData"), "set_probe_data", "get_probe_data");
 
-	BIND_CONSTANT(SUBDIV_64);
-	BIND_CONSTANT(SUBDIV_128);
-	BIND_CONSTANT(SUBDIV_256);
-	BIND_CONSTANT(SUBDIV_MAX);
+	BIND_ENUM_CONSTANT(SUBDIV_64);
+	BIND_ENUM_CONSTANT(SUBDIV_128);
+	BIND_ENUM_CONSTANT(SUBDIV_256);
+	BIND_ENUM_CONSTANT(SUBDIV_MAX);
 }
 
 GIProbe::GIProbe() {
@@ -1468,7 +1498,8 @@ GIProbe::GIProbe() {
 	subdiv = SUBDIV_128;
 	dynamic_range = 4;
 	energy = 1.0;
-	bias = 1.8;
+	bias = 0.0;
+	normal_bias = 0.8;
 	propagation = 1.0;
 	extents = Vector3(10, 10, 10);
 	color_scan_cell_width = 4;

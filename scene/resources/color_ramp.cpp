@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -52,7 +52,7 @@ Gradient::~Gradient() {
 void Gradient::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("add_point", "offset", "color"), &Gradient::add_point);
-	ClassDB::bind_method(D_METHOD("remove_point", "offset", "color"), &Gradient::remove_point);
+	ClassDB::bind_method(D_METHOD("remove_point", "offset"), &Gradient::remove_point);
 
 	ClassDB::bind_method(D_METHOD("set_offset", "point", "offset"), &Gradient::set_offset);
 	ClassDB::bind_method(D_METHOD("get_offset", "point"), &Gradient::get_offset);
@@ -149,7 +149,7 @@ void Gradient::set_offset(int pos, const float offset) {
 }
 
 float Gradient::get_offset(int pos) const {
-	if (points.size() > pos)
+	if (points.size() && points.size() > pos)
 		return points[pos].offset;
 	return 0; //TODO: Maybe throw some error instead?
 }
@@ -164,7 +164,7 @@ void Gradient::set_color(int pos, const Color &color) {
 }
 
 Color Gradient::get_color(int pos) const {
-	if (points.size() > pos)
+	if (points.size() && points.size() > pos)
 		return points[pos].color;
 	return Color(0, 0, 0, 1); //TODO: Maybe throw some error instead?
 }

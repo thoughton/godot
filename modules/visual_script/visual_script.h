@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -291,8 +291,8 @@ public:
 	void data_disconnect(const StringName &p_func, int p_from_node, int p_from_port, int p_to_node, int p_to_port);
 	bool has_data_connection(const StringName &p_func, int p_from_node, int p_from_port, int p_to_node, int p_to_port) const;
 	void get_data_connection_list(const StringName &p_func, List<DataConnection> *r_connection) const;
-	bool is_input_value_port_connected(const StringName &p_name, int p_node, int p_port) const;
-	bool get_input_value_port_connection_source(const StringName &p_name, int p_node, int p_port, int *r_node, int *r_port) const;
+	bool is_input_value_port_connected(const StringName &p_func, int p_node, int p_port) const;
+	bool get_input_value_port_connection_source(const StringName &p_func, int p_node, int p_port, int *r_node, int *r_port) const;
 
 	void add_variable(const StringName &p_name, const Variant &p_default_value = Variant(), bool p_export = false);
 	bool has_variable(const StringName &p_name) const;
@@ -509,7 +509,7 @@ public:
 
 	_FORCE_INLINE_ void enter_function(VisualScriptInstance *p_instance, const StringName *p_function, Variant *p_stack, Variant **p_work_mem, int *current_id) {
 
-		if (Thread::get_main_ID() != Thread::get_caller_ID())
+		if (Thread::get_main_id() != Thread::get_caller_id())
 			return; //no support for other threads than main for now
 
 		if (ScriptDebugger::get_singleton()->get_lines_left() > 0 && ScriptDebugger::get_singleton()->get_depth() >= 0)
@@ -532,7 +532,7 @@ public:
 
 	_FORCE_INLINE_ void exit_function() {
 
-		if (Thread::get_main_ID() != Thread::get_caller_ID())
+		if (Thread::get_main_id() != Thread::get_caller_id())
 			return; //no support for other threads than main for now
 
 		if (ScriptDebugger::get_singleton()->get_lines_left() > 0 && ScriptDebugger::get_singleton()->get_depth() >= 0)

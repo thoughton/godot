@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -414,7 +414,7 @@ public:
 	void set_width(int p_width);
 	int get_width() const;
 
-	void ensure_default_setup(float p_min=0, float p_max=1);
+	void ensure_default_setup(float p_min = 0, float p_max = 1);
 
 	void set_curve(Ref<Curve> p_curve);
 	Ref<Curve> get_curve() const;

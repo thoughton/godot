@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -774,6 +774,8 @@ CurveEditorPlugin::CurveEditorPlugin(EditorNode *p_node) {
 
 	_toggle_button = _editor_node->add_bottom_panel_item(get_name(), _view);
 	_toggle_button->hide();
+
+	get_editor_interface()->get_resource_previewer()->add_preview_generator(memnew(CurvePreviewGenerator));
 }
 
 CurveEditorPlugin::~CurveEditorPlugin() {
@@ -784,24 +786,24 @@ void CurveEditorPlugin::edit(Object *p_object) {
 	Ref<Curve> curve_ref;
 
 	if (_current_ref.is_valid()) {
-		CurveTexture *ct = _current_ref->cast_to<CurveTexture>();
+		CurveTexture *ct = Object::cast_to<CurveTexture>(*_current_ref);
 		if (ct)
 			ct->disconnect(CoreStringNames::get_singleton()->changed, this, "_curve_texture_changed");
 	}
 
 	if (p_object) {
-		Resource *res = p_object->cast_to<Resource>();
+		Resource *res = Object::cast_to<Resource>(p_object);
 		ERR_FAIL_COND(res == NULL);
 		ERR_FAIL_COND(!handles(p_object));
 
-		_current_ref = Ref<Resource>(p_object->cast_to<Resource>());
+		_current_ref = Ref<Resource>(Object::cast_to<Resource>(p_object));
 
 		if (_current_ref.is_valid()) {
-			Curve *curve = _current_ref->cast_to<Curve>();
+			Curve *curve = Object::cast_to<Curve>(*_current_ref);
 			if (curve)
 				curve_ref = Ref<Curve>(curve);
 			else {
-				CurveTexture *ct = _current_ref->cast_to<CurveTexture>();
+				CurveTexture *ct = Object::cast_to<CurveTexture>(*_current_ref);
 				if (ct) {
 					ct->connect(CoreStringNames::get_singleton()->changed, this, "_curve_texture_changed");
 					curve_ref = ct->get_curve();
@@ -818,7 +820,7 @@ void CurveEditorPlugin::edit(Object *p_object) {
 
 bool CurveEditorPlugin::handles(Object *p_object) const {
 	// Both handled so that we can keep the curve editor open
-	return p_object->cast_to<Curve>() || p_object->cast_to<CurveTexture>();
+	return Object::cast_to<Curve>(p_object) || Object::cast_to<CurveTexture>(p_object);
 }
 
 void CurveEditorPlugin::make_visible(bool p_visible) {
@@ -835,7 +837,7 @@ void CurveEditorPlugin::make_visible(bool p_visible) {
 void CurveEditorPlugin::_curve_texture_changed() {
 	// If the curve is shown indirectly as a CurveTexture is edited,
 	// we need to monitor when the curve property gets assigned
-	CurveTexture *ct = _current_ref->cast_to<CurveTexture>();
+	CurveTexture *ct = Object::cast_to<CurveTexture>(*_current_ref);
 	if (ct) {
 		_view->set_curve(ct->get_curve());
 	}
@@ -844,4 +846,75 @@ void CurveEditorPlugin::_curve_texture_changed() {
 void CurveEditorPlugin::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_curve_texture_changed"), &CurveEditorPlugin::_curve_texture_changed);
+}
+
+//-----------------------------------
+// Preview generator
+
+bool CurvePreviewGenerator::handles(const String &p_type) const {
+	return p_type == "Curve";
+}
+
+Ref<Texture> CurvePreviewGenerator::generate(const Ref<Resource> &p_from) {
+
+	Ref<Curve> curve_ref = p_from;
+	ERR_FAIL_COND_V(curve_ref.is_null(), Ref<Texture>());
+	Curve &curve = **curve_ref;
+
+	int thumbnail_size = EditorSettings::get_singleton()->get("filesystem/file_dialog/thumbnail_size");
+	thumbnail_size *= EDSCALE;
+	Ref<Image> img_ref;
+	img_ref.instance();
+	Image &im = **img_ref;
+
+	im.create(thumbnail_size, thumbnail_size, 0, Image::FORMAT_RGBA8);
+
+	im.lock();
+
+	Color bg_color(0.1, 0.1, 0.1, 1.0);
+	for (int i = 0; i < thumbnail_size; i++) {
+		for (int j = 0; j < thumbnail_size; j++) {
+			im.set_pixel(i, j, bg_color);
+		}
+	}
+
+	Color line_color(0.8, 0.8, 0.8, 1.0);
+	float range_y = curve.get_max_value() - curve.get_min_value();
+
+	int prev_y = 0;
+	for (int x = 0; x < im.get_width(); ++x) {
+
+		float t = static_cast<float>(x) / im.get_width();
+		float v = (curve.interpolate_baked(t) - curve.get_min_value()) / range_y;
+		int y = CLAMP(im.get_height() - v * im.get_height(), 0, im.get_height());
+
+		// Plot point
+		if (y >= 0 && y < im.get_height()) {
+			im.set_pixel(x, y, line_color);
+		}
+
+		// Plot vertical line to fix discontinuity (not 100% correct but enough for a preview)
+		if (x != 0 && Math::abs(y - prev_y) > 1) {
+			int y0, y1;
+			if (y < prev_y) {
+				y0 = y;
+				y1 = prev_y;
+			} else {
+				y0 = prev_y;
+				y1 = y;
+			}
+			for (int ly = y0; ly < y1; ++ly) {
+				im.set_pixel(x, ly, line_color);
+			}
+		}
+
+		prev_y = y;
+	}
+
+	im.unlock();
+
+	Ref<ImageTexture> ptex = Ref<ImageTexture>(memnew(ImageTexture));
+
+	ptex->create_from_image(img_ref, 0);
+	return ptex;
 }

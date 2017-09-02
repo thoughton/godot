@@ -115,7 +115,6 @@ def configure(env):
 
             angle_build_cmd += "Win32"
 
-            env.Append(CPPFLAGS=['/DPNG_ABORT=abort'])
             env.Append(LINKFLAGS=['/MACHINE:X86'])
             env.Append(LIBPATH=[vc_base_path + 'lib/store'])
             env.Append(LIBPATH=[angle_root + '/winrt/10/src/Release_Win32/lib'])
@@ -141,13 +140,13 @@ def configure(env):
     winver = "0x0602" # Windows 8 is the minimum target for UWP build
     env.Append(CCFLAGS=['/DWINVER=%s' % winver, '/D_WIN32_WINNT=%s' % winver])
 
-    env.Append(CPPFLAGS=['/D', '__WRL_NO_DEFAULT_LIB__', '/D', 'WIN32'])
+    env.Append(CPPFLAGS=['/D', '__WRL_NO_DEFAULT_LIB__', '/D', 'WIN32', '/DPNG_ABORT=abort'])
 
     env.Append(CPPFLAGS=['/AI', vc_base_path + 'lib/store/references'])
     env.Append(CPPFLAGS=['/AI', vc_base_path + 'lib/x86/store/references'])
 
-    env.Append(CCFLAGS=string.split('/FS /MP /GS /wd"4453" /wd"28204" /wd"4291" /Zc:wchar_t /Gm- /fp:precise /D "_UNICODE" /D "UNICODE" /D "WINAPI_FAMILY=WINAPI_FAMILY_APP" /errorReport:prompt /WX- /Zc:forScope /Gd /EHsc /nologo'))
-    env.Append(CXXFLAGS=string.split('/ZW /FS'))
+    env.Append(CCFLAGS='/FS /MP /GS /wd"4453" /wd"28204" /wd"4291" /Zc:wchar_t /Gm- /fp:precise /D "_UNICODE" /D "UNICODE" /D "WINAPI_FAMILY=WINAPI_FAMILY_APP" /errorReport:prompt /WX- /Zc:forScope /Gd /EHsc /nologo'.split())
+    env.Append(CXXFLAGS='/ZW /FS'.split())
     env.Append(CCFLAGS=['/AI', vc_base_path + '\\vcpackages', '/AI', os.environ['WINDOWSSDKDIR'] + '\\References\\CommonConfiguration\\Neutral'])
 
     ## Link flags

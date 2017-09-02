@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -118,7 +118,7 @@ public:
 	void set_item_text(int p_idx, const String &p_text);
 	void set_item_icon(int p_idx, const Ref<Texture> &p_icon);
 	void set_item_checked(int p_idx, bool p_checked);
-	void set_item_ID(int p_idx, int p_ID);
+	void set_item_id(int p_idx, int p_ID);
 	void set_item_accelerator(int p_idx, uint32_t p_accel);
 	void set_item_metadata(int p_idx, const Variant &p_meta);
 	void set_item_disabled(int p_idx, bool p_disabled);
@@ -132,14 +132,15 @@ public:
 	void toggle_item_checked(int p_idx);
 
 	String get_item_text(int p_idx) const;
+	int get_item_idx_from_text(const String &text) const;
 	Ref<Texture> get_item_icon(int p_idx) const;
 	bool is_item_checked(int p_idx) const;
-	int get_item_ID(int p_idx) const;
+	int get_item_id(int p_idx) const;
 	int get_item_index(int p_ID) const;
 	uint32_t get_item_accelerator(int p_idx) const;
 	Variant get_item_metadata(int p_idx) const;
 	bool is_item_disabled(int p_idx) const;
-	String get_item_submenu(int p_ID) const;
+	String get_item_submenu(int p_idx) const;
 	bool is_item_separator(int p_idx) const;
 	bool is_item_checkable(int p_idx) const;
 	String get_item_tooltip(int p_idx) const;

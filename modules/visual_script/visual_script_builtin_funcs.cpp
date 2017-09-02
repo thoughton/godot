@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -915,7 +915,7 @@ void VisualScriptBuiltinFunc::exec_func(BuiltinFunc p_func, const Variant **p_in
 
 			VALIDATE_ARG_NUM(0);
 			int64_t num = *p_inputs[0];
-			*r_return = nearest_power_of_2(num);
+			*r_return = next_power_of_2(num);
 		} break;
 		case VisualScriptBuiltinFunc::OBJ_WEAKREF: {
 

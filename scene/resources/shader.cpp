@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -128,8 +128,8 @@ void Shader::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_code", "code"), &Shader::set_code);
 	ClassDB::bind_method(D_METHOD("get_code"), &Shader::get_code);
 
-	ClassDB::bind_method(D_METHOD("set_default_texture_param", "param", "texture:Texture"), &Shader::set_default_texture_param);
-	ClassDB::bind_method(D_METHOD("get_default_texture_param:Texture", "param"), &Shader::get_default_texture_param);
+	ClassDB::bind_method(D_METHOD("set_default_texture_param", "param", "texture"), &Shader::set_default_texture_param);
+	ClassDB::bind_method(D_METHOD("get_default_texture_param", "param"), &Shader::get_default_texture_param);
 
 	ClassDB::bind_method(D_METHOD("has_param", "name"), &Shader::has_param);
 
@@ -137,9 +137,9 @@ void Shader::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "code", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_code", "get_code");
 
-	BIND_CONSTANT(MODE_SPATIAL);
-	BIND_CONSTANT(MODE_CANVAS_ITEM);
-	BIND_CONSTANT(MODE_PARTICLES);
+	BIND_ENUM_CONSTANT(MODE_SPATIAL);
+	BIND_ENUM_CONSTANT(MODE_CANVAS_ITEM);
+	BIND_ENUM_CONSTANT(MODE_PARTICLES);
 }
 
 Shader::Shader() {

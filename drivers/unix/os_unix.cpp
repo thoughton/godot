@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -50,10 +50,10 @@
 #include <mach-o/dyld.h>
 #endif
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <sys/param.h>
 #endif
-#include "global_config.h"
+#include "project_settings.h"
 #include <assert.h>
 #include <dlfcn.h>
 #include <errno.h>
@@ -315,7 +315,9 @@ OS::TimeZoneInfo OS_Unix::get_time_zone_info() const {
 
 void OS_Unix::delay_usec(uint32_t p_usec) const {
 
-	usleep(p_usec);
+	struct timespec rem = { p_usec / 1000000, (p_usec % 1000000) * 1000 };
+	while (nanosleep(&rem, &rem) == EINTR) {
+	}
 }
 uint64_t OS_Unix::get_ticks_usec() const {
 
@@ -415,7 +417,7 @@ Error OS_Unix::kill(const ProcessID &p_pid) {
 	return ret ? ERR_INVALID_PARAMETER : OK;
 }
 
-int OS_Unix::get_process_ID() const {
+int OS_Unix::get_process_id() const {
 
 	return getpid();
 };
@@ -453,7 +455,7 @@ Error OS_Unix::close_dynamic_library(void *p_library_handle) {
 	return OK;
 }
 
-Error OS_Unix::get_dynamic_library_symbol_handle(void *p_library_handle, const String p_name, void *&p_symbol_handle) {
+Error OS_Unix::get_dynamic_library_symbol_handle(void *p_library_handle, const String p_name, void *&p_symbol_handle, bool p_optional) {
 	const char *error;
 	dlerror(); // Clear existing errors
 
@@ -461,8 +463,12 @@ Error OS_Unix::get_dynamic_library_symbol_handle(void *p_library_handle, const S
 
 	error = dlerror();
 	if (error != NULL) {
-		ERR_EXPLAIN("Can't resolve symbol " + p_name + ". Error: " + error);
-		ERR_FAIL_V(ERR_CANT_RESOLVE);
+		if (!p_optional) {
+			ERR_EXPLAIN("Can't resolve symbol " + p_name + ". Error: " + error);
+			ERR_FAIL_V(ERR_CANT_RESOLVE);
+		} else {
+			return ERR_CANT_RESOLVE;
+		}
 	}
 	return OK;
 }
@@ -494,7 +500,7 @@ String OS_Unix::get_data_dir() const {
 
 		if (has_environment("HOME")) {
 
-			bool use_godot = GlobalConfig::get_singleton()->get("application/use_shared_user_dir");
+			bool use_godot = ProjectSettings::get_singleton()->get("application/config/use_shared_user_dir");
 			if (use_godot)
 				return get_environment("HOME") + "/.godot/app_userdata/" + an;
 			else
@@ -502,12 +508,7 @@ String OS_Unix::get_data_dir() const {
 		}
 	}
 
-	return GlobalConfig::get_singleton()->get_resource_path();
-}
-
-bool OS_Unix::check_feature_support(const String &p_feature) {
-
-	return VisualServer::get_singleton()->has_os_feature(p_feature);
+	return ProjectSettings::get_singleton()->get_resource_path();
 }
 
 String OS_Unix::get_installed_templates_path() const {
@@ -532,7 +533,7 @@ String OS_Unix::get_executable_path() const {
 		return OS::get_executable_path();
 	}
 	return b;
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__OpenBSD__)
 	char resolved_path[MAXPATHLEN];
 
 	realpath(OS::get_executable_path().utf8().get_data(), resolved_path);

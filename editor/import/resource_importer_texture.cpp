@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -45,8 +45,6 @@ void ResourceImporterTexture::_texture_reimport_srgb(const Ref<StreamTexture> &p
 
 	singleton->make_flags[path] |= MAKE_SRGB_FLAG;
 
-	print_line("requesting srgb for " + String(path));
-
 	singleton->mutex->unlock();
 }
 
@@ -61,8 +59,6 @@ void ResourceImporterTexture::_texture_reimport_3d(const Ref<StreamTexture> &p_t
 
 	singleton->make_flags[path] |= MAKE_3D_FLAG;
 
-	print_line("requesting 3d for " + String(path));
-
 	singleton->mutex->unlock();
 }
 
@@ -76,8 +72,6 @@ void ResourceImporterTexture::_texture_reimport_normal(const Ref<StreamTexture> 
 	}
 
 	singleton->make_flags[path] |= MAKE_NORMAL_FLAG;
-
-	print_line("requesting normalfor " + String(path));
 
 	singleton->mutex->unlock();
 }
@@ -96,8 +90,6 @@ void ResourceImporterTexture::update_imports() {
 
 	Vector<String> to_reimport;
 	for (Map<StringName, int>::Element *E = make_flags.front(); E; E = E->next()) {
-
-		print_line("checking for reimport " + String(E->key()));
 
 		Ref<ConfigFile> cf;
 		cf.instance();
@@ -207,11 +199,11 @@ void ResourceImporterTexture::get_import_options(List<ImportOption> *r_options, 
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "stream"), false));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "size_limit", PROPERTY_HINT_RANGE, "0,4096,1"), 0));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "detect_3d"), p_preset == PRESET_DETECT));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::REAL, "svg/scale", PROPERTY_HINT_RANGE, "0.001,100,0.1"), 1.0));
 }
 
 void ResourceImporterTexture::_save_stex(const Ref<Image> &p_image, const String &p_to_path, int p_compress_mode, float p_lossy_quality, Image::CompressMode p_vram_compression, bool p_mipmaps, int p_texture_flags, bool p_streamable, bool p_detect_3d, bool p_detect_srgb, bool p_force_rgbe, bool p_detect_normal, bool p_force_normal) {
 
-	print_line("saving: " + p_to_path);
 	FileAccess *f = FileAccess::open(p_to_path, FileAccess::WRITE);
 	f->store_8('G');
 	f->store_8('D');
@@ -236,7 +228,7 @@ void ResourceImporterTexture::_save_stex(const Ref<Image> &p_image, const String
 		format |= StreamTexture::FORMAT_BIT_DETECT_NORMAL;
 
 	if ((p_compress_mode == COMPRESS_LOSSLESS || p_compress_mode == COMPRESS_LOSSY) && p_image->get_format() > Image::FORMAT_RGBA8) {
-		p_compress_mode == COMPRESS_UNCOMPRESSED; //these can't go as lossy
+		p_compress_mode = COMPRESS_UNCOMPRESSED; //these can't go as lossy
 	}
 
 	switch (p_compress_mode) {
@@ -365,10 +357,11 @@ Error ResourceImporterTexture::import(const String &p_source_file, const String 
 	bool force_rgbe = int(p_options["compress/hdr_mode"]) == 1;
 	bool hdr_as_srgb = p_options["process/HDR_as_SRGB"];
 	int normal = p_options["compress/normal_map"];
+	float scale = p_options["svg/scale"];
 
 	Ref<Image> image;
 	image.instance();
-	Error err = ImageLoader::load_image(p_source_file, image, NULL, hdr_as_srgb);
+	Error err = ImageLoader::load_image(p_source_file, image, NULL, hdr_as_srgb, scale);
 	if (err != OK)
 		return err;
 
@@ -416,26 +409,26 @@ Error ResourceImporterTexture::import(const String &p_source_file, const String 
 	bool force_normal = normal == 1;
 
 	if (compress_mode == COMPRESS_VIDEO_RAM) {
-		//must import in all formats
+		//must import in all formats, in order of priority (so platform choses the best supported one. IE, etc2 over etc).
 		//Android, GLES 2.x
-		if (GlobalConfig::get_singleton()->get("rendering/vram_formats/use_s3tc")) {
+		if (ProjectSettings::get_singleton()->get("rendering/vram_compression/import_s3tc")) {
 
 			_save_stex(image, p_save_path + ".s3tc.stex", compress_mode, lossy, Image::COMPRESS_S3TC, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal);
 			r_platform_variants->push_back("s3tc");
 		}
 
-		if (GlobalConfig::get_singleton()->get("rendering/vram_formats/use_etc")) {
-			_save_stex(image, p_save_path + ".etc.stex", compress_mode, lossy, Image::COMPRESS_ETC, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal);
-			r_platform_variants->push_back("etc");
-		}
-
-		if (GlobalConfig::get_singleton()->get("rendering/vram_formats/use_etc2")) {
+		if (ProjectSettings::get_singleton()->get("rendering/vram_compression/import_etc2")) {
 
 			_save_stex(image, p_save_path + ".etc2.stex", compress_mode, lossy, Image::COMPRESS_ETC2, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal);
 			r_platform_variants->push_back("etc2");
 		}
 
-		if (GlobalConfig::get_singleton()->get("rendering/vram_formats/use_pvrtc")) {
+		if (ProjectSettings::get_singleton()->get("rendering/vram_compression/import_etc")) {
+			_save_stex(image, p_save_path + ".etc.stex", compress_mode, lossy, Image::COMPRESS_ETC, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal);
+			r_platform_variants->push_back("etc");
+		}
+
+		if (ProjectSettings::get_singleton()->get("rendering/vram_compression/import_pvrtc")) {
 
 			_save_stex(image, p_save_path + ".pvrtc.stex", compress_mode, lossy, Image::COMPRESS_PVRTC4, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal);
 			r_platform_variants->push_back("pvrtc");

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -29,6 +29,7 @@
 /*************************************************************************/
 #include "particles_2d.h"
 
+#include "engine.h"
 #include "scene/3d/particles.h"
 #include "scene/scene_string_names.h"
 
@@ -55,6 +56,8 @@ void Particles2D::set_one_shot(bool p_enable) {
 
 	one_shot = p_enable;
 	VS::get_singleton()->particles_set_one_shot(particles, one_shot);
+	if (!one_shot && emitting)
+		VisualServer::get_singleton()->particles_restart(particles);
 }
 void Particles2D::set_pre_process_time(float p_time) {
 
@@ -293,11 +296,20 @@ void Particles2D::_notification(int p_what) {
 		VS::get_singleton()->canvas_item_add_particles(get_canvas_item(), particles, texture_rid, normal_rid, h_frames, v_frames);
 
 #ifdef TOOLS_ENABLED
-		if (get_tree()->is_editor_hint() && (this == get_tree()->get_edited_scene_root() || get_tree()->get_edited_scene_root()->is_a_parent_of(this))) {
+		if (Engine::get_singleton()->is_editor_hint() && (this == get_tree()->get_edited_scene_root() || get_tree()->get_edited_scene_root()->is_a_parent_of(this))) {
 
 			draw_rect(visibility_rect, Color(0, 0.7, 0.9, 0.4), false);
 		}
 #endif
+	}
+
+	if (p_what == NOTIFICATION_PAUSED || p_what == NOTIFICATION_UNPAUSED) {
+		if (can_process()) {
+			VS::get_singleton()->particles_set_speed_scale(particles, speed_scale);
+		} else {
+
+			VS::get_singleton()->particles_set_speed_scale(particles, 0);
+		}
 	}
 
 	if (p_what == NOTIFICATION_TRANSFORM_CHANGED) {
@@ -318,7 +330,7 @@ void Particles2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_use_local_coordinates", "enable"), &Particles2D::set_use_local_coordinates);
 	ClassDB::bind_method(D_METHOD("set_fixed_fps", "fps"), &Particles2D::set_fixed_fps);
 	ClassDB::bind_method(D_METHOD("set_fractional_delta", "enable"), &Particles2D::set_fractional_delta);
-	ClassDB::bind_method(D_METHOD("set_process_material", "material:Material"), &Particles2D::set_process_material);
+	ClassDB::bind_method(D_METHOD("set_process_material", "material"), &Particles2D::set_process_material);
 	ClassDB::bind_method(D_METHOD("set_speed_scale", "scale"), &Particles2D::set_speed_scale);
 
 	ClassDB::bind_method(D_METHOD("is_emitting"), &Particles2D::is_emitting);
@@ -332,17 +344,17 @@ void Particles2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_use_local_coordinates"), &Particles2D::get_use_local_coordinates);
 	ClassDB::bind_method(D_METHOD("get_fixed_fps"), &Particles2D::get_fixed_fps);
 	ClassDB::bind_method(D_METHOD("get_fractional_delta"), &Particles2D::get_fractional_delta);
-	ClassDB::bind_method(D_METHOD("get_process_material:Material"), &Particles2D::get_process_material);
+	ClassDB::bind_method(D_METHOD("get_process_material"), &Particles2D::get_process_material);
 	ClassDB::bind_method(D_METHOD("get_speed_scale"), &Particles2D::get_speed_scale);
 
 	ClassDB::bind_method(D_METHOD("set_draw_order", "order"), &Particles2D::set_draw_order);
 	ClassDB::bind_method(D_METHOD("get_draw_order"), &Particles2D::get_draw_order);
 
-	ClassDB::bind_method(D_METHOD("set_texture", "texture:Texture"), &Particles2D::set_texture);
-	ClassDB::bind_method(D_METHOD("get_texture:Texture"), &Particles2D::get_texture);
+	ClassDB::bind_method(D_METHOD("set_texture", "texture"), &Particles2D::set_texture);
+	ClassDB::bind_method(D_METHOD("get_texture"), &Particles2D::get_texture);
 
-	ClassDB::bind_method(D_METHOD("set_normal_map", "texture:Texture"), &Particles2D::set_normal_map);
-	ClassDB::bind_method(D_METHOD("get_normal_map:Texture"), &Particles2D::get_normal_map);
+	ClassDB::bind_method(D_METHOD("set_normal_map", "texture"), &Particles2D::set_normal_map);
+	ClassDB::bind_method(D_METHOD("get_normal_map"), &Particles2D::get_normal_map);
 
 	ClassDB::bind_method(D_METHOD("capture_rect"), &Particles2D::capture_rect);
 
@@ -377,8 +389,8 @@ void Particles2D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "h_frames", PROPERTY_HINT_RANGE, "1,1024,1"), "set_h_frames", "get_h_frames");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "v_frames", PROPERTY_HINT_RANGE, "1,1024,1"), "set_v_frames", "get_v_frames");
 
-	BIND_CONSTANT(DRAW_ORDER_INDEX);
-	BIND_CONSTANT(DRAW_ORDER_LIFETIME);
+	BIND_ENUM_CONSTANT(DRAW_ORDER_INDEX);
+	BIND_ENUM_CONSTANT(DRAW_ORDER_LIFETIME);
 }
 
 Particles2D::Particles2D() {
@@ -396,6 +408,7 @@ Particles2D::Particles2D() {
 	set_randomness_ratio(0);
 	set_visibility_rect(Rect2(Vector2(-100, -100), Vector2(200, 200)));
 	set_use_local_coordinates(true);
+	set_draw_order(DRAW_ORDER_INDEX);
 	set_speed_scale(1);
 	h_frames = 1;
 	v_frames = 1;

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -105,23 +105,11 @@ void Sprite::set_texture(const Ref<Texture> &p_texture) {
 
 	if (p_texture == texture)
 		return;
-#ifdef DEBUG_ENABLED
-	if (texture.is_valid()) {
-		texture->disconnect(CoreStringNames::get_singleton()->changed, this, SceneStringNames::get_singleton()->update);
-	}
-#endif
 	texture = p_texture;
-	/* this should no longer be needed in 3.0
-#ifdef DEBUG_ENABLED
-	if (texture.is_valid()) {
-		texture->set_flags(texture->get_flags()); //remove repeat from texture, it looks bad in sprites
-		texture->connect(CoreStringNames::get_singleton()->changed, this, SceneStringNames::get_singleton()->update);
-	}
-#endif
-*/
 	update();
 	emit_signal("texture_changed");
 	item_rect_changed();
+	_change_notify("texture");
 }
 
 void Sprite::set_normal_map(const Ref<Texture> &p_texture) {
@@ -249,7 +237,7 @@ void Sprite::set_vframes(int p_amount) {
 	vframes = p_amount;
 	update();
 	item_rect_changed();
-	_change_notify("frame");
+	_change_notify();
 }
 int Sprite::get_vframes() const {
 
@@ -262,7 +250,7 @@ void Sprite::set_hframes(int p_amount) {
 	hframes = p_amount;
 	update();
 	item_rect_changed();
-	_change_notify("frame");
+	_change_notify();
 }
 int Sprite::get_hframes() const {
 
@@ -310,11 +298,11 @@ void Sprite::_validate_property(PropertyInfo &property) const {
 
 void Sprite::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_texture", "texture:Texture"), &Sprite::set_texture);
-	ClassDB::bind_method(D_METHOD("get_texture:Texture"), &Sprite::get_texture);
+	ClassDB::bind_method(D_METHOD("set_texture", "texture"), &Sprite::set_texture);
+	ClassDB::bind_method(D_METHOD("get_texture"), &Sprite::get_texture);
 
-	ClassDB::bind_method(D_METHOD("set_normal_map", "normal_map:Texture"), &Sprite::set_normal_map);
-	ClassDB::bind_method(D_METHOD("get_normal_map:Texture"), &Sprite::get_normal_map);
+	ClassDB::bind_method(D_METHOD("set_normal_map", "normal_map"), &Sprite::set_normal_map);
+	ClassDB::bind_method(D_METHOD("get_normal_map"), &Sprite::get_normal_map);
 
 	ClassDB::bind_method(D_METHOD("set_centered", "centered"), &Sprite::set_centered);
 	ClassDB::bind_method(D_METHOD("is_centered"), &Sprite::is_centered);
@@ -411,7 +399,7 @@ void ViewportSprite::_notification(int p_what) {
 
 				Node *n = get_node(viewport_path);
 				ERR_FAIL_COND(!n);
-				Viewport *vp=n->cast_to<Viewport>();
+				Viewport *vp=Object::cast_to<Viewport>(n);
 				ERR_FAIL_COND(!vp);
 
 				Ref<RenderTargetTexture> rtt = vp->get_render_target_texture();
@@ -479,7 +467,7 @@ void ViewportSprite::set_viewport_path(const NodePath& p_viewport) {
 
 	Node *n = get_node(viewport_path);
 	ERR_FAIL_COND(!n);
-	Viewport *vp=n->cast_to<Viewport>();
+	Viewport *vp=Object::cast_to<Viewport>(n);
 	ERR_FAIL_COND(!vp);
 
 	Ref<RenderTargetTexture> rtt = vp->get_render_target_texture();
@@ -556,13 +544,13 @@ Rect2 ViewportSprite::get_item_rect() const {
 
 String ViewportSprite::get_configuration_warning() const {
 
-	if (!has_node(viewport_path) || !get_node(viewport_path) || !get_node(viewport_path)->cast_to<Viewport>()) {
+	if (!has_node(viewport_path) || !Object::cast_to<Viewport>(get_node(viewport_path))) {
 		return TTR("Path property must point to a valid Viewport node to work. Such Viewport must be set to 'render target' mode.");
 	} else {
 
 		Node *n = get_node(viewport_path);
 		if (n) {
-			Viewport *vp = n->cast_to<Viewport>();
+			Viewport *vp = Object::cast_to<Viewport>(n);
 			if (!vp->is_set_as_render_target()) {
 
 				return TTR("The Viewport set in the path property must be set as 'render target' in order for this sprite to work.");

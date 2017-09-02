@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -28,40 +28,32 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "stream_peer_openssl.h"
-//hostname matching code from curl
 
-//#include <openssl/applink.c> // To prevent crashing (see the OpenSSL FAQ)
+//hostname matching code from curl
 
 bool StreamPeerOpenSSL::_match_host_name(const char *name, const char *hostname) {
 
 	return Tool_Curl_cert_hostcheck(name, hostname) == CURL_HOST_MATCH;
-	//print_line("MATCH: "+String(name)+" vs "+String(hostname));
-	//return true;
 }
 
 Error StreamPeerOpenSSL::_match_common_name(const char *hostname, const X509 *server_cert) {
 
-	int common_name_loc = -1;
-	X509_NAME_ENTRY *common_name_entry = NULL;
-	ASN1_STRING *common_name_asn1 = NULL;
-	char *common_name_str = NULL;
-
 	// Find the position of the CN field in the Subject field of the certificate
-	common_name_loc = X509_NAME_get_index_by_NID(X509_get_subject_name((X509 *)server_cert), NID_commonName, -1);
+	int common_name_loc = X509_NAME_get_index_by_NID(X509_get_subject_name((X509 *)server_cert), NID_commonName, -1);
 
 	ERR_FAIL_COND_V(common_name_loc < 0, ERR_INVALID_PARAMETER);
 
 	// Extract the CN field
-	common_name_entry = X509_NAME_get_entry(X509_get_subject_name((X509 *)server_cert), common_name_loc);
+	X509_NAME_ENTRY *common_name_entry = X509_NAME_get_entry(X509_get_subject_name((X509 *)server_cert), common_name_loc);
 
 	ERR_FAIL_COND_V(common_name_entry == NULL, ERR_INVALID_PARAMETER);
 
 	// Convert the CN field to a C string
-	common_name_asn1 = X509_NAME_ENTRY_get_data(common_name_entry);
+	ASN1_STRING *common_name_asn1 = X509_NAME_ENTRY_get_data(common_name_entry);
 
 	ERR_FAIL_COND_V(common_name_asn1 == NULL, ERR_INVALID_PARAMETER);
 
-	common_name_str = (char *)ASN1_STRING_data(common_name_asn1);
+	char *common_name_str = (char *)ASN1_STRING_data(common_name_asn1);
 
 	// Make sure there isn't an embedded NUL character in the CN
 	bool malformed_certificate = (size_t)ASN1_STRING_length(common_name_asn1) != strlen(common_name_str);
@@ -303,20 +295,6 @@ Error StreamPeerOpenSSL::connect_to_stream(Ref<StreamPeer> p_base, bool p_valida
 
 				X509_STORE_add_cert(store, certs[i]);
 			}
-#if 0
-			const unsigned char *in=(const unsigned char *)certs.ptr();
-			X509 *Cert = d2i_X509(NULL, &in, certs.size()-1);
-			if (!Cert) {
-				print_line(String(ERR_error_string(ERR_get_error(),NULL)));
-			}
-			ERR_FAIL_COND_V(!Cert,ERR_PARSE_ERROR);
-
-			X509_STORE *store = SSL_CTX_get_cert_store(ctx);
-			X509_STORE_add_cert(store,Cert);
-
-			//char *str = X509_NAME_oneline(X509_get_subject_name(Cert),0,0);
-			//printf ("subject: %s\n", str); /* [1] */
-#endif
 		}
 
 		//used for testing
@@ -560,7 +538,7 @@ void StreamPeerOpenSSL::initialize_ssl() {
 	ERR_load_BIO_strings(); // Load BIO error strings
 	OpenSSL_add_all_algorithms(); // Load all available encryption algorithms
 	String certs_path = GLOBAL_DEF("network/ssl/certificates", "");
-	GlobalConfig::get_singleton()->set_custom_property_info("network/ssl/certificates", PropertyInfo(Variant::STRING, "network/ssl/certificates", PROPERTY_HINT_FILE, "*.crt"));
+	ProjectSettings::get_singleton()->set_custom_property_info("network/ssl/certificates", PropertyInfo(Variant::STRING, "network/ssl/certificates", PROPERTY_HINT_FILE, "*.crt"));
 	if (certs_path != "") {
 
 		FileAccess *f = FileAccess::open(certs_path, FileAccess::READ);
@@ -581,7 +559,7 @@ void StreamPeerOpenSSL::initialize_ssl() {
 		}
 	}
 	String config_path = GLOBAL_DEF("network/ssl/config", "");
-	GlobalConfig::get_singleton()->set_custom_property_info("network/ssl/config", PropertyInfo(Variant::STRING, "network/ssl/config", PROPERTY_HINT_FILE, "*.cnf"));
+	ProjectSettings::get_singleton()->set_custom_property_info("network/ssl/config", PropertyInfo(Variant::STRING, "network/ssl/config", PROPERTY_HINT_FILE, "*.cnf"));
 	if (config_path != "") {
 
 		Vector<uint8_t> data = FileAccess::get_file_as_array(config_path);

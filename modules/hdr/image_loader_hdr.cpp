@@ -1,9 +1,9 @@
 /*************************************************************************/
-/*  image_loader_jpegd.cpp                                               */
+/*  image_loader_hdr.cpp                                                 */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -34,7 +34,7 @@
 
 #include "thirdparty/tinyexr/tinyexr.h"
 
-Error ImageLoaderHDR::load_image(Ref<Image> p_image, FileAccess *f, bool p_force_linear) {
+Error ImageLoaderHDR::load_image(Ref<Image> p_image, FileAccess *f, bool p_force_linear, float p_scale) {
 
 	String header = f->get_token();
 

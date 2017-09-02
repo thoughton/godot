@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -44,7 +44,9 @@ class Mesh : public Resource {
 
 	mutable Ref<TriangleMesh> triangle_mesh; //cached
 protected:
-	void _clear_triangle_mesh();
+	void _clear_triangle_mesh() const;
+
+	static void _bind_methods();
 
 public:
 	enum {
@@ -185,7 +187,7 @@ public:
 	int get_surface_count() const;
 	void surface_remove(int p_idx);
 
-	void surface_set_custom_aabb(int p_surface, const Rect3 &p_aabb); //only recognized by driver
+	void surface_set_custom_aabb(int p_idx, const Rect3 &p_aabb); //only recognized by driver
 
 	int surface_get_array_len(int p_idx) const;
 	int surface_get_array_index_len(int p_idx) const;
@@ -216,6 +218,7 @@ public:
 };
 
 VARIANT_ENUM_CAST(Mesh::ArrayType);
+VARIANT_ENUM_CAST(Mesh::ArrayFormat);
 VARIANT_ENUM_CAST(Mesh::PrimitiveType);
 VARIANT_ENUM_CAST(Mesh::BlendShapeMode);
 

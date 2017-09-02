@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -29,8 +29,8 @@
 /*************************************************************************/
 #include "visual_script.h"
 
-#include "global_config.h"
 #include "os/os.h"
+#include "project_settings.h"
 #include "scene/main/node.h"
 #include "visual_script_nodes.h"
 
@@ -122,9 +122,9 @@ Array VisualScriptNode::_get_default_input_values() const {
 
 void VisualScriptNode::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("get_visual_script:VisualScript"), &VisualScriptNode::get_visual_script);
-	ClassDB::bind_method(D_METHOD("set_default_input_value", "port_idx", "value:Variant"), &VisualScriptNode::set_default_input_value);
-	ClassDB::bind_method(D_METHOD("get_default_input_value:Variant", "port_idx"), &VisualScriptNode::get_default_input_value);
+	ClassDB::bind_method(D_METHOD("get_visual_script"), &VisualScriptNode::get_visual_script);
+	ClassDB::bind_method(D_METHOD("set_default_input_value", "port_idx", "value"), &VisualScriptNode::set_default_input_value);
+	ClassDB::bind_method(D_METHOD("get_default_input_value", "port_idx"), &VisualScriptNode::get_default_input_value);
 	ClassDB::bind_method(D_METHOD("_set_default_input_values", "values"), &VisualScriptNode::_set_default_input_values);
 	ClassDB::bind_method(D_METHOD("_get_default_input_values"), &VisualScriptNode::_get_default_input_values);
 
@@ -273,7 +273,9 @@ void VisualScript::_node_ports_changed(int p_id) {
 	Function &func = functions[function];
 	Ref<VisualScriptNode> vsn = func.nodes[p_id].node;
 
-	if (OS::get_singleton()->get_main_loop() && OS::get_singleton()->get_main_loop()->cast_to<SceneTree>() && OS::get_singleton()->get_main_loop()->cast_to<SceneTree>()->is_editor_hint()) {
+	if (OS::get_singleton()->get_main_loop() &&
+			Object::cast_to<SceneTree>(OS::get_singleton()->get_main_loop()) &&
+			Engine::get_singleton()->is_editor_hint()) {
 		vsn->validate_input_default_values(); //force validate default values when editing on editor
 	}
 
@@ -336,7 +338,7 @@ void VisualScript::add_node(const StringName &p_func, int p_id, const Ref<Visual
 
 	Function &func = functions[p_func];
 
-	if (p_node->cast_to<VisualScriptFunction>()) {
+	if (Object::cast_to<VisualScriptFunction>(*p_node)) {
 		//the function indeed
 		ERR_EXPLAIN("A function node already has been set here.");
 		ERR_FAIL_COND(func.function_id >= 0);
@@ -393,7 +395,7 @@ void VisualScript::remove_node(const StringName &p_func, int p_id) {
 		}
 	}
 
-	if (func.nodes[p_id].node->cast_to<VisualScriptFunction>()) {
+	if (Object::cast_to<VisualScriptFunction>(func.nodes[p_id].node.ptr())) {
 		func.function_id = -1; //revert to invalid
 	}
 
@@ -1058,6 +1060,10 @@ MethodInfo VisualScript::get_method_info(const StringName &p_method) const {
 				arg.type = func->get_argument_type(i);
 				mi.arguments.push_back(arg);
 			}
+
+			if (!func->is_sequenced()) {
+				mi.flags |= METHOD_FLAG_CONST;
+			}
 		}
 	}
 
@@ -1082,7 +1088,7 @@ int VisualScript::get_member_line(const StringName &p_member) const {
 #ifdef TOOLS_ENABLED
 	if (has_function(p_member)) {
 		for (Map<int, Function::NodeData>::Element *E = functions[p_member].nodes.front(); E; E = E->next()) {
-			if (E->get().node->cast_to<VisualScriptFunction>())
+			if (Object::cast_to<VisualScriptFunction>(E->get().node.ptr()))
 				return E->key();
 		}
 	}
@@ -1264,8 +1270,8 @@ void VisualScript::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_function", "name"), &VisualScript::has_function);
 	ClassDB::bind_method(D_METHOD("remove_function", "name"), &VisualScript::remove_function);
 	ClassDB::bind_method(D_METHOD("rename_function", "name", "new_name"), &VisualScript::rename_function);
-	ClassDB::bind_method(D_METHOD("set_function_scroll", "ofs"), &VisualScript::set_function_scroll);
-	ClassDB::bind_method(D_METHOD("get_function_scroll"), &VisualScript::get_function_scroll);
+	ClassDB::bind_method(D_METHOD("set_function_scroll", "name", "ofs"), &VisualScript::set_function_scroll);
+	ClassDB::bind_method(D_METHOD("get_function_scroll", "name"), &VisualScript::get_function_scroll);
 
 	ClassDB::bind_method(D_METHOD("add_node", "func", "id", "node", "pos"), &VisualScript::add_node, DEFVAL(Point2()));
 	ClassDB::bind_method(D_METHOD("remove_node", "func", "id"), &VisualScript::remove_node);
@@ -1302,7 +1308,7 @@ void VisualScript::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("custom_signal_get_argument_type", "name", "argidx"), &VisualScript::custom_signal_get_argument_type);
 	ClassDB::bind_method(D_METHOD("custom_signal_set_argument_name", "name", "argidx", "argname"), &VisualScript::custom_signal_set_argument_name);
 	ClassDB::bind_method(D_METHOD("custom_signal_get_argument_name", "name", "argidx"), &VisualScript::custom_signal_get_argument_name);
-	ClassDB::bind_method(D_METHOD("custom_signal_remove_argument", "argidx"), &VisualScript::custom_signal_remove_argument);
+	ClassDB::bind_method(D_METHOD("custom_signal_remove_argument", "name", "argidx"), &VisualScript::custom_signal_remove_argument);
 	ClassDB::bind_method(D_METHOD("custom_signal_get_argument_count", "name"), &VisualScript::custom_signal_get_argument_count);
 	ClassDB::bind_method(D_METHOD("custom_signal_swap_argument", "name", "argidx", "withidx"), &VisualScript::custom_signal_swap_argument);
 	ClassDB::bind_method(D_METHOD("remove_custom_signal", "name"), &VisualScript::remove_custom_signal);
@@ -1399,6 +1405,10 @@ void VisualScriptInstance::get_method_list(List<MethodInfo> *p_list) const {
 					arg.type = vsf->get_argument_type(i);
 
 					mi.arguments.push_back(arg);
+				}
+
+				if (!vsf->is_sequenced()) { //assumed constant if not sequenced
+					mi.flags |= METHOD_FLAG_CONST;
 				}
 
 				//vsf->Get_ for now at least it does not return..
@@ -1570,12 +1580,15 @@ Variant VisualScriptInstance::_call_internal(const StringName &p_method, void *p
 
 		VisualScriptNodeInstance::StartMode start_mode;
 		{
-			if (p_resuming_yield)
+			if (p_resuming_yield) {
 				start_mode = VisualScriptNodeInstance::START_MODE_RESUME_YIELD;
-			else if (!flow_stack || !(flow_stack[flow_stack_pos] & VisualScriptNodeInstance::FLOW_STACK_PUSHED_BIT)) //if there is a push bit, it means we are continuing a sequence
-				start_mode = VisualScriptNodeInstance::START_MODE_BEGIN_SEQUENCE;
-			else
+				p_resuming_yield = false; // should resume only the first time
+			} else if (flow_stack && (flow_stack[flow_stack_pos] & VisualScriptNodeInstance::FLOW_STACK_PUSHED_BIT)) {
+				//if there is a push bit, it means we are continuing a sequence
 				start_mode = VisualScriptNodeInstance::START_MODE_CONTINUE_SEQUENCE;
+			} else {
+				start_mode = VisualScriptNodeInstance::START_MODE_BEGIN_SEQUENCE;
+			}
 		}
 
 		VSDEBUG("STEP - STARTSEQ: " + itos(start_mode));
@@ -1607,8 +1620,8 @@ Variant VisualScriptInstance::_call_internal(const StringName &p_method, void *p
 				}
 
 				//step 1, capture all state
-				state->instance_id = get_owner_ptr()->get_instance_ID();
-				state->script_id = get_script()->get_instance_ID();
+				state->instance_id = get_owner_ptr()->get_instance_id();
+				state->script_id = get_script()->get_instance_id();
 				state->instance = this;
 				state->function = p_method;
 				state->working_mem_index = node->working_mem_idx;
@@ -1990,9 +2003,9 @@ void VisualScriptInstance::create(const Ref<VisualScript> &p_script, Object *p_o
 	max_input_args = 0;
 	max_output_args = 0;
 
-	if (p_owner->cast_to<Node>()) {
+	if (Object::cast_to<Node>(p_owner)) {
 		//turn on these if they exist and base is a node
-		Node *node = p_owner->cast_to<Node>();
+		Node *node = Object::cast_to<Node>(p_owner);
 		if (p_script->functions.has("_process"))
 			node->set_process(true);
 		if (p_script->functions.has("_fixed_process"))
@@ -2083,16 +2096,16 @@ void VisualScriptInstance::create(const Ref<VisualScript> &p_script, Object *p_o
 				}
 			}
 
-			if (node->cast_to<VisualScriptLocalVar>() || node->cast_to<VisualScriptLocalVarSet>()) {
+			if (Object::cast_to<VisualScriptLocalVar>(node.ptr()) || Object::cast_to<VisualScriptLocalVarSet>(*node)) {
 				//working memory is shared only for this node, for the same variables
 				Ref<VisualScriptLocalVar> vslv = node;
 
 				StringName var_name;
 
-				if (node->cast_to<VisualScriptLocalVar>())
-					var_name = String(node->cast_to<VisualScriptLocalVar>()->get_var_name()).strip_edges();
+				if (Object::cast_to<VisualScriptLocalVar>(*node))
+					var_name = String(Object::cast_to<VisualScriptLocalVar>(*node)->get_var_name()).strip_edges();
 				else
-					var_name = String(node->cast_to<VisualScriptLocalVarSet>()->get_var_name()).strip_edges();
+					var_name = String(Object::cast_to<VisualScriptLocalVarSet>(*node)->get_var_name()).strip_edges();
 
 				if (!local_var_indices.has(var_name)) {
 					local_var_indices[var_name] = function.max_stack;
@@ -2318,7 +2331,7 @@ Variant VisualScriptFunctionState::resume(Array p_args) {
 void VisualScriptFunctionState::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("connect_to_signal", "obj", "signals", "args"), &VisualScriptFunctionState::connect_to_signal);
-	ClassDB::bind_method(D_METHOD("resume:Array", "args"), &VisualScriptFunctionState::resume, DEFVAL(Variant()));
+	ClassDB::bind_method(D_METHOD("resume", "args"), &VisualScriptFunctionState::resume, DEFVAL(Variant()));
 	ClassDB::bind_method(D_METHOD("is_valid"), &VisualScriptFunctionState::is_valid);
 	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "_signal_callback", &VisualScriptFunctionState::_signal_callback, MethodInfo("_signal_callback"));
 }
@@ -2417,7 +2430,7 @@ void VisualScriptLanguage::add_global_constant(const StringName &p_variable, con
 bool VisualScriptLanguage::debug_break_parse(const String &p_file, int p_node, const String &p_error) {
 	//break because of parse error
 
-	if (ScriptDebugger::get_singleton() && Thread::get_caller_ID() == Thread::get_main_ID()) {
+	if (ScriptDebugger::get_singleton() && Thread::get_caller_id() == Thread::get_main_id()) {
 
 		_debug_parse_err_node = p_node;
 		_debug_parse_err_file = p_file;
@@ -2431,7 +2444,7 @@ bool VisualScriptLanguage::debug_break_parse(const String &p_file, int p_node, c
 
 bool VisualScriptLanguage::debug_break(const String &p_error, bool p_allow_continue) {
 
-	if (ScriptDebugger::get_singleton() && Thread::get_caller_ID() == Thread::get_main_ID()) {
+	if (ScriptDebugger::get_singleton() && Thread::get_caller_id() == Thread::get_main_id()) {
 
 		_debug_parse_err_node = -1;
 		_debug_parse_err_file = "";
@@ -2658,7 +2671,7 @@ VisualScriptLanguage::VisualScriptLanguage() {
 	_debug_parse_err_node = -1;
 	_debug_parse_err_file = "";
 	_debug_call_stack_pos = 0;
-	int dmcs = GLOBAL_DEF("debug/script/max_call_stack", 1024);
+	int dmcs = GLOBAL_DEF("debug/settings/visual_script/max_call_stack", 1024);
 	if (ScriptDebugger::get_singleton()) {
 		//debugging enabled!
 		_debug_max_call_stack = dmcs;

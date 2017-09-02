@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -59,7 +59,6 @@ class ScriptCreateDialog : public ConfirmationDialog {
 	bool create_new;
 	bool is_browsing_parent;
 	String initial_bp;
-	EditorSettings *editor_settings;
 	bool is_new_script_created;
 	bool is_path_valid;
 	bool has_named_classes;
@@ -70,11 +69,12 @@ class ScriptCreateDialog : public ConfirmationDialog {
 	int current_language;
 	bool re_check_path;
 	String script_template;
+	Vector<String> template_list;
 
 	void _path_changed(const String &p_path = String());
 	void _lang_changed(int l = 0);
 	void _built_in_pressed();
-	bool _validate(const String &p_strin);
+	bool _validate(const String &p_string);
 	void _class_name_changed(const String &p_name);
 	void _parent_name_changed(const String &p_parent);
 	void _template_changed(int p_template = 0);

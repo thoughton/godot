@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -201,6 +201,8 @@ public:
 	Physics2DDirectSpaceState();
 };
 
+VARIANT_ENUM_CAST(Physics2DDirectSpaceState::ObjectTypeMask);
+
 class Physics2DShapeQueryResult : public Reference {
 
 	GDCLASS(Physics2DShapeQueryResult, Reference);
@@ -272,8 +274,8 @@ public:
 		SPACE_PARAM_CONTACT_RECYCLE_RADIUS,
 		SPACE_PARAM_CONTACT_MAX_SEPARATION,
 		SPACE_PARAM_BODY_MAX_ALLOWED_PENETRATION,
-		SPACE_PARAM_BODY_LINEAR_VELOCITY_SLEEP_TRESHOLD,
-		SPACE_PARAM_BODY_ANGULAR_VELOCITY_SLEEP_TRESHOLD,
+		SPACE_PARAM_BODY_LINEAR_VELOCITY_SLEEP_THRESHOLD,
+		SPACE_PARAM_BODY_ANGULAR_VELOCITY_SLEEP_THRESHOLD,
 		SPACE_PARAM_BODY_TIME_TO_SLEEP,
 		SPACE_PARAM_CONSTRAINT_DEFAULT_BIAS,
 	};
@@ -334,8 +336,8 @@ public:
 
 	virtual void area_set_shape_disabled(RID p_area, int p_shape, bool p_disabled) = 0;
 
-	virtual void area_attach_object_instance_ID(RID p_area, ObjectID p_ID) = 0;
-	virtual ObjectID area_get_object_instance_ID(RID p_area) const = 0;
+	virtual void area_attach_object_instance_id(RID p_area, ObjectID p_ID) = 0;
+	virtual ObjectID area_get_object_instance_id(RID p_area) const = 0;
 
 	virtual void area_set_param(RID p_area, AreaParameter p_param, const Variant &p_value) = 0;
 	virtual void area_set_transform(RID p_area, const Transform2D &p_transform) = 0;
@@ -388,8 +390,8 @@ public:
 	virtual void body_remove_shape(RID p_body, int p_shape_idx) = 0;
 	virtual void body_clear_shapes(RID p_body) = 0;
 
-	virtual void body_attach_object_instance_ID(RID p_body, uint32_t p_ID) = 0;
-	virtual uint32_t body_get_object_instance_ID(RID p_body) const = 0;
+	virtual void body_attach_object_instance_id(RID p_body, uint32_t p_ID) = 0;
+	virtual uint32_t body_get_object_instance_id(RID p_body) const = 0;
 
 	enum CCDMode {
 		CCD_MODE_DISABLED,
@@ -454,8 +456,8 @@ public:
 	virtual int body_get_max_contacts_reported(RID p_body) const = 0;
 
 	//missing remove
-	virtual void body_set_contacts_reported_depth_treshold(RID p_body, float p_treshold) = 0;
-	virtual float body_get_contacts_reported_depth_treshold(RID p_body) const = 0;
+	virtual void body_set_contacts_reported_depth_threshold(RID p_body, float p_threshold) = 0;
+	virtual float body_get_contacts_reported_depth_threshold(RID p_body) const = 0;
 
 	virtual void body_set_omit_force_integration(RID p_body, bool p_omit) = 0;
 	virtual bool body_is_omitting_force_integration(RID p_body) const = 0;

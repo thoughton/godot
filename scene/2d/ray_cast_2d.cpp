@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -28,14 +28,16 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "ray_cast_2d.h"
+
 #include "collision_object_2d.h"
+#include "engine.h"
 #include "physics_body_2d.h"
 #include "servers/physics_2d_server.h"
 
 void RayCast2D::set_cast_to(const Vector2 &p_point) {
 
 	cast_to = p_point;
-	if (is_inside_tree() && (get_tree()->is_editor_hint() || get_tree()->is_debugging_collisions_hint()))
+	if (is_inside_tree() && (Engine::get_singleton()->is_editor_hint() || get_tree()->is_debugging_collisions_hint()))
 		update();
 }
 
@@ -92,7 +94,7 @@ Vector2 RayCast2D::get_collision_normal() const {
 void RayCast2D::set_enabled(bool p_enabled) {
 
 	enabled = p_enabled;
-	if (is_inside_tree() && !get_tree()->is_editor_hint())
+	if (is_inside_tree() && !Engine::get_singleton()->is_editor_hint())
 		set_fixed_process(p_enabled);
 	if (!p_enabled)
 		collided = false;
@@ -113,11 +115,11 @@ void RayCast2D::set_exclude_parent_body(bool p_exclude_parent_body) {
 	if (!is_inside_tree())
 		return;
 
-	if (get_parent()->cast_to<PhysicsBody2D>()) {
+	if (Object::cast_to<PhysicsBody2D>(get_parent())) {
 		if (exclude_parent_body)
-			exclude.insert(get_parent()->cast_to<PhysicsBody2D>()->get_rid());
+			exclude.insert(Object::cast_to<PhysicsBody2D>(get_parent())->get_rid());
 		else
-			exclude.erase(get_parent()->cast_to<PhysicsBody2D>()->get_rid());
+			exclude.erase(Object::cast_to<PhysicsBody2D>(get_parent())->get_rid());
 	}
 }
 
@@ -132,16 +134,16 @@ void RayCast2D::_notification(int p_what) {
 
 		case NOTIFICATION_ENTER_TREE: {
 
-			if (enabled && !get_tree()->is_editor_hint())
+			if (enabled && !Engine::get_singleton()->is_editor_hint())
 				set_fixed_process(true);
 			else
 				set_fixed_process(false);
 
-			if (get_parent()->cast_to<PhysicsBody2D>()) {
+			if (Object::cast_to<PhysicsBody2D>(get_parent())) {
 				if (exclude_parent_body)
-					exclude.insert(get_parent()->cast_to<PhysicsBody2D>()->get_rid());
+					exclude.insert(Object::cast_to<PhysicsBody2D>(get_parent())->get_rid());
 				else
-					exclude.erase(get_parent()->cast_to<PhysicsBody2D>()->get_rid());
+					exclude.erase(Object::cast_to<PhysicsBody2D>(get_parent())->get_rid());
 			}
 		} break;
 		case NOTIFICATION_EXIT_TREE: {
@@ -153,7 +155,7 @@ void RayCast2D::_notification(int p_what) {
 
 		case NOTIFICATION_DRAW: {
 
-			if (!get_tree()->is_editor_hint() && !get_tree()->is_debugging_collisions_hint())
+			if (!Engine::get_singleton()->is_editor_hint() && !get_tree()->is_debugging_collisions_hint())
 				break;
 			Transform2D xf;
 			xf.rotate(cast_to.angle());
@@ -225,7 +227,7 @@ void RayCast2D::add_exception_rid(const RID &p_rid) {
 void RayCast2D::add_exception(const Object *p_object) {
 
 	ERR_FAIL_NULL(p_object);
-	CollisionObject2D *co = ((Object *)p_object)->cast_to<CollisionObject2D>();
+	const CollisionObject2D *co = Object::cast_to<CollisionObject2D>(p_object);
 	if (!co)
 		return;
 	add_exception_rid(co->get_rid());
@@ -239,7 +241,7 @@ void RayCast2D::remove_exception_rid(const RID &p_rid) {
 void RayCast2D::remove_exception(const Object *p_object) {
 
 	ERR_FAIL_NULL(p_object);
-	CollisionObject2D *co = ((Object *)p_object)->cast_to<CollisionObject2D>();
+	const CollisionObject2D *co = Object::cast_to<CollisionObject2D>(p_object);
 	if (!co)
 		return;
 	remove_exception_rid(co->get_rid());

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -47,7 +47,6 @@
 #include "servers/visual_server.h"
 
 class AudioDriverIphone;
-// class RasterizerGLES2;
 
 class OSIPhone : public OS_Unix {
 
@@ -66,9 +65,6 @@ private:
 	};
 
 	uint8_t supported_orientations;
-
-	//	Rasterizer *rasterizer;
-	//	RasterizerGLES2* rasterizer_gles22;
 
 	VisualServer *visual_server;
 	PhysicsServer *physics_server;
@@ -190,8 +186,8 @@ public:
 	void set_locale(String p_locale);
 	String get_locale() const;
 
-	void set_unique_ID(String p_ID);
-	String get_unique_ID() const;
+	void set_unique_id(String p_ID);
+	String get_unique_id() const;
 
 	virtual Error native_video_play(String p_path, float p_volume, String p_audio_track, String p_subtitle_track);
 	virtual bool native_video_is_playing() const;
@@ -200,6 +196,7 @@ public:
 	virtual void native_video_focus_out();
 	virtual void native_video_stop();
 
+	virtual bool _check_internal_feature_support(const String &p_feature);
 	OSIPhone(int width, int height);
 	~OSIPhone();
 };

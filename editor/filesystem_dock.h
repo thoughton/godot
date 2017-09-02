@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -158,7 +158,7 @@ private:
 
 	void _favorites_pressed();
 	void _open_pressed();
-	void _dir_rmb_pressed(const Vector2 &local_mouse_pos);
+	void _dir_rmb_pressed(const Vector2 &p_pos);
 	void _search_changed(const String &p_text);
 
 	void _files_list_rmb_select(int p_item, const Vector2 &p_pos);
@@ -169,6 +169,7 @@ private:
 		StringName type;
 		int import_status; //0 not imported, 1 - ok, 2- must reimport, 3- broken
 		Vector<String> sources;
+		bool import_broken;
 
 		bool operator<(const FileInfo &fi) const {
 			return name < fi.name;

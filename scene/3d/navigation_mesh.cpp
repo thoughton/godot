@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -149,8 +149,8 @@ Ref<Mesh> NavigationMesh::get_debug_mesh() {
 
 				tw[tidx++] = f.vertex[j];
 				_EdgeKey ek;
-				ek.from = f.vertex[j].snapped(CMP_EPSILON);
-				ek.to = f.vertex[(j + 1) % 3].snapped(CMP_EPSILON);
+				ek.from = f.vertex[j].snapped(Vector3(CMP_EPSILON, CMP_EPSILON, CMP_EPSILON));
+				ek.to = f.vertex[(j + 1) % 3].snapped(Vector3(CMP_EPSILON, CMP_EPSILON, CMP_EPSILON));
 				if (ek.from < ek.to)
 					SWAP(ek.from, ek.to);
 
@@ -208,6 +208,8 @@ void NavigationMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_polygon", "idx"), &NavigationMesh::get_polygon);
 	ClassDB::bind_method(D_METHOD("clear_polygons"), &NavigationMesh::clear_polygons);
 
+	ClassDB::bind_method(D_METHOD("create_from_mesh", "mesh"), &NavigationMesh::create_from_mesh);
+
 	ClassDB::bind_method(D_METHOD("_set_polygons", "polygons"), &NavigationMesh::_set_polygons);
 	ClassDB::bind_method(D_METHOD("_get_polygons"), &NavigationMesh::_get_polygons);
 
@@ -245,7 +247,7 @@ void NavigationMeshInstance::set_enabled(bool p_enabled) {
 	}
 
 	if (debug_view) {
-		MeshInstance *dm = debug_view->cast_to<MeshInstance>();
+		MeshInstance *dm = Object::cast_to<MeshInstance>(debug_view);
 		if (is_enabled()) {
 			dm->set_material_override(get_tree()->get_debug_navigation_material());
 		} else {
@@ -271,7 +273,7 @@ void NavigationMeshInstance::_notification(int p_what) {
 			Spatial *c = this;
 			while (c) {
 
-				navigation = c->cast_to<Navigation>();
+				navigation = Object::cast_to<Navigation>(c);
 				if (navigation) {
 
 					if (enabled && navmesh.is_valid()) {
@@ -340,7 +342,7 @@ void NavigationMeshInstance::set_navigation_mesh(const Ref<NavigationMesh> &p_na
 	}
 
 	if (debug_view && navmesh.is_valid()) {
-		debug_view->cast_to<MeshInstance>()->set_mesh(navmesh->get_debug_mesh());
+		Object::cast_to<MeshInstance>(debug_view)->set_mesh(navmesh->get_debug_mesh());
 	}
 
 	update_gizmo();
@@ -363,10 +365,10 @@ String NavigationMeshInstance::get_configuration_warning() const {
 	const Spatial *c = this;
 	while (c) {
 
-		if (c->cast_to<Navigation>())
+		if (Object::cast_to<Navigation>(c))
 			return String();
 
-		c = c->get_parent()->cast_to<Spatial>();
+		c = Object::cast_to<Spatial>(c->get_parent());
 	}
 
 	return TTR("NavigationMeshInstance must be a child or grandchild to a Navigation node. It only provides navigation data.");

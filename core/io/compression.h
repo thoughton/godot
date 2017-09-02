@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -33,11 +33,17 @@
 #include "typedefs.h"
 
 class Compression {
+
 public:
+	static int zlib_level;
+	static int gzip_level;
+	static int zstd_level;
+
 	enum Mode {
 		MODE_FASTLZ,
 		MODE_DEFLATE,
-		MODE_ZSTD
+		MODE_ZSTD,
+		MODE_GZIP
 	};
 
 	static int compress(uint8_t *p_dst, const uint8_t *p_src, int p_src_size, Mode p_mode = MODE_ZSTD);

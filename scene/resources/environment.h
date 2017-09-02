@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -121,7 +121,7 @@ private:
 	float glow_strength;
 	float glow_bloom;
 	GlowBlendMode glow_blend_mode;
-	float glow_hdr_bleed_treshold;
+	float glow_hdr_bleed_threshold;
 	float glow_hdr_bleed_scale;
 	bool glow_bicubic_upscale;
 
@@ -224,10 +224,10 @@ public:
 	void set_ssr_max_steps(int p_steps);
 	int get_ssr_max_steps() const;
 
-	void set_ssr_fade_in(float p_transition);
+	void set_ssr_fade_in(float p_fade_in);
 	float get_ssr_fade_in() const;
 
-	void set_ssr_fade_out(float p_transition);
+	void set_ssr_fade_out(float p_fade_out);
 	float get_ssr_fade_out() const;
 
 	void set_ssr_depth_tolerance(float p_depth_tolerance);
@@ -275,14 +275,14 @@ public:
 	void set_glow_strength(float p_strength);
 	float get_glow_strength() const;
 
-	void set_glow_bloom(float p_treshold);
+	void set_glow_bloom(float p_threshold);
 	float get_glow_bloom() const;
 
 	void set_glow_blend_mode(GlowBlendMode p_mode);
 	GlowBlendMode get_glow_blend_mode() const;
 
-	void set_glow_hdr_bleed_treshold(float p_treshold);
-	float get_glow_hdr_bleed_treshold() const;
+	void set_glow_hdr_bleed_threshold(float p_threshold);
+	float get_glow_hdr_bleed_threshold() const;
 
 	void set_glow_hdr_bleed_scale(float p_scale);
 	float get_glow_hdr_bleed_scale() const;

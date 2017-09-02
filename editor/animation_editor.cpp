@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -38,6 +38,7 @@
 #include "pair.h"
 #include "scene/gui/separator.h"
 #include "scene/main/viewport.h"
+
 /* Missing to fix:
 
   *Set
@@ -1091,11 +1092,11 @@ void AnimationKeyEditor::_track_editor_draw() {
 	int sep = get_constant("vseparation", "Tree");
 	int hsep = get_constant("hseparation", "Tree");
 	Color color = get_color("font_color", "Tree");
-	Color sepcolor = get_color("light_color_1", "Editor");
-	Color timecolor = get_color("dark_color_2", "Editor");
+	Color sepcolor = Color(1, 1, 1, 0.2);
+	Color timecolor = Color(1, 1, 1, 0.2);
 	Color hover_color = Color(1, 1, 1, 0.05);
 	Color select_color = Color(1, 1, 1, 0.1);
-	Color invalid_path_color = Color(1, 0.6, 0.4, 0.5);
+	Color invalid_path_color = get_color("error_color", "Editor");
 	Color track_select_color = get_color("highlight_color", "Editor");
 
 	Ref<Texture> remove_icon = get_icon("Remove", "EditorIcons");
@@ -1156,11 +1157,12 @@ void AnimationKeyEditor::_track_editor_draw() {
 	int settings_limit = size.width - right_separator_ofs;
 	int name_limit = settings_limit * name_column_ratio;
 
-	te->draw_line(ofs + Point2(name_limit, 0), ofs + Point2(name_limit, size.height), color);
-	te->draw_line(ofs + Point2(settings_limit, 0), ofs + Point2(settings_limit, size.height), color);
+	Color linecolor = Color(1, 1, 1, 0.2);
+	te->draw_line(ofs + Point2(name_limit, 0), ofs + Point2(name_limit, size.height), linecolor);
+	te->draw_line(ofs + Point2(settings_limit, 0), ofs + Point2(settings_limit, size.height), linecolor);
 	te->draw_texture(hsize_icon, ofs + Point2(name_limit - hsize_icon->get_width() - hsep, (h - hsize_icon->get_height()) / 2));
 
-	te->draw_line(ofs + Point2(0, h), ofs + Point2(size.width, h), color);
+	te->draw_line(ofs + Point2(0, h), ofs + Point2(size.width, h), linecolor);
 	// draw time
 
 	float keys_from;
@@ -1180,7 +1182,7 @@ void AnimationKeyEditor::_track_editor_draw() {
 
 		int end_px = (l - h_scroll->get_value()) * scale;
 		int begin_px = -h_scroll->get_value() * scale;
-		Color notimecol = get_color("light_color_1", "Editor");
+		Color notimecol = get_color("dark_color_2", "Editor");
 
 		{
 
@@ -1276,7 +1278,7 @@ void AnimationKeyEditor::_track_editor_draw() {
 			if ((sc / step) != (prev_sc / step) || (prev_sc < 0 && sc >= 0)) {
 
 				int scd = sc < 0 ? prev_sc : sc;
-				te->draw_line(ofs + Point2(name_limit + i, 0), ofs + Point2(name_limit + i, h), color);
+				te->draw_line(ofs + Point2(name_limit + i, 0), ofs + Point2(name_limit + i, h), linecolor);
 				te->draw_string(font, ofs + Point2(name_limit + i + 3, (h - font->get_height()) / 2 + font->get_ascent()).floor(), String::num((scd - (scd % step)) / double(SC_ADJ), decimals), sub ? color_time_dec : color_time_sec, zoomw - i);
 			}
 		}
@@ -1298,7 +1300,7 @@ void AnimationKeyEditor::_track_editor_draw() {
 		Object *obj = NULL;
 
 		RES res;
-		Node *node = root->get_node_and_resource(animation->track_get_path(idx), res);
+		Node *node = root ? root->get_node_and_resource(animation->track_get_path(idx), res) : (Node *)NULL;
 
 		if (res.is_valid()) {
 			obj = res.ptr();
@@ -1323,7 +1325,7 @@ void AnimationKeyEditor::_track_editor_draw() {
 
 		te->draw_texture(type_icon[animation->track_get_type(idx)], ofs + Point2(0, y + (h - type_icon[0]->get_height()) / 2).floor());
 		NodePath np = animation->track_get_path(idx);
-		Node *n = root->get_node(np);
+		Node *n = root ? root->get_node(np) : (Node *)NULL;
 		Color ncol = color;
 		if (n && editor_selection->is_selected(n))
 			ncol = track_select_color;
@@ -1335,7 +1337,7 @@ void AnimationKeyEditor::_track_editor_draw() {
 		te->draw_line(ofs + Point2(0, y + h), ofs + Point2(size.width, y + h), sepcolor);
 
 		Point2 icon_ofs = ofs + Point2(size.width, y + (h - remove_icon->get_height()) / 2).floor();
-		icon_ofs.y += 4;
+		icon_ofs.y += 4 * EDSCALE;
 
 		/*		icon_ofs.x-=remove_icon->get_width();
 
@@ -1353,7 +1355,7 @@ void AnimationKeyEditor::_track_editor_draw() {
 		*/
 		track_ofs[0] = size.width - icon_ofs.x;
 		icon_ofs.x -= down_icon->get_width();
-		te->draw_texture(down_icon, icon_ofs);
+		te->draw_texture(down_icon, icon_ofs - Size2(0, 4 * EDSCALE));
 
 		int wrap_type = animation->track_get_interpolation_loop_wrap(idx) ? 1 : 0;
 		icon_ofs.x -= hsep;
@@ -1366,7 +1368,7 @@ void AnimationKeyEditor::_track_editor_draw() {
 		track_ofs[1] = size.width - icon_ofs.x;
 
 		icon_ofs.x -= down_icon->get_width();
-		te->draw_texture(down_icon, icon_ofs);
+		te->draw_texture(down_icon, icon_ofs - Size2(0, 4 * EDSCALE));
 
 		int interp_type = animation->track_get_interpolation_type(idx);
 		ERR_CONTINUE(interp_type < 0 || interp_type >= 3);
@@ -1385,7 +1387,7 @@ void AnimationKeyEditor::_track_editor_draw() {
 
 			icon_ofs.x -= hsep;
 			icon_ofs.x -= down_icon->get_width();
-			te->draw_texture(down_icon, icon_ofs);
+			te->draw_texture(down_icon, icon_ofs - Size2(0, 4 * EDSCALE));
 
 			icon_ofs.x -= hsep;
 			icon_ofs.x -= cont_icon[umode]->get_width();
@@ -1645,7 +1647,7 @@ PropertyInfo AnimationKeyEditor::_find_hint_for_track(int p_idx, NodePath &r_bas
 	List<PropertyInfo> pinfo;
 	if (res.is_valid())
 		res->get_property_list(&pinfo);
-	else
+	else if (node)
 		node->get_property_list(&pinfo);
 
 	for (List<PropertyInfo>::Element *E = pinfo.front(); E; E = E->next()) {
@@ -2683,17 +2685,6 @@ void AnimationKeyEditor::_track_editor_gui_input(const Ref<InputEvent> &p_input)
 			Point2 mpos = mm->get_position() - ofs;
 
 			if (mpos.y < h) {
-#if 0
-				//seek
-				//int zoomw = settings_limit-name_limit;
-				float scale = _get_zoom_scale();
-				float pos = h_scroll->get_val() + (mpos.y-name_limit) / scale;
-				if (pos<0 )
-					pos=0;
-				if (pos>=animation->get_length())
-					pos=animation->get_length();
-				timeline->set_val(pos);
-#endif
 				return;
 			}
 
@@ -2903,7 +2894,7 @@ void AnimationKeyEditor::_notification(int p_what) {
 			zoomicon->set_custom_minimum_size(Size2(24 * EDSCALE, 0));
 			zoomicon->set_stretch_mode(TextureRect::STRETCH_KEEP_CENTERED);
 
-			menu_add_track->set_icon(get_icon("AddTrack", "EditorIcons"));
+			menu_add_track->set_icon(get_icon("Add", "EditorIcons"));
 			menu_add_track->get_popup()->add_icon_item(get_icon("KeyValue", "EditorIcons"), "Add Normal Track", ADD_TRACK_MENU_ADD_VALUE_TRACK);
 			menu_add_track->get_popup()->add_icon_item(get_icon("KeyXform", "EditorIcons"), "Add Transform Track", ADD_TRACK_MENU_ADD_TRANSFORM_TRACK);
 			menu_add_track->get_popup()->add_icon_item(get_icon("KeyCall", "EditorIcons"), "Add Call Func Track", ADD_TRACK_MENU_ADD_CALL_TRACK);
@@ -3248,9 +3239,9 @@ void AnimationKeyEditor::insert_value_key(const String &p_property, const Varian
 	//let's build a node path
 	ERR_FAIL_COND(history->get_path_size() == 0);
 	Object *obj = ObjectDB::get_instance(history->get_path_object(0));
-	ERR_FAIL_COND(!obj || !obj->cast_to<Node>());
+	ERR_FAIL_COND(!Object::cast_to<Node>(obj));
 
-	Node *node = obj->cast_to<Node>();
+	Node *node = Object::cast_to<Node>(obj);
 
 	String path = root->get_path_to(node);
 
@@ -3745,7 +3736,7 @@ AnimationKeyEditor::AnimationKeyEditor() {
 	history = EditorNode::get_singleton()->get_editor_history();
 
 	ec = memnew(Control);
-	ec->set_custom_minimum_size(Size2(0, 150));
+	ec->set_custom_minimum_size(Size2(0, 150) * EDSCALE);
 	add_child(ec);
 	ec->set_v_size_flags(SIZE_EXPAND_FILL);
 
@@ -3774,6 +3765,7 @@ AnimationKeyEditor::AnimationKeyEditor() {
 	zoom->set_max(2.0);
 	zoom->set_value(1.0);
 	zoom->set_h_size_flags(SIZE_EXPAND_FILL);
+	zoom->set_v_size_flags(SIZE_EXPAND_FILL);
 	zoom->set_stretch_ratio(2);
 	hb->add_child(zoom);
 	zoom->connect("value_changed", this, "_scroll_changed");

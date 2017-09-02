@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -61,6 +61,9 @@ class VisualServerRaster : public VisualServer {
 	bool draw_extra_frame;
 	RID test_cube;
 
+	int black_margin[4];
+	RID black_image[4];
+
 	struct FrameDrawnCallbacks {
 
 		ObjectID object;
@@ -70,6 +73,7 @@ class VisualServerRaster : public VisualServer {
 
 	List<FrameDrawnCallbacks> frame_drawn_callbacks;
 
+// FIXME: Kept as reference for future implementation
 #if 0
 	struct Room {
 
@@ -584,6 +588,8 @@ class VisualServerRaster : public VisualServer {
 
 #endif
 
+	void _draw_margins();
+
 public:
 	_FORCE_INLINE_ static void redraw_request() { changes++; }
 
@@ -684,7 +690,9 @@ public:
 	BIND3(material_set_param, RID, const StringName &, const Variant &)
 	BIND2RC(Variant, material_get_param, RID, const StringName &)
 
+	BIND2(material_set_render_priority, RID, int)
 	BIND2(material_set_line_width, RID, float)
+	BIND2(material_set_next_pass, RID, RID)
 
 	/* MESH API */
 
@@ -780,6 +788,7 @@ public:
 	BIND2(light_set_projector, RID, RID)
 	BIND2(light_set_negative, RID, bool)
 	BIND2(light_set_cull_mask, RID, uint32_t)
+	BIND2(light_set_reverse_cull_face_mode, RID, bool)
 
 	BIND2(light_omni_set_shadow_mode, RID, LightOmniShadowMode)
 	BIND2(light_omni_set_shadow_detail, RID, LightOmniShadowDetail)
@@ -804,23 +813,6 @@ public:
 	BIND2(reflection_probe_set_enable_shadows, RID, bool)
 	BIND2(reflection_probe_set_cull_mask, RID, uint32_t)
 
-	/* ROOM API */
-
-	BIND0R(RID, room_create)
-	BIND4(room_add_bounds, RID, const PoolVector<Vector2> &, float, const Transform &)
-	BIND1(room_clear_bounds, RID)
-
-	/* PORTAL API */
-
-	// portals are only (x/y) points, forming a convex shape, which its clockwise
-	// order points outside. (z is 0);
-
-	BIND0R(RID, portal_create)
-	BIND2(portal_set_shape, RID, const Vector<Point2> &)
-	BIND2(portal_set_enabled, RID, bool)
-	BIND2(portal_set_disable_distance, RID, float)
-	BIND2(portal_set_disabled_color, RID, const Color &)
-
 	/* BAKED LIGHT API */
 
 	BIND0R(RID, gi_probe_create)
@@ -842,6 +834,9 @@ public:
 
 	BIND2(gi_probe_set_bias, RID, float)
 	BIND1RC(float, gi_probe_get_bias, RID)
+
+	BIND2(gi_probe_set_normal_bias, RID, float)
+	BIND1RC(float, gi_probe_get_normal_bias, RID)
 
 	BIND2(gi_probe_set_propagation, RID, float)
 	BIND1RC(float, gi_probe_get_propagation, RID)
@@ -904,6 +899,7 @@ public:
 
 	BIND0R(RID, viewport_create)
 
+	BIND2(viewport_set_use_arvr, RID, bool)
 	BIND3(viewport_set_size, RID, int, int)
 
 	BIND2(viewport_set_active, RID, bool)
@@ -993,14 +989,13 @@ public:
 	BIND2(instance_set_scenario, RID, RID) // from can be mesh, light, poly, area and portal so far.
 	BIND2(instance_set_layer_mask, RID, uint32_t)
 	BIND2(instance_set_transform, RID, const Transform &)
-	BIND2(instance_attach_object_instance_ID, RID, ObjectID)
+	BIND2(instance_attach_object_instance_id, RID, ObjectID)
 	BIND3(instance_set_blend_shape_weight, RID, int, float)
 	BIND3(instance_set_surface_material, RID, int, RID)
 	BIND2(instance_set_visible, RID, bool)
 
 	BIND2(instance_attach_skeleton, RID, RID)
 	BIND2(instance_set_exterior, RID, bool)
-	BIND2(instance_set_room, RID, RID)
 
 	BIND2(instance_set_extra_visibility_margin, RID, real_t)
 
@@ -1049,7 +1044,7 @@ public:
 	BIND8(canvas_item_add_texture_rect_region, RID, const Rect2 &, RID, const Rect2 &, const Color &, bool, RID, bool)
 	BIND11(canvas_item_add_nine_patch, RID, const Rect2 &, const Rect2 &, RID, const Vector2 &, const Vector2 &, NinePatchAxisMode, NinePatchAxisMode, bool, const Color &, RID)
 	BIND7(canvas_item_add_primitive, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, float, RID)
-	BIND6(canvas_item_add_polygon, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, RID)
+	BIND7(canvas_item_add_polygon, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, RID, bool)
 	BIND8(canvas_item_add_triangle_array, RID, const Vector<int> &, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, int, RID)
 	BIND3(canvas_item_add_mesh, RID, const RID &, RID)
 	BIND3(canvas_item_add_multimesh, RID, RID, RID)
@@ -1104,12 +1099,6 @@ public:
 	BIND2(canvas_occluder_polygon_set_shape_as_lines, RID, const PoolVector<Vector2> &)
 
 	BIND2(canvas_occluder_polygon_set_cull_mode, RID, CanvasOccluderPolygonCullMode)
-
-	/* CURSOR */
-	virtual void cursor_set_rotation(float p_rotation, int p_cursor = 0); // radians
-	virtual void cursor_set_texture(RID p_texture, const Point2 &p_center_offset = Point2(0, 0), int p_cursor = 0, const Rect2 &p_region = Rect2());
-	virtual void cursor_set_visible(bool p_visible, int p_cursor = 0);
-	virtual void cursor_set_pos(const Point2 &p_pos, int p_cursor = 0);
 
 	/* BLACK BARS */
 

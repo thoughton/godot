@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -32,7 +32,7 @@
 #include "scene/resources/convex_polygon_shape.h"
 #include "surface_tool.h"
 
-void Mesh::_clear_triangle_mesh() {
+void Mesh::_clear_triangle_mesh() const {
 
 	triangle_mesh.unref();
 	;
@@ -411,6 +411,17 @@ Ref<Mesh> Mesh::create_outline(float p_margin) const {
 	Ref<ArrayMesh> newmesh = memnew(ArrayMesh);
 	newmesh->add_surface_from_arrays(PRIMITIVE_TRIANGLES, arrays);
 	return newmesh;
+}
+
+void Mesh::_bind_methods() {
+
+	BIND_ENUM_CONSTANT(PRIMITIVE_POINTS);
+	BIND_ENUM_CONSTANT(PRIMITIVE_LINES);
+	BIND_ENUM_CONSTANT(PRIMITIVE_LINE_STRIP);
+	BIND_ENUM_CONSTANT(PRIMITIVE_LINE_LOOP);
+	BIND_ENUM_CONSTANT(PRIMITIVE_TRIANGLES);
+	BIND_ENUM_CONSTANT(PRIMITIVE_TRIANGLE_STRIP);
+	BIND_ENUM_CONSTANT(PRIMITIVE_TRIANGLE_FAN);
 }
 
 Mesh::Mesh() {
@@ -995,19 +1006,19 @@ void ArrayMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("surface_get_array_index_len", "surf_idx"), &ArrayMesh::surface_get_array_index_len);
 	ClassDB::bind_method(D_METHOD("surface_get_format", "surf_idx"), &ArrayMesh::surface_get_format);
 	ClassDB::bind_method(D_METHOD("surface_get_primitive_type", "surf_idx"), &ArrayMesh::surface_get_primitive_type);
-	ClassDB::bind_method(D_METHOD("surface_set_material", "surf_idx", "material:Material"), &ArrayMesh::surface_set_material);
-	ClassDB::bind_method(D_METHOD("surface_get_material:Material", "surf_idx"), &ArrayMesh::surface_get_material);
+	ClassDB::bind_method(D_METHOD("surface_set_material", "surf_idx", "material"), &ArrayMesh::surface_set_material);
+	ClassDB::bind_method(D_METHOD("surface_get_material", "surf_idx"), &ArrayMesh::surface_get_material);
 	ClassDB::bind_method(D_METHOD("surface_set_name", "surf_idx", "name"), &ArrayMesh::surface_set_name);
 	ClassDB::bind_method(D_METHOD("surface_get_name", "surf_idx"), &ArrayMesh::surface_get_name);
-	ClassDB::bind_method(D_METHOD("create_trimesh_shape:Shape"), &ArrayMesh::create_trimesh_shape);
-	ClassDB::bind_method(D_METHOD("create_convex_shape:Shape"), &ArrayMesh::create_convex_shape);
-	ClassDB::bind_method(D_METHOD("create_outline:ArrayMesh", "margin"), &ArrayMesh::create_outline);
+	ClassDB::bind_method(D_METHOD("create_trimesh_shape"), &ArrayMesh::create_trimesh_shape);
+	ClassDB::bind_method(D_METHOD("create_convex_shape"), &ArrayMesh::create_convex_shape);
+	ClassDB::bind_method(D_METHOD("create_outline", "margin"), &ArrayMesh::create_outline);
 	ClassDB::bind_method(D_METHOD("center_geometry"), &ArrayMesh::center_geometry);
 	ClassDB::set_method_flags(get_class_static(), _scs_create("center_geometry"), METHOD_FLAGS_DEFAULT | METHOD_FLAG_EDITOR);
 	ClassDB::bind_method(D_METHOD("regen_normalmaps"), &ArrayMesh::regen_normalmaps);
 	ClassDB::set_method_flags(get_class_static(), _scs_create("regen_normalmaps"), METHOD_FLAGS_DEFAULT | METHOD_FLAG_EDITOR);
 	ClassDB::bind_method(D_METHOD("get_faces"), &ArrayMesh::get_faces);
-	ClassDB::bind_method(D_METHOD("generate_triangle_mesh:TriangleMesh"), &ArrayMesh::generate_triangle_mesh);
+	ClassDB::bind_method(D_METHOD("generate_triangle_mesh"), &ArrayMesh::generate_triangle_mesh);
 
 	ClassDB::bind_method(D_METHOD("set_custom_aabb", "aabb"), &ArrayMesh::set_custom_aabb);
 	ClassDB::bind_method(D_METHOD("get_custom_aabb"), &ArrayMesh::get_custom_aabb);
@@ -1015,33 +1026,26 @@ void ArrayMesh::_bind_methods() {
 	BIND_CONSTANT(NO_INDEX_ARRAY);
 	BIND_CONSTANT(ARRAY_WEIGHTS_SIZE);
 
-	BIND_CONSTANT(ARRAY_VERTEX);
-	BIND_CONSTANT(ARRAY_NORMAL);
-	BIND_CONSTANT(ARRAY_TANGENT);
-	BIND_CONSTANT(ARRAY_COLOR);
-	BIND_CONSTANT(ARRAY_TEX_UV);
-	BIND_CONSTANT(ARRAY_TEX_UV2);
-	BIND_CONSTANT(ARRAY_BONES);
-	BIND_CONSTANT(ARRAY_WEIGHTS);
-	BIND_CONSTANT(ARRAY_INDEX);
+	BIND_ENUM_CONSTANT(ARRAY_VERTEX);
+	BIND_ENUM_CONSTANT(ARRAY_NORMAL);
+	BIND_ENUM_CONSTANT(ARRAY_TANGENT);
+	BIND_ENUM_CONSTANT(ARRAY_COLOR);
+	BIND_ENUM_CONSTANT(ARRAY_TEX_UV);
+	BIND_ENUM_CONSTANT(ARRAY_TEX_UV2);
+	BIND_ENUM_CONSTANT(ARRAY_BONES);
+	BIND_ENUM_CONSTANT(ARRAY_WEIGHTS);
+	BIND_ENUM_CONSTANT(ARRAY_INDEX);
+	BIND_ENUM_CONSTANT(ARRAY_MAX);
 
-	BIND_CONSTANT(ARRAY_FORMAT_VERTEX);
-	BIND_CONSTANT(ARRAY_FORMAT_NORMAL);
-	BIND_CONSTANT(ARRAY_FORMAT_TANGENT);
-	BIND_CONSTANT(ARRAY_FORMAT_COLOR);
-	BIND_CONSTANT(ARRAY_FORMAT_TEX_UV);
-	BIND_CONSTANT(ARRAY_FORMAT_TEX_UV2);
-	BIND_CONSTANT(ARRAY_FORMAT_BONES);
-	BIND_CONSTANT(ARRAY_FORMAT_WEIGHTS);
-	BIND_CONSTANT(ARRAY_FORMAT_INDEX);
-
-	BIND_CONSTANT(PRIMITIVE_POINTS);
-	BIND_CONSTANT(PRIMITIVE_LINES);
-	BIND_CONSTANT(PRIMITIVE_LINE_STRIP);
-	BIND_CONSTANT(PRIMITIVE_LINE_LOOP);
-	BIND_CONSTANT(PRIMITIVE_TRIANGLES);
-	BIND_CONSTANT(PRIMITIVE_TRIANGLE_STRIP);
-	BIND_CONSTANT(PRIMITIVE_TRIANGLE_FAN);
+	BIND_ENUM_CONSTANT(ARRAY_FORMAT_VERTEX);
+	BIND_ENUM_CONSTANT(ARRAY_FORMAT_NORMAL);
+	BIND_ENUM_CONSTANT(ARRAY_FORMAT_TANGENT);
+	BIND_ENUM_CONSTANT(ARRAY_FORMAT_COLOR);
+	BIND_ENUM_CONSTANT(ARRAY_FORMAT_TEX_UV);
+	BIND_ENUM_CONSTANT(ARRAY_FORMAT_TEX_UV2);
+	BIND_ENUM_CONSTANT(ARRAY_FORMAT_BONES);
+	BIND_ENUM_CONSTANT(ARRAY_FORMAT_WEIGHTS);
+	BIND_ENUM_CONSTANT(ARRAY_FORMAT_INDEX);
 }
 
 ArrayMesh::ArrayMesh() {

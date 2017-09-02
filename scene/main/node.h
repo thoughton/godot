@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -31,10 +31,10 @@
 #define NODE_H
 
 #include "class_db.h"
-#include "global_config.h"
 #include "map.h"
+#include "node_path.h"
 #include "object.h"
-#include "path_db.h"
+#include "project_settings.h"
 #include "scene/main/scene_tree.h"
 #include "script_language.h"
 
@@ -192,7 +192,6 @@ protected:
 	virtual void add_child_notify(Node *p_child);
 	virtual void remove_child_notify(Node *p_child);
 	virtual void move_child_notify(Node *p_child);
-	//void remove_and_delete_child(Node *p_child);
 
 	void _propagate_replace_owner(Node *p_owner, Node *p_by_owner);
 
@@ -212,7 +211,6 @@ public:
 		NOTIFICATION_EXIT_TREE = 11,
 		NOTIFICATION_MOVED_IN_PARENT = 12,
 		NOTIFICATION_READY = 13,
-		//NOTIFICATION_PARENT_DECONFIGURED =15, - it's confusing, it's going away
 		NOTIFICATION_PAUSED = 14,
 		NOTIFICATION_UNPAUSED = 15,
 		NOTIFICATION_FIXED_PROCESS = 16,
@@ -298,19 +296,21 @@ public:
 
 	void propagate_notification(int p_notification);
 
+	void propagate_call(const StringName &p_method, const Array &p_args = Array(), const bool p_parent_first = false);
+
 	/* PROCESSING */
 	void set_fixed_process(bool p_process);
 	float get_fixed_process_delta_time() const;
 	bool is_fixed_processing() const;
 
-	void set_process(bool p_process);
+	void set_process(bool p_idle_process);
 	float get_process_delta_time() const;
 	bool is_processing() const;
 
-	void set_fixed_process_internal(bool p_process);
+	void set_fixed_process_internal(bool p_process_internal);
 	bool is_fixed_processing_internal() const;
 
-	void set_process_internal(bool p_process);
+	void set_process_internal(bool p_idle_process_internal);
 	bool is_processing_internal() const;
 
 	void set_process_input(bool p_enable);
@@ -411,6 +411,8 @@ public:
 	Node();
 	~Node();
 };
+
+VARIANT_ENUM_CAST(Node::DuplicateFlags);
 
 typedef Set<Node *, Node::Comparator> NodeSet;
 

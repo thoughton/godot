@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -60,7 +60,11 @@ class OS {
 
 	char *last_error;
 
+	void *_stack_bottom;
+
 public:
+	typedef void (*ImeCallback)(void *p_inp, String p_text, Point2 p_selection);
+
 	enum RenderThreadMode {
 
 		RENDER_THREAD_UNSAFE,
@@ -109,6 +113,7 @@ protected:
 	virtual void set_cmdline(const char *p_execpath, const List<String> &p_args);
 
 	void _ensure_data_dir();
+	virtual bool _check_internal_feature_support(const String &p_feature) = 0;
 
 public:
 	typedef int64_t ProcessID;
@@ -159,9 +164,9 @@ public:
 	virtual int get_screen_count() const { return 1; }
 	virtual int get_current_screen() const { return 0; }
 	virtual void set_current_screen(int p_screen) {}
-	virtual Point2 get_screen_position(int p_screen = 0) const { return Point2(); }
-	virtual Size2 get_screen_size(int p_screen = 0) const { return get_window_size(); }
-	virtual int get_screen_dpi(int p_screen = 0) const { return 72; }
+	virtual Point2 get_screen_position(int p_screen = -1) const { return Point2(); }
+	virtual Size2 get_screen_size(int p_screen = -1) const { return get_window_size(); }
+	virtual int get_screen_dpi(int p_screen = -1) const { return 72; }
 	virtual Point2 get_window_position() const { return Vector2(); }
 	virtual void set_window_position(const Point2 &p_position) {}
 	virtual Size2 get_window_size() const = 0;
@@ -179,9 +184,12 @@ public:
 	virtual void set_borderless_window(int p_borderless) {}
 	virtual bool get_borderless_window() { return 0; }
 
-	virtual Error open_dynamic_library(const String p_path, void *&p_library_handle) { return ERR_UNAVAILABLE; };
-	virtual Error close_dynamic_library(void *p_library_handle) { return ERR_UNAVAILABLE; };
-	virtual Error get_dynamic_library_symbol_handle(void *p_library_handle, const String p_name, void *&p_symbol_handle) { return ERR_UNAVAILABLE; };
+	virtual void set_ime_position(const Point2 &p_pos) {}
+	virtual void set_ime_intermediate_text_callback(ImeCallback p_callback, void *p_inp) {}
+
+	virtual Error open_dynamic_library(const String p_path, void *&p_library_handle) { return ERR_UNAVAILABLE; }
+	virtual Error close_dynamic_library(void *p_library_handle) { return ERR_UNAVAILABLE; }
+	virtual Error get_dynamic_library_symbol_handle(void *p_library_handle, const String p_name, void *&p_symbol_handle, bool p_optional = false) { return ERR_UNAVAILABLE; }
 
 	virtual void set_keep_screen_on(bool p_enabled);
 	virtual bool is_keep_screen_on() const;
@@ -192,7 +200,7 @@ public:
 	virtual String get_executable_path() const;
 	virtual Error execute(const String &p_path, const List<String> &p_arguments, bool p_blocking, ProcessID *r_child_id = NULL, String *r_pipe = NULL, int *r_exitcode = NULL) = 0;
 	virtual Error kill(const ProcessID &p_pid) = 0;
-	virtual int get_process_ID() const;
+	virtual int get_process_id() const;
 
 	virtual Error shell_open(String p_uri);
 	virtual Error set_cwd(const String &p_cwd);
@@ -365,7 +373,7 @@ public:
 
 	virtual int get_processor_count() const;
 
-	virtual String get_unique_ID() const;
+	virtual String get_unique_id() const;
 
 	virtual Error native_video_play(String p_path, float p_volume, String p_audio_track, String p_subtitle_track);
 	virtual bool native_video_is_playing() const;
@@ -406,7 +414,14 @@ public:
 	virtual int get_power_seconds_left();
 	virtual int get_power_percent_left();
 
-	virtual bool check_feature_support(const String &p_feature) = 0;
+	bool check_feature_support(const String &p_feature);
+
+	/**
+	 * Returns the stack bottom of the main thread of the application.
+	 * This may be of use when integrating languages with garbage collectors that
+	 * need to check whether a pointer is on the stack.
+	 */
+	virtual void *get_stack_bottom() const;
 
 	bool is_hidpi_allowed() const { return _allow_hidpi; }
 	OS();

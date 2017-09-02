@@ -1,9 +1,9 @@
 /*************************************************************************/
-/*  editor_import_export.h                                               */
+/*  editor_export.h                                                      */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -30,6 +30,7 @@
 #ifndef EDITOR_EXPORT_H
 #define EDITOR_EXPORT_H
 
+#include "os/dir_access.h"
 #include "resource.h"
 #include "scene/main/node.h"
 #include "scene/main/timer.h"
@@ -70,6 +71,8 @@ private:
 
 	String name;
 
+	String custom_features;
+
 protected:
 	bool _set(const StringName &p_name, const Variant &p_value);
 	bool _get(const StringName &p_name, Variant &r_ret) const;
@@ -106,6 +109,9 @@ public:
 	String get_patch(int p_index);
 	void remove_patch(int p_idx);
 	Vector<String> get_patches() const;
+
+	void set_custom_features(const String &p_custom_features);
+	String get_custom_features() const;
 
 	const List<PropertyInfo> &get_properties() const { return properties; }
 
@@ -152,13 +158,17 @@ private:
 	static Error _save_pack_file(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total);
 	static Error _save_zip_file(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total);
 
+	void _edit_files_with_filter(DirAccess *da, const Vector<String> &p_filters, Set<String> &r_list, bool exclude);
+	void _edit_filter_list(Set<String> &r_list, const String &p_filter, bool exclude);
+
 protected:
-	virtual void get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features) = 0;
 	bool exists_export_template(String template_file_name, String *err) const;
 	String find_export_template(String template_file_name, String *err = NULL) const;
 	void gen_export_flags(Vector<String> &r_flags, int p_flags);
 
 public:
+	virtual void get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features) = 0;
+
 	struct ExportOption {
 		PropertyInfo option;
 		Variant default_value;
@@ -175,6 +185,7 @@ public:
 	virtual void get_export_options(List<ExportOption> *r_options) = 0;
 	virtual bool get_option_visibility(const String &p_option, const Map<StringName, Variant> &p_options) const { return true; }
 
+	virtual String get_os_name() const = 0;
 	virtual String get_name() const = 0;
 	virtual Ref<Texture> get_logo() const = 0;
 
@@ -203,6 +214,7 @@ public:
 
 	virtual String get_binary_extension() const = 0;
 	virtual Error export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, int p_flags = 0) = 0;
+	virtual void get_platform_features(List<String> *r_features) = 0;
 
 	EditorExportPlatform();
 };
@@ -253,12 +265,15 @@ class EditorExportPlatformPC : public EditorExportPlatform {
 
 	Ref<ImageTexture> logo;
 	String name;
+	String os_name;
 	String extension;
 
 	String release_file_32;
 	String release_file_64;
 	String debug_file_32;
 	String debug_file_64;
+
+	Set<String> extra_features;
 
 	bool use64;
 
@@ -268,6 +283,7 @@ public:
 	virtual void get_export_options(List<ExportOption> *r_options);
 
 	virtual String get_name() const;
+	virtual String get_os_name() const;
 	virtual Ref<Texture> get_logo() const;
 
 	virtual bool can_export(const Ref<EditorExportPreset> &p_preset, String &r_error, bool &r_missing_templates) const;
@@ -276,13 +292,17 @@ public:
 
 	void set_extension(const String &p_extension);
 	void set_name(const String &p_name);
+	void set_os_name(const String &p_name);
 
-	void set_logo(const Ref<Texture> &p_loco);
+	void set_logo(const Ref<Texture> &p_logo);
 
 	void set_release_64(const String &p_file);
 	void set_release_32(const String &p_file);
 	void set_debug_64(const String &p_file);
 	void set_debug_32(const String &p_file);
+
+	void add_platform_feature(const String &p_feature);
+	virtual void get_platform_features(List<String> *r_features);
 
 	EditorExportPlatformPC();
 };

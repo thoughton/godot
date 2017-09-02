@@ -14,69 +14,56 @@ def get_name():
 def can_build():
 
     if (os.name == "nt"):
-        # building natively on windows!
-        if (os.getenv("VCINSTALLDIR")):
-            return True
-        else:
-            print("\nMSVC not detected, attempting MinGW.")
-            mingw32 = ""
-            mingw64 = ""
-            if (os.getenv("MINGW32_PREFIX")):
-                mingw32 = os.getenv("MINGW32_PREFIX")
-            if (os.getenv("MINGW64_PREFIX")):
-                mingw64 = os.getenv("MINGW64_PREFIX")
-
-            test = "gcc --version > NUL 2>&1"
-            if os.system(test) != 0 and os.system(mingw32 + test) != 0 and os.system(mingw64 + test) != 0:
-                print("- could not detect gcc.")
-                print("Please, make sure a path to a MinGW /bin directory is accessible into the environment PATH.\n")
-                return False
-            else:
-                print("- gcc detected.")
-
+        # Building natively on Windows
+        if (os.getenv("VCINSTALLDIR")): # MSVC
             return True
 
-    if (os.name == "posix"):
-
-        mingw = "i586-mingw32msvc-"
-        mingw64 = "x86_64-w64-mingw32-"
-        mingw32 = "i686-w64-mingw32-"
-
+        print("MSVC not detected (no VCINSTALLDIR environment variable), attempting MinGW.")
+        mingw32 = ""
+        mingw64 = ""
         if (os.getenv("MINGW32_PREFIX")):
             mingw32 = os.getenv("MINGW32_PREFIX")
-            mingw = mingw32
         if (os.getenv("MINGW64_PREFIX")):
             mingw64 = os.getenv("MINGW64_PREFIX")
 
-        test = "gcc --version &>/dev/null"
-        if (os.system(mingw + test) == 0 or os.system(mingw64 + test) == 0 or os.system(mingw32 + test) == 0):
+        test = "gcc --version > NUL 2>&1"
+        if (os.system(test) == 0 or os.system(mingw32 + test) == 0 or os.system(mingw64 + test) == 0):
             return True
 
+    if (os.name == "posix"):
+        # Cross-compiling with MinGW-w64 (old MinGW32 is not supported)
+        mingw32 = "i686-w64-mingw32-"
+        mingw64 = "x86_64-w64-mingw32-"
+
+        if (os.getenv("MINGW32_PREFIX")):
+            mingw32 = os.getenv("MINGW32_PREFIX")
+        if (os.getenv("MINGW64_PREFIX")):
+            mingw64 = os.getenv("MINGW64_PREFIX")
+
+        test = "gcc --version > /dev/null 2>&1"
+        if (os.system(mingw64 + test) == 0 or os.system(mingw32 + test) == 0):
+            return True
+
+    print("Could not detect MinGW. Ensure its binaries are in your PATH or that MINGW32_PREFIX or MINGW64_PREFIX are properly defined.")
     return False
 
 
 def get_opts():
 
-    mingw = ""
     mingw32 = ""
     mingw64 = ""
     if (os.name == "posix"):
-        mingw = "i586-mingw32msvc-"
         mingw32 = "i686-w64-mingw32-"
         mingw64 = "x86_64-w64-mingw32-"
 
-        if os.system(mingw32 + "gcc --version &>/dev/null") != 0:
-            mingw32 = mingw
-
     if (os.getenv("MINGW32_PREFIX")):
         mingw32 = os.getenv("MINGW32_PREFIX")
-        mingw = mingw32
     if (os.getenv("MINGW64_PREFIX")):
         mingw64 = os.getenv("MINGW64_PREFIX")
 
     return [
-        ('mingw_prefix', 'MinGW Prefix', mingw32),
-        ('mingw_prefix_64', 'MinGW Prefix 64 bits', mingw64),
+        ('mingw_prefix_32', 'MinGW prefix (Win32)', mingw32),
+        ('mingw_prefix_64', 'MinGW prefix (Win64)', mingw64),
     ]
 
 
@@ -88,12 +75,10 @@ def get_flags():
 
 def build_res_file(target, source, env):
 
-    cmdbase = ""
     if (env["bits"] == "32"):
-        cmdbase = env['mingw_prefix']
+        cmdbase = env['mingw_prefix_32']
     else:
         cmdbase = env['mingw_prefix_64']
-    CPPPATH = env['CPPPATH']
     cmdbase = cmdbase + 'windres --include-dir . '
     import subprocess
     for x in range(len(source)):
@@ -111,8 +96,10 @@ def configure(env):
 
     env.Append(CPPPATH=['#platform/windows'])
 
-    # Targeted Windows version: Vista (and later)
-    winver = "0x0600" # Windows Vista is the minimum target for windows builds
+    # Targeted Windows version: 7 (and later), minimum supported version
+    # XP support dropped after EOL due to missing API for IPv6 and other issues
+    # Vista support dropped after EOL due to GH-10243
+    winver = "0x0601"
 
     if (os.name == "nt" and os.getenv("VCINSTALLDIR")): # MSVC
 
@@ -184,6 +171,7 @@ def configure(env):
         env.Append(CCFLAGS=['/DWINDOWS_ENABLED'])
         env.Append(CCFLAGS=['/DOPENGL_ENABLED'])
         env.Append(CCFLAGS=['/DRTAUDIO_ENABLED'])
+        env.Append(CCFLAGS=['/DWASAPI_ENABLED'])
         env.Append(CCFLAGS=['/DTYPED_METHOD_BIND'])
         env.Append(CCFLAGS=['/DWIN32'])
         env.Append(CCFLAGS=['/DWINVER=%s' % winver, '/D_WIN32_WINNT=%s' % winver])
@@ -247,17 +235,10 @@ def configure(env):
             env.Append(LINKFLAGS=['-static'])
             env.Append(LINKFLAGS=['-static-libgcc'])
             env.Append(LINKFLAGS=['-static-libstdc++'])
-            mingw_prefix = env["mingw_prefix"]
+            mingw_prefix = env["mingw_prefix_32"]
         else:
             env.Append(LINKFLAGS=['-static'])
             mingw_prefix = env["mingw_prefix_64"]
-
-        nulstr = ""
-
-        if (os.name == "posix"):
-            nulstr = ">/dev/null"
-        else:
-            nulstr = ">nul"
 
         env["CC"] = mingw_prefix + "gcc"
         env['AS'] = mingw_prefix + "as"
@@ -272,8 +253,9 @@ def configure(env):
         env.Append(CCFLAGS=['-DWINDOWS_ENABLED', '-mwindows'])
         env.Append(CCFLAGS=['-DOPENGL_ENABLED'])
         env.Append(CCFLAGS=['-DRTAUDIO_ENABLED'])
+        env.Append(CCFLAGS=['-DWASAPI_ENABLED'])
         env.Append(CCFLAGS=['-DWINVER=%s' % winver, '-D_WIN32_WINNT=%s' % winver])
-        env.Append(LIBS=['mingw32', 'opengl32', 'dsound', 'ole32', 'd3d9', 'winmm', 'gdi32', 'iphlpapi', 'shlwapi', 'wsock32', 'ws2_32', 'kernel32', 'oleaut32', 'dinput8', 'dxguid'])
+        env.Append(LIBS=['mingw32', 'opengl32', 'dsound', 'ole32', 'd3d9', 'winmm', 'gdi32', 'iphlpapi', 'shlwapi', 'wsock32', 'ws2_32', 'kernel32', 'oleaut32', 'dinput8', 'dxguid', 'ksuser'])
 
         env.Append(CPPFLAGS=['-DMINGW_ENABLED'])
 

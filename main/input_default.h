@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -214,7 +214,7 @@ public:
 	virtual void start_joy_vibration(int p_device, float p_weak_magnitude, float p_strong_magnitude, float p_duration = 0);
 	virtual void stop_joy_vibration(int p_device);
 
-	void set_main_loop(MainLoop *main_loop);
+	void set_main_loop(MainLoop *p_main_loop);
 	void set_mouse_position(const Point2 &p_posf);
 
 	void action_press(const StringName &p_action);

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -29,7 +29,7 @@
 /*************************************************************************/
 #include "mesh_instance_editor_plugin.h"
 
-#include "scene/3d/body_shape.h"
+#include "scene/3d/collision_shape.h"
 #include "scene/3d/navigation_mesh.h"
 #include "scene/3d/physics_body.h"
 #include "scene/gui/box_container.h"
@@ -101,7 +101,7 @@ void MeshInstanceEditor::_menu_option(int p_option) {
 
 			for (List<Node *>::Element *E = selection.front(); E; E = E->next()) {
 
-				MeshInstance *instance = E->get()->cast_to<MeshInstance>();
+				MeshInstance *instance = Object::cast_to<MeshInstance>(E->get());
 				if (!instance)
 					continue;
 
@@ -290,7 +290,7 @@ MeshInstanceEditor::MeshInstanceEditor() {
 
 void MeshInstanceEditorPlugin::edit(Object *p_object) {
 
-	mesh_editor->edit(p_object->cast_to<MeshInstance>());
+	mesh_editor->edit(Object::cast_to<MeshInstance>(p_object));
 }
 
 bool MeshInstanceEditorPlugin::handles(Object *p_object) const {

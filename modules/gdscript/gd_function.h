@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -210,8 +210,9 @@ public:
 #ifdef TOOLS_ENABLED
 		ERR_FAIL_INDEX_V(p_idx, arg_names.size(), StringName());
 		return arg_names[p_idx];
-#endif
+#else
 		return StringName();
+#endif
 	}
 	Variant get_default_argument(int p_idx) const {
 		ERR_FAIL_INDEX_V(p_idx, default_arguments.size(), Variant());

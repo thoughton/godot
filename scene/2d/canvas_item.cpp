@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -188,14 +188,15 @@ void CanvasItemMaterial::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "blend_mode", PROPERTY_HINT_ENUM, "Mix,Add,Sub,Mul,Premult Alpha"), "set_blend_mode", "get_blend_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "light_mode", PROPERTY_HINT_ENUM, "Normal,Unshaded,Light Only"), "set_light_mode", "get_light_mode");
 
-	BIND_CONSTANT(BLEND_MODE_MIX);
-	BIND_CONSTANT(BLEND_MODE_ADD);
-	BIND_CONSTANT(BLEND_MODE_SUB);
-	BIND_CONSTANT(BLEND_MODE_MUL);
-	BIND_CONSTANT(BLEND_MODE_PREMULT_ALPHA);
-	BIND_CONSTANT(LIGHT_MODE_NORMAL);
-	BIND_CONSTANT(LIGHT_MODE_UNSHADED);
-	BIND_CONSTANT(LIGHT_MODE_LIGHT_ONLY);
+	BIND_ENUM_CONSTANT(BLEND_MODE_MIX);
+	BIND_ENUM_CONSTANT(BLEND_MODE_ADD);
+	BIND_ENUM_CONSTANT(BLEND_MODE_SUB);
+	BIND_ENUM_CONSTANT(BLEND_MODE_MUL);
+	BIND_ENUM_CONSTANT(BLEND_MODE_PREMULT_ALPHA);
+
+	BIND_ENUM_CONSTANT(LIGHT_MODE_NORMAL);
+	BIND_ENUM_CONSTANT(LIGHT_MODE_UNSHADED);
+	BIND_ENUM_CONSTANT(LIGHT_MODE_LIGHT_ONLY);
 }
 
 CanvasItemMaterial::CanvasItemMaterial()
@@ -259,7 +260,7 @@ void CanvasItem::_propagate_visibility_changed(bool p_visible) {
 
 	for (int i = 0; i < get_child_count(); i++) {
 
-		CanvasItem *c = get_child(i)->cast_to<CanvasItem>();
+		CanvasItem *c = Object::cast_to<CanvasItem>(get_child(i));
 
 		if (c && c->visible) //should the toplevels stop propagation? i think so but..
 			c->_propagate_visibility_changed(p_visible);
@@ -397,7 +398,7 @@ void CanvasItem::_toplevel_raise_self() {
 
 void CanvasItem::_enter_canvas() {
 
-	if ((!get_parent() || !get_parent()->cast_to<CanvasItem>()) || toplevel) {
+	if ((!Object::cast_to<CanvasItem>(get_parent())) || toplevel) {
 
 		Node *n = this;
 
@@ -405,7 +406,7 @@ void CanvasItem::_enter_canvas() {
 
 		while (n) {
 
-			canvas_layer = n->cast_to<CanvasLayer>();
+			canvas_layer = Object::cast_to<CanvasLayer>(n);
 			if (canvas_layer) {
 				break;
 			}
@@ -459,7 +460,7 @@ void CanvasItem::_notification(int p_what) {
 
 			first_draw = true;
 			if (get_parent()) {
-				CanvasItem *ci = get_parent()->cast_to<CanvasItem>();
+				CanvasItem *ci = Object::cast_to<CanvasItem>(get_parent());
 				if (ci)
 					C = ci->children_items.push_back(this);
 			}
@@ -487,7 +488,7 @@ void CanvasItem::_notification(int p_what) {
 				get_tree()->xform_change_list.remove(&xform_change);
 			_exit_canvas();
 			if (C) {
-				get_parent()->cast_to<CanvasItem>()->children_items.erase(C);
+				Object::cast_to<CanvasItem>(get_parent())->children_items.erase(C);
 				C = NULL;
 			}
 			global_invalid = true;
@@ -564,11 +565,7 @@ CanvasItem *CanvasItem::get_parent_item() const {
 	if (toplevel)
 		return NULL;
 
-	Node *parent = get_parent();
-	if (!parent)
-		return NULL;
-
-	return parent->cast_to<CanvasItem>();
+	return Object::cast_to<CanvasItem>(get_parent());
 }
 
 void CanvasItem::set_self_modulate(const Color &p_self_modulate) {
@@ -734,7 +731,7 @@ void CanvasItem::draw_set_transform_matrix(const Transform2D &p_matrix) {
 	VisualServer::get_singleton()->canvas_item_add_set_transform(canvas_item, p_matrix);
 }
 
-void CanvasItem::draw_polygon(const Vector<Point2> &p_points, const Vector<Color> &p_colors, const Vector<Point2> &p_uvs, Ref<Texture> p_texture, const Ref<Texture> &p_normal_map) {
+void CanvasItem::draw_polygon(const Vector<Point2> &p_points, const Vector<Color> &p_colors, const Vector<Point2> &p_uvs, Ref<Texture> p_texture, const Ref<Texture> &p_normal_map, bool p_antialiased) {
 
 	if (!drawing) {
 		ERR_EXPLAIN("Drawing is only allowed inside NOTIFICATION_DRAW, _draw() function or 'draw' signal.");
@@ -744,10 +741,10 @@ void CanvasItem::draw_polygon(const Vector<Point2> &p_points, const Vector<Color
 	RID rid = p_texture.is_valid() ? p_texture->get_rid() : RID();
 	RID rid_normal = p_normal_map.is_valid() ? p_normal_map->get_rid() : RID();
 
-	VisualServer::get_singleton()->canvas_item_add_polygon(canvas_item, p_points, p_colors, p_uvs, rid, rid_normal);
+	VisualServer::get_singleton()->canvas_item_add_polygon(canvas_item, p_points, p_colors, p_uvs, rid, rid_normal, p_antialiased);
 }
 
-void CanvasItem::draw_colored_polygon(const Vector<Point2> &p_points, const Color &p_color, const Vector<Point2> &p_uvs, Ref<Texture> p_texture, const Ref<Texture> &p_normal_map) {
+void CanvasItem::draw_colored_polygon(const Vector<Point2> &p_points, const Color &p_color, const Vector<Point2> &p_uvs, Ref<Texture> p_texture, const Ref<Texture> &p_normal_map, bool p_antialiased) {
 
 	if (!drawing) {
 		ERR_EXPLAIN("Drawing is only allowed inside NOTIFICATION_DRAW, _draw() function or 'draw' signal.");
@@ -759,7 +756,7 @@ void CanvasItem::draw_colored_polygon(const Vector<Point2> &p_points, const Colo
 	RID rid = p_texture.is_valid() ? p_texture->get_rid() : RID();
 	RID rid_normal = p_normal_map.is_valid() ? p_normal_map->get_rid() : RID();
 
-	VisualServer::get_singleton()->canvas_item_add_polygon(canvas_item, p_points, colors, p_uvs, rid, rid_normal);
+	VisualServer::get_singleton()->canvas_item_add_polygon(canvas_item, p_points, colors, p_uvs, rid, rid_normal, p_antialiased);
 }
 
 void CanvasItem::draw_string(const Ref<Font> &p_font, const Point2 &p_pos, const String &p_text, const Color &p_modulate, int p_clip_w) {
@@ -829,8 +826,8 @@ RID CanvasItem::get_canvas() const {
 CanvasItem *CanvasItem::get_toplevel() const {
 
 	CanvasItem *ci = const_cast<CanvasItem *>(this);
-	while (!ci->toplevel && ci->get_parent() && ci->get_parent()->cast_to<CanvasItem>()) {
-		ci = ci->get_parent()->cast_to<CanvasItem>();
+	while (!ci->toplevel && Object::cast_to<CanvasItem>(ci->get_parent())) {
+		ci = Object::cast_to<CanvasItem>(ci->get_parent());
 	}
 
 	return ci;
@@ -939,7 +936,7 @@ void CanvasItem::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_update_callback"), &CanvasItem::_update_callback);
 
 	ClassDB::bind_method(D_METHOD("edit_set_state", "state"), &CanvasItem::edit_set_state);
-	ClassDB::bind_method(D_METHOD("edit_get_state:Variant"), &CanvasItem::edit_get_state);
+	ClassDB::bind_method(D_METHOD("edit_get_state"), &CanvasItem::edit_get_state);
 	ClassDB::bind_method(D_METHOD("edit_set_rect", "rect"), &CanvasItem::edit_set_rect);
 	ClassDB::bind_method(D_METHOD("edit_rotate", "degrees"), &CanvasItem::edit_rotate);
 
@@ -949,7 +946,7 @@ void CanvasItem::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_canvas_item"), &CanvasItem::get_canvas_item);
 
-	ClassDB::bind_method(D_METHOD("set_visible"), &CanvasItem::set_visible);
+	ClassDB::bind_method(D_METHOD("set_visible", "visible"), &CanvasItem::set_visible);
 	ClassDB::bind_method(D_METHOD("is_visible"), &CanvasItem::is_visible);
 	ClassDB::bind_method(D_METHOD("is_visible_in_tree"), &CanvasItem::is_visible_in_tree);
 	ClassDB::bind_method(D_METHOD("show"), &CanvasItem::show);
@@ -980,15 +977,15 @@ void CanvasItem::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("draw_polyline_colors", "points", "colors", "width", "antialiased"), &CanvasItem::draw_polyline_colors, DEFVAL(1.0), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("draw_rect", "rect", "color", "filled"), &CanvasItem::draw_rect, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("draw_circle", "pos", "radius", "color"), &CanvasItem::draw_circle);
-	ClassDB::bind_method(D_METHOD("draw_texture", "texture:Texture", "pos", "modulate", "normal_map:Texture"), &CanvasItem::draw_texture, DEFVAL(Color(1, 1, 1, 1)), DEFVAL(Variant()));
-	ClassDB::bind_method(D_METHOD("draw_texture_rect", "texture:Texture", "rect", "tile", "modulate", "transpose", "normal_map:Texture"), &CanvasItem::draw_texture_rect, DEFVAL(Color(1, 1, 1)), DEFVAL(false), DEFVAL(Variant()));
-	ClassDB::bind_method(D_METHOD("draw_texture_rect_region", "texture:Texture", "rect", "src_rect", "modulate", "transpose", "normal_map:Texture", "clip_uv"), &CanvasItem::draw_texture_rect_region, DEFVAL(Color(1, 1, 1)), DEFVAL(false), DEFVAL(Variant()), DEFVAL(true));
-	ClassDB::bind_method(D_METHOD("draw_style_box", "style_box:StyleBox", "rect"), &CanvasItem::draw_style_box);
-	ClassDB::bind_method(D_METHOD("draw_primitive", "points", "colors", "uvs", "texture:Texture", "width", "normal_map:Texture"), &CanvasItem::draw_primitive, DEFVAL(Variant()), DEFVAL(1.0), DEFVAL(Variant()));
-	ClassDB::bind_method(D_METHOD("draw_polygon", "points", "colors", "uvs", "texture:Texture", "normal_map:Texture"), &CanvasItem::draw_polygon, DEFVAL(PoolVector2Array()), DEFVAL(Variant()), DEFVAL(Variant()));
-	ClassDB::bind_method(D_METHOD("draw_colored_polygon", "points", "color", "uvs", "texture:Texture", "normal_map:Texture"), &CanvasItem::draw_colored_polygon, DEFVAL(PoolVector2Array()), DEFVAL(Variant()), DEFVAL(Variant()));
-	ClassDB::bind_method(D_METHOD("draw_string", "font:Font", "pos", "text", "modulate", "clip_w"), &CanvasItem::draw_string, DEFVAL(Color(1, 1, 1)), DEFVAL(-1));
-	ClassDB::bind_method(D_METHOD("draw_char", "font:Font", "pos", "char", "next", "modulate"), &CanvasItem::draw_char, DEFVAL(Color(1, 1, 1)));
+	ClassDB::bind_method(D_METHOD("draw_texture", "texture", "pos", "modulate", "normal_map"), &CanvasItem::draw_texture, DEFVAL(Color(1, 1, 1, 1)), DEFVAL(Variant()));
+	ClassDB::bind_method(D_METHOD("draw_texture_rect", "texture", "rect", "tile", "modulate", "transpose", "normal_map"), &CanvasItem::draw_texture_rect, DEFVAL(Color(1, 1, 1)), DEFVAL(false), DEFVAL(Variant()));
+	ClassDB::bind_method(D_METHOD("draw_texture_rect_region", "texture", "rect", "src_rect", "modulate", "transpose", "normal_map", "clip_uv"), &CanvasItem::draw_texture_rect_region, DEFVAL(Color(1, 1, 1)), DEFVAL(false), DEFVAL(Variant()), DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("draw_style_box", "style_box", "rect"), &CanvasItem::draw_style_box);
+	ClassDB::bind_method(D_METHOD("draw_primitive", "points", "colors", "uvs", "texture", "width", "normal_map"), &CanvasItem::draw_primitive, DEFVAL(Variant()), DEFVAL(1.0), DEFVAL(Variant()));
+	ClassDB::bind_method(D_METHOD("draw_polygon", "points", "colors", "uvs", "texture", "normal_map", "antialiased"), &CanvasItem::draw_polygon, DEFVAL(PoolVector2Array()), DEFVAL(Variant()), DEFVAL(Variant()), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("draw_colored_polygon", "points", "color", "uvs", "texture", "normal_map", "antialiased"), &CanvasItem::draw_colored_polygon, DEFVAL(PoolVector2Array()), DEFVAL(Variant()), DEFVAL(Variant()), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("draw_string", "font", "pos", "text", "modulate", "clip_w"), &CanvasItem::draw_string, DEFVAL(Color(1, 1, 1)), DEFVAL(-1));
+	ClassDB::bind_method(D_METHOD("draw_char", "font", "pos", "char", "next", "modulate"), &CanvasItem::draw_char, DEFVAL(Color(1, 1, 1)));
 
 	ClassDB::bind_method(D_METHOD("draw_set_transform", "pos", "rot", "scale"), &CanvasItem::draw_set_transform);
 	ClassDB::bind_method(D_METHOD("draw_set_transform_matrix", "xform"), &CanvasItem::draw_set_transform_matrix);
@@ -1004,8 +1001,8 @@ void CanvasItem::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_world_2d"), &CanvasItem::get_world_2d);
 	//ClassDB::bind_method(D_METHOD("get_viewport"),&CanvasItem::get_viewport);
 
-	ClassDB::bind_method(D_METHOD("set_material", "material:Material"), &CanvasItem::set_material);
-	ClassDB::bind_method(D_METHOD("get_material:Material"), &CanvasItem::get_material);
+	ClassDB::bind_method(D_METHOD("set_material", "material"), &CanvasItem::set_material);
+	ClassDB::bind_method(D_METHOD("get_material"), &CanvasItem::get_material);
 
 	ClassDB::bind_method(D_METHOD("set_use_parent_material", "enable"), &CanvasItem::set_use_parent_material);
 	ClassDB::bind_method(D_METHOD("get_use_parent_material"), &CanvasItem::get_use_parent_material);
@@ -1042,11 +1039,11 @@ void CanvasItem::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("hide"));
 	ADD_SIGNAL(MethodInfo("item_rect_changed"));
 
-	BIND_CONSTANT(BLEND_MODE_MIX);
-	BIND_CONSTANT(BLEND_MODE_ADD);
-	BIND_CONSTANT(BLEND_MODE_SUB);
-	BIND_CONSTANT(BLEND_MODE_MUL);
-	BIND_CONSTANT(BLEND_MODE_PREMULT_ALPHA);
+	BIND_ENUM_CONSTANT(BLEND_MODE_MIX);
+	BIND_ENUM_CONSTANT(BLEND_MODE_ADD);
+	BIND_ENUM_CONSTANT(BLEND_MODE_SUB);
+	BIND_ENUM_CONSTANT(BLEND_MODE_MUL);
+	BIND_ENUM_CONSTANT(BLEND_MODE_PREMULT_ALPHA);
 
 	BIND_CONSTANT(NOTIFICATION_DRAW);
 	BIND_CONSTANT(NOTIFICATION_VISIBILITY_CHANGED);
@@ -1061,8 +1058,8 @@ Transform2D CanvasItem::get_canvas_transform() const {
 
 	if (canvas_layer)
 		return canvas_layer->get_transform();
-	else if (get_parent()->cast_to<CanvasItem>())
-		return get_parent()->cast_to<CanvasItem>()->get_canvas_transform();
+	else if (Object::cast_to<CanvasItem>(get_parent()))
+		return Object::cast_to<CanvasItem>(get_parent())->get_canvas_transform();
 	else
 		return get_viewport()->get_canvas_transform();
 }
@@ -1121,7 +1118,7 @@ Rect2 CanvasItem::get_item_and_children_rect() const {
 	Rect2 rect = get_item_rect();
 
 	for (int i = 0; i < get_child_count(); i++) {
-		CanvasItem *c = get_child(i)->cast_to<CanvasItem>();
+		CanvasItem *c = Object::cast_to<CanvasItem>(get_child(i));
 		if (c) {
 			Rect2 sir = c->get_transform().xform(c->get_item_and_children_rect());
 			rect = rect.merge(sir);

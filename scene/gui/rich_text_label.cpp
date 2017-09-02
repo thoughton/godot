@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -594,7 +594,7 @@ void RichTextLabel::_update_scroll() {
 			main->first_invalid_line = 0;
 			scroll_w = vscroll->get_combined_minimum_size().width;
 			vscroll->show();
-			vscroll->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, scroll_w);
+			vscroll->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, -scroll_w);
 			_validate_line_caches(main);
 
 		} else {
@@ -1822,16 +1822,41 @@ String RichTextLabel::get_text() {
 	return text;
 }
 
+void RichTextLabel::set_text(const String &p_string) {
+	clear();
+	add_text(p_string);
+}
+
+void RichTextLabel::set_percent_visible(float p_percent) {
+
+	if (p_percent < 0 || p_percent >= 1) {
+
+		visible_characters = -1;
+		percent_visible = 1;
+
+	} else {
+
+		visible_characters = get_total_character_count() * p_percent;
+		percent_visible = p_percent;
+	}
+	update();
+}
+
+float RichTextLabel::get_percent_visible() const {
+	return percent_visible;
+}
+
 void RichTextLabel::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_gui_input"), &RichTextLabel::_gui_input);
 	ClassDB::bind_method(D_METHOD("_scroll_changed"), &RichTextLabel::_scroll_changed);
 	ClassDB::bind_method(D_METHOD("get_text"), &RichTextLabel::get_text);
 	ClassDB::bind_method(D_METHOD("add_text", "text"), &RichTextLabel::add_text);
-	ClassDB::bind_method(D_METHOD("add_image", "image:Texture"), &RichTextLabel::add_image);
+	ClassDB::bind_method(D_METHOD("set_text", "text"), &RichTextLabel::set_text);
+	ClassDB::bind_method(D_METHOD("add_image", "image"), &RichTextLabel::add_image);
 	ClassDB::bind_method(D_METHOD("newline"), &RichTextLabel::add_newline);
-	ClassDB::bind_method(D_METHOD("remove_line"), &RichTextLabel::remove_line);
-	ClassDB::bind_method(D_METHOD("push_font", "font:Font"), &RichTextLabel::push_font);
+	ClassDB::bind_method(D_METHOD("remove_line", "line"), &RichTextLabel::remove_line);
+	ClassDB::bind_method(D_METHOD("push_font", "font"), &RichTextLabel::push_font);
 	ClassDB::bind_method(D_METHOD("push_color", "color"), &RichTextLabel::push_color);
 	ClassDB::bind_method(D_METHOD("push_align", "align"), &RichTextLabel::push_align);
 	ClassDB::bind_method(D_METHOD("push_indent", "level"), &RichTextLabel::push_indent);
@@ -1854,7 +1879,7 @@ void RichTextLabel::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_scroll_follow", "follow"), &RichTextLabel::set_scroll_follow);
 	ClassDB::bind_method(D_METHOD("is_scroll_following"), &RichTextLabel::is_scroll_following);
 
-	ClassDB::bind_method(D_METHOD("get_v_scroll:VScrollBar"), &RichTextLabel::get_v_scroll);
+	ClassDB::bind_method(D_METHOD("get_v_scroll"), &RichTextLabel::get_v_scroll);
 
 	ClassDB::bind_method(D_METHOD("scroll_to_line", "line"), &RichTextLabel::scroll_to_line);
 
@@ -1873,6 +1898,9 @@ void RichTextLabel::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_visible_characters", "amount"), &RichTextLabel::set_visible_characters);
 	ClassDB::bind_method(D_METHOD("get_visible_characters"), &RichTextLabel::get_visible_characters);
 
+	ClassDB::bind_method(D_METHOD("set_percent_visible", "percent_visible"), &RichTextLabel::set_percent_visible);
+	ClassDB::bind_method(D_METHOD("get_percent_visible"), &RichTextLabel::get_percent_visible);
+
 	ClassDB::bind_method(D_METHOD("get_total_character_count"), &RichTextLabel::get_total_character_count);
 
 	ClassDB::bind_method(D_METHOD("set_use_bbcode", "enable"), &RichTextLabel::set_use_bbcode);
@@ -1881,30 +1909,32 @@ void RichTextLabel::_bind_methods() {
 	ADD_GROUP("BBCode", "bbcode_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "bbcode_enabled"), "set_use_bbcode", "is_using_bbcode");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "bbcode_text", PROPERTY_HINT_MULTILINE_TEXT), "set_bbcode", "get_bbcode");
+
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "visible_characters", PROPERTY_HINT_RANGE, "-1,128000,1"), "set_visible_characters", "get_visible_characters");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "percent_visible", PROPERTY_HINT_RANGE, "0,1,0.001"), "set_percent_visible", "get_percent_visible");
 
 	ADD_SIGNAL(MethodInfo("meta_clicked", PropertyInfo(Variant::NIL, "meta")));
 
-	BIND_CONSTANT(ALIGN_LEFT);
-	BIND_CONSTANT(ALIGN_CENTER);
-	BIND_CONSTANT(ALIGN_RIGHT);
-	BIND_CONSTANT(ALIGN_FILL);
+	BIND_ENUM_CONSTANT(ALIGN_LEFT);
+	BIND_ENUM_CONSTANT(ALIGN_CENTER);
+	BIND_ENUM_CONSTANT(ALIGN_RIGHT);
+	BIND_ENUM_CONSTANT(ALIGN_FILL);
 
-	BIND_CONSTANT(LIST_NUMBERS);
-	BIND_CONSTANT(LIST_LETTERS);
-	BIND_CONSTANT(LIST_DOTS);
+	BIND_ENUM_CONSTANT(LIST_NUMBERS);
+	BIND_ENUM_CONSTANT(LIST_LETTERS);
+	BIND_ENUM_CONSTANT(LIST_DOTS);
 
-	BIND_CONSTANT(ITEM_FRAME);
-	BIND_CONSTANT(ITEM_TEXT);
-	BIND_CONSTANT(ITEM_IMAGE);
-	BIND_CONSTANT(ITEM_NEWLINE);
-	BIND_CONSTANT(ITEM_FONT);
-	BIND_CONSTANT(ITEM_COLOR);
-	BIND_CONSTANT(ITEM_UNDERLINE);
-	BIND_CONSTANT(ITEM_ALIGN);
-	BIND_CONSTANT(ITEM_INDENT);
-	BIND_CONSTANT(ITEM_LIST);
-	BIND_CONSTANT(ITEM_META);
+	BIND_ENUM_CONSTANT(ITEM_FRAME);
+	BIND_ENUM_CONSTANT(ITEM_TEXT);
+	BIND_ENUM_CONSTANT(ITEM_IMAGE);
+	BIND_ENUM_CONSTANT(ITEM_NEWLINE);
+	BIND_ENUM_CONSTANT(ITEM_FONT);
+	BIND_ENUM_CONSTANT(ITEM_COLOR);
+	BIND_ENUM_CONSTANT(ITEM_UNDERLINE);
+	BIND_ENUM_CONSTANT(ITEM_ALIGN);
+	BIND_ENUM_CONSTANT(ITEM_INDENT);
+	BIND_ENUM_CONSTANT(ITEM_LIST);
+	BIND_ENUM_CONSTANT(ITEM_META);
 }
 
 void RichTextLabel::set_visible_characters(int p_visible) {
@@ -1914,7 +1944,6 @@ void RichTextLabel::set_visible_characters(int p_visible) {
 }
 
 int RichTextLabel::get_visible_characters() const {
-
 	return visible_characters;
 }
 int RichTextLabel::get_total_character_count() const {
@@ -1964,11 +1993,11 @@ RichTextLabel::RichTextLabel() {
 	selection.enabled = false;
 
 	visible_characters = -1;
+	percent_visible = 1;
 
 	set_clip_contents(true);
 }
 
 RichTextLabel::~RichTextLabel() {
-
 	memdelete(main);
 }

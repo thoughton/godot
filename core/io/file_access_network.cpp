@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -28,10 +28,10 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "file_access_network.h"
-#include "global_config.h"
 #include "io/ip.h"
 #include "marshalls.h"
 #include "os/os.h"
+#include "project_settings.h"
 
 //#define DEBUG_PRINT(m_p) print_line(m_p)
 //#define DEBUG_TIME(m_what) printf("MS: %s - %lli\n",m_what,OS::get_singleton()->get_ticks_usec());
@@ -244,14 +244,14 @@ FileAccessNetworkClient::~FileAccessNetworkClient() {
 	memdelete(sem);
 }
 
-void FileAccessNetwork::_set_block(size_t p_offset, const Vector<uint8_t> &p_block) {
+void FileAccessNetwork::_set_block(int p_offset, const Vector<uint8_t> &p_block) {
 
 	int page = p_offset / page_size;
 	ERR_FAIL_INDEX(page, pages.size());
 	if (page < pages.size() - 1) {
 		ERR_FAIL_COND(p_block.size() != page_size);
 	} else {
-		ERR_FAIL_COND((p_block.size() != (total_size % page_size)));
+		ERR_FAIL_COND((p_block.size() != (int)(total_size % page_size)));
 	}
 
 	buffer_mutex->lock();

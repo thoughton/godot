@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -31,11 +31,11 @@
 
 #include "editor_node.h"
 #include "editor_settings.h"
-#include "global_config.h"
 #include "io/resource_loader.h"
 #include "os/dir_access.h"
 #include "os/file_access.h"
 #include "os/os.h"
+#include "project_settings.h"
 #include "scene/main/viewport.h"
 
 bool FileSystemDock::_create_tree(TreeItem *p_parent, EditorFileSystemDirectory *p_dir) {
@@ -102,7 +102,7 @@ void FileSystemDock::_notification(int p_what) {
 
 		case NOTIFICATION_RESIZED: {
 
-			bool new_mode = get_size().height < get_viewport_rect().size.height * 3 / 4;
+			bool new_mode = get_size().height < get_viewport_rect().size.height / 2;
 
 			if (new_mode != split_mode) {
 
@@ -153,7 +153,7 @@ void FileSystemDock::_notification(int p_what) {
 			files->connect("item_activated", this, "_select_file");
 			button_hist_next->connect("pressed", this, "_fw_history");
 			button_hist_prev->connect("pressed", this, "_bw_history");
-			search_icon->set_texture(get_icon("Zoom", "EditorIcons"));
+			search_box->add_icon_override("right_icon", get_icon("Search", "EditorIcons"));
 
 			button_hist_next->set_icon(get_icon("Forward", "EditorIcons"));
 			button_hist_prev->set_icon(get_icon("Back", "EditorIcons"));
@@ -199,11 +199,33 @@ void FileSystemDock::_notification(int p_what) {
 
 			int new_mode = int(EditorSettings::get_singleton()->get("docks/filesystem/display_mode"));
 
+			//_update_icons
+
+			button_reload->set_icon(get_icon("Reload", "EditorIcons"));
+			button_favorite->set_icon(get_icon("Favorites", "EditorIcons"));
+			button_back->set_icon(get_icon("Filesystem", "EditorIcons"));
+			if (display_mode == DISPLAY_THUMBNAILS) {
+				button_display_mode->set_icon(get_icon("FileList", "EditorIcons"));
+			} else {
+				button_display_mode->set_icon(get_icon("FileThumbnail", "EditorIcons"));
+			}
+
+			search_box->add_icon_override("right_icon", get_icon("Search", "EditorIcons"));
+
+			button_hist_next->set_icon(get_icon("Forward", "EditorIcons"));
+			button_hist_prev->set_icon(get_icon("Back", "EditorIcons"));
+
+			Theme::get_default()->clear_icon("ResizedFolder", "EditorIcons");
+			Theme::get_default()->clear_icon("ResizedFile", "EditorIcons");
+
 			if (new_mode != display_mode) {
 				set_display_mode(new_mode);
 			} else {
 				_update_files(true);
 			}
+
+			_update_tree();
+
 		} break;
 	}
 }
@@ -367,6 +389,7 @@ void FileSystemDock::_search(EditorFileSystemDirectory *p_path, List<FileInfo> *
 			fi.name = file;
 			fi.type = p_path->get_file_type(i);
 			fi.path = p_path->get_file_path(i);
+			fi.import_broken = !p_path->get_file_import_is_valid(i);
 			fi.import_status = 0;
 
 			matches->push_back(fi);
@@ -401,6 +424,7 @@ void FileSystemDock::_update_files(bool p_keep_selection) {
 	thumbnail_size *= EDSCALE;
 	Ref<Texture> folder_thumbnail;
 	Ref<Texture> file_thumbnail;
+	Ref<Texture> file_thumbnail_broken;
 
 	bool use_thumbnails = (display_mode == DISPLAY_THUMBNAILS);
 	bool use_folders = search_box->get_text().length() == 0 && split_mode;
@@ -434,8 +458,18 @@ void FileSystemDock::_update_files(bool p_keep_selection) {
 			Theme::get_default()->set_icon("ResizedFile", "EditorIcons", resized_file);
 		}
 
+		if (!has_icon("ResizedFileBroken", "EditorIcons")) {
+			Ref<ImageTexture> file = get_icon("FileBigBroken", "EditorIcons");
+			Ref<Image> img = file->get_data();
+			img->resize(thumbnail_size, thumbnail_size);
+			Ref<ImageTexture> resized_file = Ref<ImageTexture>(memnew(ImageTexture));
+			resized_file->create_from_image(img, 0);
+			Theme::get_default()->set_icon("ResizedFileBroken", "EditorIcons", resized_file);
+		}
+
 		file_thumbnail = get_icon("ResizedFile", "EditorIcons");
 
+		file_thumbnail_broken = get_icon("ResizedFileBroken", "EditorIcons");
 	} else {
 
 		files->set_icon_mode(ItemList::ICON_MODE_LEFT);
@@ -496,6 +530,7 @@ void FileSystemDock::_update_files(bool p_keep_selection) {
 			fi.name = efd->get_file(i);
 			fi.path = path.plus_file(fi.name);
 			fi.type = efd->get_file_type(i);
+			fi.import_broken = !efd->get_file_import_is_valid(i);
 			fi.import_status = 0;
 
 			filelist.push_back(fi);
@@ -511,41 +546,40 @@ void FileSystemDock::_update_files(bool p_keep_selection) {
 		StringName type = E->get().type;
 
 		Ref<Texture> type_icon;
+		Ref<Texture> big_icon = file_thumbnail;
 
 		String tooltip = fname;
 
-		if (E->get().import_status == 0) {
+		if (!E->get().import_broken) {
 
 			if (has_icon(type, ei)) {
 				type_icon = get_icon(type, ei);
 			} else {
 				type_icon = get_icon(oi, ei);
 			}
-		} else if (E->get().import_status == 1) {
-			type_icon = get_icon("DependencyOk", "EditorIcons");
-		} else if (E->get().import_status == 2) {
-			type_icon = get_icon("DependencyChanged", "EditorIcons");
-			tooltip + "\nStatus: Needs Re-Import";
-		} else if (E->get().import_status == 3) {
+		} else {
 			type_icon = get_icon("ImportFail", "EditorIcons");
-			tooltip + "\nStatus: Missing Dependencies";
+			big_icon = file_thumbnail_broken;
+			tooltip += TTR("\nStatus: Import of file failed. Please fix file and reimport manually.");
 		}
 
 		if (E->get().sources.size()) {
 			for (int i = 0; i < E->get().sources.size(); i++) {
-				tooltip += "\nSource: " + E->get().sources[i];
+				tooltip += TTR("\nSource: ") + E->get().sources[i];
 			}
 		}
 
 		if (use_thumbnails) {
-			files->add_item(fname, file_thumbnail, true);
+			files->add_item(fname, big_icon, true);
 			files->set_item_metadata(files->get_item_count() - 1, fp);
 			files->set_item_tag_icon(files->get_item_count() - 1, type_icon);
 			Array udata;
 			udata.resize(2);
 			udata[0] = files->get_item_count() - 1;
 			udata[1] = fname;
-			EditorResourcePreview::get_singleton()->queue_resource_preview(fp, this, "_thumbnail_done", udata);
+			if (!E->get().import_broken) {
+				EditorResourcePreview::get_singleton()->queue_resource_preview(fp, this, "_thumbnail_done", udata);
+			}
 		} else {
 			files->add_item(fname, type_icon, true);
 			files->set_item_metadata(files->get_item_count() - 1, fp);
@@ -589,7 +623,7 @@ void FileSystemDock::_go_to_dir(const String &p_dir) {
 
 void FileSystemDock::_preview_invalidated(const String &p_path) {
 
-	if (p_path.get_base_dir() == path && search_box->get_text() == String() && file_list_vb->is_visible_in_tree()) {
+	if (display_mode == DISPLAY_THUMBNAILS && p_path.get_base_dir() == path && search_box->get_text() == String() && file_list_vb->is_visible_in_tree()) {
 
 		for (int i = 0; i < files->get_item_count(); i++) {
 
@@ -729,7 +763,7 @@ void FileSystemDock::_rename_operation(const String &p_to_path) {
 		return;
 	}
 	if (FileAccess::exists(p_to_path)) {
-		EditorNode::get_singleton()->show_warning("Target file exists, can't overwrite. Delete first.");
+		EditorNode::get_singleton()->show_warning(TTR("Target file exists, can't overwrite. Delete first."));
 		return;
 	}
 
@@ -818,7 +852,7 @@ void FileSystemDock::_move_operation(const String &p_to_path) {
 		print_line("remapping: " + E->get());
 
 		if (err != OK) {
-			EditorNode::get_singleton()->add_io_error("Can't rename deps for:\n" + E->get() + "\n");
+			EditorNode::get_singleton()->add_io_error(TTR("Can't rename deps for:\n") + E->get() + "\n");
 		}
 	}
 
@@ -832,7 +866,7 @@ void FileSystemDock::_move_operation(const String &p_to_path) {
 		Error err = da->rename(move_files[i], to);
 		print_line("moving file " + move_files[i] + " to " + to);
 		if (err != OK) {
-			EditorNode::get_singleton()->add_io_error("Error moving file:\n" + move_files[i] + "\n");
+			EditorNode::get_singleton()->add_io_error(TTR("Error moving file:\n") + move_files[i] + "\n");
 		}
 	}
 
@@ -850,7 +884,7 @@ void FileSystemDock::_move_operation(const String &p_to_path) {
 		Error err = da->rename(mdir, to);
 		print_line("moving dir " + mdir + " to " + to);
 		if (err != OK) {
-			EditorNode::get_singleton()->add_io_error("Error moving dir:\n" + move_dirs[i] + "\n");
+			EditorNode::get_singleton()->add_io_error(TTR("Error moving dir:\n") + move_dirs[i] + "\n");
 		}
 	}
 
@@ -879,7 +913,7 @@ void FileSystemDock::_file_option(int p_option) {
 
 			String path = files->get_item_metadata(idx);
 			if (p_option == FILE_SHOW_IN_EXPLORER) {
-				String dir = GlobalConfig::get_singleton()->globalize_path(path);
+				String dir = ProjectSettings::get_singleton()->globalize_path(path);
 				dir = dir.substr(0, dir.find_last("/"));
 				OS::get_singleton()->shell_open(String("file://") + dir);
 				return;
@@ -1067,7 +1101,7 @@ void FileSystemDock::_folder_option(int p_option) {
 			break;
 		case FOLDER_SHOW_IN_EXPLORER:
 			String path = item->get_metadata(tree->get_selected_column());
-			String dir = GlobalConfig::get_singleton()->globalize_path(path);
+			String dir = ProjectSettings::get_singleton()->globalize_path(path);
 			OS::get_singleton()->shell_open(String("file://") + dir);
 			return;
 	}
@@ -1465,10 +1499,9 @@ void FileSystemDock::_files_list_rmb_select(int p_item, const Vector2 &p_pos) {
 			return;
 		}
 
-		EditorFileSystemDirectory *efsd = NULL;
 		int pos;
 
-		efsd = EditorFileSystem::get_singleton()->find_file(path, &pos);
+		EditorFileSystemDirectory *efsd = EditorFileSystem::get_singleton()->find_file(path, &pos);
 
 		if (efsd) {
 
@@ -1737,7 +1770,6 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	file_list_vb->set_v_size_flags(SIZE_EXPAND_FILL);
 
 	path_hb = memnew(HBoxContainer);
-	path_hb->add_child(memnew(Control));
 	file_list_vb->add_child(path_hb);
 
 	button_back = memnew(ToolButton);
@@ -1749,10 +1781,6 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	path_hb->add_child(search_box);
 	search_box->connect("text_changed", this, "_search_changed");
 
-	search_icon = memnew(TextureRect);
-	search_icon->set_stretch_mode(TextureRect::STRETCH_KEEP_CENTERED);
-	path_hb->add_child(search_icon);
-
 	button_display_mode = memnew(ToolButton);
 	path_hb->add_child(button_display_mode);
 	button_display_mode->set_toggle_mode(true);
@@ -1761,7 +1789,7 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 
 	scanning_vb = memnew(VBoxContainer);
 	Label *slabel = memnew(Label);
-	slabel->set_text("Scanning Files,\nPlease Wait..");
+	slabel->set_text(TTR("Scanning Files,\nPlease Wait.."));
 	slabel->set_align(Label::ALIGN_CENTER);
 	scanning_vb->add_child(slabel);
 	scanning_progress = memnew(ProgressBar);

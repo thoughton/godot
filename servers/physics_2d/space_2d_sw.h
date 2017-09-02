@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -36,8 +36,8 @@
 #include "body_pair_2d_sw.h"
 #include "broad_phase_2d_sw.h"
 #include "collision_object_2d_sw.h"
-#include "global_config.h"
 #include "hash_map.h"
+#include "project_settings.h"
 #include "typedefs.h"
 
 class Physics2DDirectSpaceStateSW : public Physics2DDirectSpaceState {
@@ -103,8 +103,8 @@ private:
 	CollisionObject2DSW *intersection_query_results[INTERSECTION_QUERY_MAX];
 	int intersection_query_subindex_results[INTERSECTION_QUERY_MAX];
 
-	real_t body_linear_velocity_sleep_treshold;
-	real_t body_angular_velocity_sleep_treshold;
+	real_t body_linear_velocity_sleep_threshold;
+	real_t body_angular_velocity_sleep_threshold;
 	real_t body_time_to_sleep;
 
 	bool locked;
@@ -152,8 +152,8 @@ public:
 	_FORCE_INLINE_ real_t get_contact_max_separation() const { return contact_max_separation; }
 	_FORCE_INLINE_ real_t get_contact_max_allowed_penetration() const { return contact_max_allowed_penetration; }
 	_FORCE_INLINE_ real_t get_constraint_bias() const { return constraint_bias; }
-	_FORCE_INLINE_ real_t get_body_linear_velocity_sleep_treshold() const { return body_linear_velocity_sleep_treshold; }
-	_FORCE_INLINE_ real_t get_body_angular_velocity_sleep_treshold() const { return body_angular_velocity_sleep_treshold; }
+	_FORCE_INLINE_ real_t get_body_linear_velocity_sleep_threshold() const { return body_linear_velocity_sleep_threshold; }
+	_FORCE_INLINE_ real_t get_body_angular_velocity_sleep_threshold() const { return body_angular_velocity_sleep_threshold; }
 	_FORCE_INLINE_ real_t get_body_time_to_sleep() const { return body_time_to_sleep; }
 
 	void update();

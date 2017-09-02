@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -116,7 +116,7 @@ real_t Area2D::get_priority() const {
 void Area2D::_body_enter_tree(ObjectID p_id) {
 
 	Object *obj = ObjectDB::get_instance(p_id);
-	Node *node = obj ? obj->cast_to<Node>() : NULL;
+	Node *node = Object::cast_to<Node>(obj);
 	ERR_FAIL_COND(!node);
 
 	Map<ObjectID, BodyState>::Element *E = body_map.find(p_id);
@@ -134,7 +134,7 @@ void Area2D::_body_enter_tree(ObjectID p_id) {
 void Area2D::_body_exit_tree(ObjectID p_id) {
 
 	Object *obj = ObjectDB::get_instance(p_id);
-	Node *node = obj ? obj->cast_to<Node>() : NULL;
+	Node *node = Object::cast_to<Node>(obj);
 	ERR_FAIL_COND(!node);
 	Map<ObjectID, BodyState>::Element *E = body_map.find(p_id);
 	ERR_FAIL_COND(!E);
@@ -153,7 +153,7 @@ void Area2D::_body_inout(int p_status, const RID &p_body, int p_instance, int p_
 	ObjectID objid = p_instance;
 
 	Object *obj = ObjectDB::get_instance(objid);
-	Node *node = obj ? obj->cast_to<Node>() : NULL;
+	Node *node = Object::cast_to<Node>(obj);
 
 	Map<ObjectID, BodyState>::Element *E = body_map.find(objid);
 
@@ -217,7 +217,7 @@ void Area2D::_body_inout(int p_status, const RID &p_body, int p_instance, int p_
 void Area2D::_area_enter_tree(ObjectID p_id) {
 
 	Object *obj = ObjectDB::get_instance(p_id);
-	Node *node = obj ? obj->cast_to<Node>() : NULL;
+	Node *node = Object::cast_to<Node>(obj);
 	ERR_FAIL_COND(!node);
 
 	Map<ObjectID, AreaState>::Element *E = area_map.find(p_id);
@@ -235,7 +235,7 @@ void Area2D::_area_enter_tree(ObjectID p_id) {
 void Area2D::_area_exit_tree(ObjectID p_id) {
 
 	Object *obj = ObjectDB::get_instance(p_id);
-	Node *node = obj ? obj->cast_to<Node>() : NULL;
+	Node *node = Object::cast_to<Node>(obj);
 	ERR_FAIL_COND(!node);
 	Map<ObjectID, AreaState>::Element *E = area_map.find(p_id);
 	ERR_FAIL_COND(!E);
@@ -254,7 +254,7 @@ void Area2D::_area_inout(int p_status, const RID &p_area, int p_instance, int p_
 	ObjectID objid = p_instance;
 
 	Object *obj = ObjectDB::get_instance(objid);
-	Node *node = obj ? obj->cast_to<Node>() : NULL;
+	Node *node = Object::cast_to<Node>(obj);
 
 	Map<ObjectID, AreaState>::Element *E = area_map.find(objid);
 
@@ -330,8 +330,11 @@ void Area2D::_clear_monitoring() {
 		for (Map<ObjectID, BodyState>::Element *E = bmcopy.front(); E; E = E->next()) {
 
 			Object *obj = ObjectDB::get_instance(E->key());
-			Node *node = obj ? obj->cast_to<Node>() : NULL;
-			ERR_CONTINUE(!node);
+			Node *node = Object::cast_to<Node>(obj);
+
+			if (!node) //node may have been deleted in previous frame or at other legiminate point
+				continue;
+			//ERR_CONTINUE(!node);
 
 			node->disconnect(SceneStringNames::get_singleton()->tree_entered, this, SceneStringNames::get_singleton()->_body_enter_tree);
 			node->disconnect(SceneStringNames::get_singleton()->tree_exited, this, SceneStringNames::get_singleton()->_body_exit_tree);
@@ -357,9 +360,9 @@ void Area2D::_clear_monitoring() {
 		for (Map<ObjectID, AreaState>::Element *E = bmcopy.front(); E; E = E->next()) {
 
 			Object *obj = ObjectDB::get_instance(E->key());
-			Node *node = obj ? obj->cast_to<Node>() : NULL;
+			Node *node = Object::cast_to<Node>(obj);
 
-			if (!node) //node may have been deleted in previous frame, this should not be an error
+			if (!node) //node may have been deleted in previous frame or at other legiminate point
 				continue;
 			//ERR_CONTINUE(!node);
 
@@ -477,7 +480,7 @@ Array Area2D::get_overlapping_areas() const {
 bool Area2D::overlaps_area(Node *p_area) const {
 
 	ERR_FAIL_NULL_V(p_area, false);
-	const Map<ObjectID, AreaState>::Element *E = area_map.find(p_area->get_instance_ID());
+	const Map<ObjectID, AreaState>::Element *E = area_map.find(p_area->get_instance_id());
 	if (!E)
 		return false;
 	return E->get().in_tree;
@@ -486,7 +489,7 @@ bool Area2D::overlaps_area(Node *p_area) const {
 bool Area2D::overlaps_body(Node *p_body) const {
 
 	ERR_FAIL_NULL_V(p_body, false);
-	const Map<ObjectID, BodyState>::Element *E = body_map.find(p_body->get_instance_ID());
+	const Map<ObjectID, BodyState>::Element *E = body_map.find(p_body->get_instance_id());
 	if (!E)
 		return false;
 	return E->get().in_tree;

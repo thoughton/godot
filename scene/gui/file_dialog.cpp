@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -464,7 +464,7 @@ void FileDialog::update_filters() {
 		String flt = filters[i].get_slice(";", 0).strip_edges();
 		String desc = filters[i].get_slice(";", 1).strip_edges();
 		if (desc.length())
-			filter->add_item(String(XL_MESSAGE(desc)) + " ( " + flt + " )");
+			filter->add_item(String(tr(desc)) + " ( " + flt + " )");
 		else
 			filter->add_item("( " + flt + " )");
 	}
@@ -701,7 +701,7 @@ void FileDialog::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_current_path", "path"), &FileDialog::set_current_path);
 	ClassDB::bind_method(D_METHOD("set_mode", "mode"), &FileDialog::set_mode);
 	ClassDB::bind_method(D_METHOD("get_mode"), &FileDialog::get_mode);
-	ClassDB::bind_method(D_METHOD("get_vbox:VBoxContainer"), &FileDialog::get_vbox);
+	ClassDB::bind_method(D_METHOD("get_vbox"), &FileDialog::get_vbox);
 	ClassDB::bind_method(D_METHOD("set_access", "access"), &FileDialog::set_access);
 	ClassDB::bind_method(D_METHOD("get_access"), &FileDialog::get_access);
 	ClassDB::bind_method(D_METHOD("set_show_hidden_files", "show"), &FileDialog::set_show_hidden_files);
@@ -718,16 +718,15 @@ void FileDialog::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("files_selected", PropertyInfo(Variant::POOL_STRING_ARRAY, "paths")));
 	ADD_SIGNAL(MethodInfo("dir_selected", PropertyInfo(Variant::STRING, "dir")));
 
-	BIND_CONSTANT(MODE_OPEN_FILE);
-	BIND_CONSTANT(MODE_OPEN_FILES);
-	BIND_CONSTANT(MODE_OPEN_DIR);
-	BIND_CONSTANT(MODE_OPEN_ANY);
+	BIND_ENUM_CONSTANT(MODE_OPEN_FILE);
+	BIND_ENUM_CONSTANT(MODE_OPEN_FILES);
+	BIND_ENUM_CONSTANT(MODE_OPEN_DIR);
+	BIND_ENUM_CONSTANT(MODE_OPEN_ANY);
+	BIND_ENUM_CONSTANT(MODE_SAVE_FILE);
 
-	BIND_CONSTANT(MODE_SAVE_FILE);
-
-	BIND_CONSTANT(ACCESS_RESOURCES);
-	BIND_CONSTANT(ACCESS_USERDATA);
-	BIND_CONSTANT(ACCESS_FILESYSTEM);
+	BIND_ENUM_CONSTANT(ACCESS_RESOURCES);
+	BIND_ENUM_CONSTANT(ACCESS_USERDATA);
+	BIND_ENUM_CONSTANT(ACCESS_FILESYSTEM);
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "mode", PROPERTY_HINT_ENUM, "Open one,Open many,Open folder,Open any,Save"), "set_mode", "get_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "access", PROPERTY_HINT_ENUM, "Resources,User data,File system"), "set_access", "get_access");
@@ -850,9 +849,9 @@ void LineEditFileChooser::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_browse"), &LineEditFileChooser::_browse);
 	ClassDB::bind_method(D_METHOD("_chosen"), &LineEditFileChooser::_chosen);
-	ClassDB::bind_method(D_METHOD("get_button:Button"), &LineEditFileChooser::get_button);
-	ClassDB::bind_method(D_METHOD("get_line_edit:LineEdit"), &LineEditFileChooser::get_line_edit);
-	ClassDB::bind_method(D_METHOD("get_file_dialog:FileDialog"), &LineEditFileChooser::get_file_dialog);
+	ClassDB::bind_method(D_METHOD("get_button"), &LineEditFileChooser::get_button);
+	ClassDB::bind_method(D_METHOD("get_line_edit"), &LineEditFileChooser::get_line_edit);
+	ClassDB::bind_method(D_METHOD("get_file_dialog"), &LineEditFileChooser::get_file_dialog);
 }
 
 void LineEditFileChooser::_chosen(const String &p_text) {

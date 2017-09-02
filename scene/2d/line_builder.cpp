@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -139,7 +139,7 @@ void LineBuilder::build() {
 
 	float current_distance0 = 0.f;
 	float current_distance1 = 0.f;
-	float total_distance;
+	float total_distance = 0.f;
 	_interpolate_color = gradient != NULL;
 	bool distance_required = _interpolate_color || texture_mode == LINE_TEXTURE_TILE;
 	if (distance_required)

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -28,6 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "audio_player.h"
+
+#include "engine.h"
 
 void AudioStreamPlayer::_mix_audio() {
 
@@ -100,8 +102,17 @@ void AudioStreamPlayer::_notification(int p_what) {
 	if (p_what == NOTIFICATION_ENTER_TREE) {
 
 		AudioServer::get_singleton()->add_callback(_mix_audios, this);
-		if (autoplay && !get_tree()->is_editor_hint()) {
+		if (autoplay && !Engine::get_singleton()->is_editor_hint()) {
 			play();
+		}
+	}
+
+	if (p_what == NOTIFICATION_INTERNAL_PROCESS) {
+
+		if (!active || (setseek < 0 && !stream_playback->is_playing())) {
+			active = false;
+			emit_signal("finished");
+			set_process_internal(false);
 		}
 	}
 
@@ -128,12 +139,12 @@ void AudioStreamPlayer::set_stream(Ref<AudioStream> p_stream) {
 	stream = p_stream;
 	stream_playback = p_stream->instance_playback();
 
+	AudioServer::get_singleton()->unlock();
+
 	if (stream_playback.is_null()) {
 		stream.unref();
 		ERR_FAIL_COND(stream_playback.is_null());
 	}
-
-	AudioServer::get_singleton()->unlock();
 }
 
 Ref<AudioStream> AudioStreamPlayer::get_stream() const {
@@ -156,6 +167,7 @@ void AudioStreamPlayer::play(float p_from_pos) {
 		mix_volume_db = volume_db; //reset volume ramp
 		setseek = p_from_pos;
 		active = true;
+		set_process_internal(true);
 	}
 }
 
@@ -170,6 +182,7 @@ void AudioStreamPlayer::stop() {
 
 	if (stream_playback.is_valid()) {
 		active = false;
+		set_process_internal(false);
 	}
 }
 
@@ -262,7 +275,7 @@ void AudioStreamPlayer::_bus_layout_changed() {
 
 void AudioStreamPlayer::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_stream", "stream:AudioStream"), &AudioStreamPlayer::set_stream);
+	ClassDB::bind_method(D_METHOD("set_stream", "stream"), &AudioStreamPlayer::set_stream);
 	ClassDB::bind_method(D_METHOD("get_stream"), &AudioStreamPlayer::get_stream);
 
 	ClassDB::bind_method(D_METHOD("set_volume_db", "volume_db"), &AudioStreamPlayer::set_volume_db);
@@ -295,6 +308,8 @@ void AudioStreamPlayer::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autoplay"), "set_autoplay", "is_autoplay_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "mix_target", PROPERTY_HINT_ENUM, "Stereo,Surround,Center"), "set_mix_target", "get_mix_target");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "bus", PROPERTY_HINT_ENUM, ""), "set_bus", "get_bus");
+
+	ADD_SIGNAL(MethodInfo("finished"));
 }
 
 AudioStreamPlayer::AudioStreamPlayer() {

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -148,6 +148,9 @@ protected:
 
 public:
 	static const char *get_token_name(Token p_token);
+
+	bool is_token_literal(int p_offset = 0, bool variable_safe = false) const;
+	StringName get_token_literal(int p_offset = 0) const;
 
 	virtual const Variant &get_token_constant(int p_offset = 0) const = 0;
 	virtual Token get_token(int p_offset = 0) const = 0;

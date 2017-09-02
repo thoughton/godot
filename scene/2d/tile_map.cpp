@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -50,12 +50,12 @@ void TileMap::_notification(int p_what) {
 			Node2D *c = this;
 			while (c) {
 
-				navigation = c->cast_to<Navigation2D>();
+				navigation = Object::cast_to<Navigation2D>(c);
 				if (navigation) {
 					break;
 				}
 
-				c = c->get_parent()->cast_to<Node2D>();
+				c = Object::cast_to<Node2D>(c->get_parent());
 			}
 
 			pending_update = true;
@@ -336,6 +336,7 @@ void TileMap::_update_dirty_quadrants() {
 				if (mat.is_valid())
 					vs->canvas_item_set_material(canvas_item, mat->get_rid());
 				vs->canvas_item_set_parent(canvas_item, get_canvas_item());
+				_update_item_material_state(canvas_item);
 				Transform2D xform;
 				xform.set_origin(q.pos);
 				vs->canvas_item_set_transform(canvas_item, xform);
@@ -370,15 +371,13 @@ void TileMap::_update_dirty_quadrants() {
 				s = tex->get_size();
 			else {
 				s = r.size;
-				r.position.x += fp_adjust;
-				r.position.y += fp_adjust;
-				r.size.x -= fp_adjust * 2.0;
-				r.size.y -= fp_adjust * 2.0;
 			}
 
 			Rect2 rect;
 			rect.position = offset.floor();
 			rect.size = s;
+			rect.size.x += fp_adjust;
+			rect.size.y += fp_adjust;
 
 			if (rect.size.y > rect.size.x) {
 				if ((c.flip_h && (c.flip_v || c.transpose)) || (c.flip_v && !c.transpose))
@@ -589,7 +588,7 @@ Map<TileMap::PosKey, TileMap::Quadrant>::Element *TileMap::_create_quadrant(cons
 	xform.set_origin(q.pos);
 	//q.canvas_item = VisualServer::get_singleton()->canvas_item_create();
 	q.body = Physics2DServer::get_singleton()->body_create(use_kinematic ? Physics2DServer::BODY_MODE_KINEMATIC : Physics2DServer::BODY_MODE_STATIC);
-	Physics2DServer::get_singleton()->body_attach_object_instance_ID(q.body, get_instance_ID());
+	Physics2DServer::get_singleton()->body_attach_object_instance_id(q.body, get_instance_id());
 	Physics2DServer::get_singleton()->body_set_collision_layer(q.body, collision_layer);
 	Physics2DServer::get_singleton()->body_set_collision_mask(q.body, collision_mask);
 	Physics2DServer::get_singleton()->body_set_param(q.body, Physics2DServer::BODY_PARAM_FRICTION, friction);
@@ -780,6 +779,35 @@ void TileMap::_clear_quadrants() {
 	while (quadrant_map.size()) {
 		_erase_quadrant(quadrant_map.front());
 	}
+}
+
+void TileMap::set_material(const Ref<Material> &p_material) {
+
+	CanvasItem::set_material(p_material);
+	_update_all_items_material_state();
+}
+
+void TileMap::set_use_parent_material(bool p_use_parent_material) {
+
+	CanvasItem::set_use_parent_material(p_use_parent_material);
+	_update_all_items_material_state();
+}
+
+void TileMap::_update_all_items_material_state() {
+
+	for (Map<PosKey, Quadrant>::Element *E = quadrant_map.front(); E; E = E->next()) {
+
+		Quadrant &q = E->get();
+		for (List<RID>::Element *E = q.canvas_items.front(); E; E = E->next()) {
+
+			_update_item_material_state(E->get());
+		}
+	}
+}
+
+void TileMap::_update_item_material_state(const RID &p_canvas_item) {
+
+	VS::get_singleton()->canvas_item_set_use_parent_material(p_canvas_item, get_use_parent_material() || get_material().is_valid());
 }
 
 void TileMap::clear() {
@@ -1068,20 +1096,20 @@ Transform2D TileMap::get_custom_transform() const {
 	return custom_transform;
 }
 
-Vector2 TileMap::_map_to_world(int x, int y, bool p_ignore_ofs) const {
+Vector2 TileMap::_map_to_world(int p_x, int p_y, bool p_ignore_ofs) const {
 
-	Vector2 ret = get_cell_transform().xform(Vector2(x, y));
+	Vector2 ret = get_cell_transform().xform(Vector2(p_x, p_y));
 	if (!p_ignore_ofs) {
 		switch (half_offset) {
 
 			case HALF_OFFSET_X: {
-				if (ABS(y) & 1) {
+				if (ABS(p_y) & 1) {
 
 					ret += get_cell_transform()[0] * 0.5;
 				}
 			} break;
 			case HALF_OFFSET_Y: {
-				if (ABS(x) & 1) {
+				if (ABS(p_x) & 1) {
 					ret += get_cell_transform()[1] * 0.5;
 				}
 			} break;
@@ -1144,6 +1172,20 @@ Array TileMap::get_used_cells() const {
 	return a;
 }
 
+Array TileMap::get_used_cells_by_id(int p_id) const {
+
+	Array a;
+	for (Map<PosKey, Cell>::Element *E = tile_map.front(); E; E = E->next()) {
+
+		if (E->value().id == p_id) {
+			Vector2 p(E->key().x, E->key().y);
+			a.push_back(p);
+		}
+	}
+
+	return a;
+}
+
 Rect2 TileMap::get_used_rect() { // Not const because of cache
 
 	if (used_size_cache_dirty) {
@@ -1194,8 +1236,8 @@ void TileMap::set_light_mask(int p_light_mask) {
 
 void TileMap::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_tileset", "tileset:TileSet"), &TileMap::set_tileset);
-	ClassDB::bind_method(D_METHOD("get_tileset:TileSet"), &TileMap::get_tileset);
+	ClassDB::bind_method(D_METHOD("set_tileset", "tileset"), &TileMap::set_tileset);
+	ClassDB::bind_method(D_METHOD("get_tileset"), &TileMap::get_tileset);
 
 	ClassDB::bind_method(D_METHOD("set_mode", "mode"), &TileMap::set_mode);
 	ClassDB::bind_method(D_METHOD("get_mode"), &TileMap::get_mode);
@@ -1262,6 +1304,7 @@ void TileMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("clear"), &TileMap::clear);
 
 	ClassDB::bind_method(D_METHOD("get_used_cells"), &TileMap::get_used_cells);
+	ClassDB::bind_method(D_METHOD("get_used_cells_by_id", "id"), &TileMap::get_used_cells_by_id);
 	ClassDB::bind_method(D_METHOD("get_used_rect"), &TileMap::get_used_rect);
 
 	ClassDB::bind_method(D_METHOD("map_to_world", "mappos", "ignore_half_ofs"), &TileMap::map_to_world, DEFVAL(false));
@@ -1300,15 +1343,18 @@ void TileMap::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("settings_changed"));
 
 	BIND_CONSTANT(INVALID_CELL);
-	BIND_CONSTANT(MODE_SQUARE);
-	BIND_CONSTANT(MODE_ISOMETRIC);
-	BIND_CONSTANT(MODE_CUSTOM);
-	BIND_CONSTANT(HALF_OFFSET_X);
-	BIND_CONSTANT(HALF_OFFSET_Y);
-	BIND_CONSTANT(HALF_OFFSET_DISABLED);
-	BIND_CONSTANT(TILE_ORIGIN_TOP_LEFT);
-	BIND_CONSTANT(TILE_ORIGIN_CENTER);
-	BIND_CONSTANT(TILE_ORIGIN_BOTTOM_LEFT);
+
+	BIND_ENUM_CONSTANT(MODE_SQUARE);
+	BIND_ENUM_CONSTANT(MODE_ISOMETRIC);
+	BIND_ENUM_CONSTANT(MODE_CUSTOM);
+
+	BIND_ENUM_CONSTANT(HALF_OFFSET_X);
+	BIND_ENUM_CONSTANT(HALF_OFFSET_Y);
+	BIND_ENUM_CONSTANT(HALF_OFFSET_DISABLED);
+
+	BIND_ENUM_CONSTANT(TILE_ORIGIN_TOP_LEFT);
+	BIND_ENUM_CONSTANT(TILE_ORIGIN_CENTER);
+	BIND_ENUM_CONSTANT(TILE_ORIGIN_BOTTOM_LEFT);
 }
 
 TileMap::TileMap() {

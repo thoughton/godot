@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -47,11 +47,24 @@ class Material : public Resource {
 	OBJ_SAVE_TYPE(Material)
 
 	RID material;
+	Ref<Material> next_pass;
+	int render_priority;
 
 protected:
 	_FORCE_INLINE_ RID _get_material() const { return material; }
+	static void _bind_methods();
 
 public:
+	enum {
+		RENDER_PRIORITY_MAX = VS::MATERIAL_RENDER_PRIORITY_MAX,
+		RENDER_PRIORITY_MIN = VS::MATERIAL_RENDER_PRIORITY_MIN,
+	};
+	void set_next_pass(const Ref<Material> &p_pass);
+	Ref<Material> get_next_pass() const;
+
+	void set_render_priority(int p_priority);
+	int get_render_priority() const;
+
 	virtual RID get_rid() const;
 	Material();
 	virtual ~Material();
@@ -150,11 +163,17 @@ public:
 
 	enum Flags {
 		FLAG_UNSHADED,
-		FLAG_ONTOP,
+		FLAG_USE_VERTEX_LIGHTING,
+		FLAG_DISABLE_DEPTH_TEST,
 		FLAG_ALBEDO_FROM_VERTEX_COLOR,
 		FLAG_SRGB_VERTEX_COLOR,
 		FLAG_USE_POINT_SIZE,
 		FLAG_FIXED_SIZE,
+		FLAG_UV1_USE_TRIPLANAR,
+		FLAG_UV2_USE_TRIPLANAR,
+		FLAG_TRIPLANAR_USE_WORLD,
+		FLAG_AO_ON_UV2,
+		FLAG_USE_ALPHA_SCISSOR,
 		FLAG_MAX
 	};
 
@@ -163,6 +182,15 @@ public:
 		DIFFUSE_HALF_LAMBERT,
 		DIFFUSE_OREN_NAYAR,
 		DIFFUSE_BURLEY,
+		DIFFUSE_TOON,
+	};
+
+	enum SpecularMode {
+		SPECULAR_SCHLICK_GGX,
+		SPECULAR_BLINN,
+		SPECULAR_PHONG,
+		SPECULAR_TOON,
+		SPECULAR_DISABLED,
 	};
 
 	enum BillboardMode {
@@ -172,24 +200,34 @@ public:
 		BILLBOARD_PARTICLES,
 	};
 
+	enum TextureChannel {
+		TEXTURE_CHANNEL_RED,
+		TEXTURE_CHANNEL_GREEN,
+		TEXTURE_CHANNEL_BLUE,
+		TEXTURE_CHANNEL_ALPHA,
+		TEXTURE_CHANNEL_GRAYSCALE
+	};
+
 private:
 	union MaterialKey {
 
 		struct {
-			uint32_t feature_mask : 11;
-			uint32_t detail_uv : 1;
-			uint32_t blend_mode : 2;
-			uint32_t depth_draw_mode : 2;
-			uint32_t cull_mode : 2;
-			uint32_t flags : 6;
-			uint32_t detail_blend_mode : 2;
-			uint32_t diffuse_mode : 2;
-			uint32_t invalid_key : 1;
-			uint32_t deep_parallax : 1;
-			uint32_t billboard_mode : 2;
+			uint64_t feature_mask : 11;
+			uint64_t detail_uv : 1;
+			uint64_t blend_mode : 2;
+			uint64_t depth_draw_mode : 2;
+			uint64_t cull_mode : 2;
+			uint64_t flags : 12;
+			uint64_t detail_blend_mode : 2;
+			uint64_t diffuse_mode : 3;
+			uint64_t specular_mode : 2;
+			uint64_t invalid_key : 1;
+			uint64_t deep_parallax : 1;
+			uint64_t billboard_mode : 2;
+			uint64_t grow : 1;
 		};
 
-		uint32_t key;
+		uint64_t key;
 
 		bool operator<(const MaterialKey &p_key) const {
 			return key < p_key.key;
@@ -225,9 +263,10 @@ private:
 		}
 		mk.detail_blend_mode = detail_blend_mode;
 		mk.diffuse_mode = diffuse_mode;
+		mk.specular_mode = specular_mode;
 		mk.billboard_mode = billboard_mode;
 		mk.deep_parallax = deep_parallax ? 1 : 0;
-		;
+		mk.grow = grow_enabled;
 
 		return mk;
 	}
@@ -253,11 +292,23 @@ private:
 		StringName uv1_offset;
 		StringName uv2_scale;
 		StringName uv2_offset;
-		StringName particle_h_frames;
-		StringName particle_v_frames;
+		StringName particles_anim_h_frames;
+		StringName particles_anim_v_frames;
 		StringName particles_anim_loop;
 		StringName depth_min_layers;
 		StringName depth_max_layers;
+		StringName uv1_blend_sharpness;
+		StringName uv2_blend_sharpness;
+		StringName grow;
+
+		StringName metallic_texture_channel;
+		StringName roughness_texture_channel;
+		StringName ao_texture_channel;
+		StringName clearcoat_texture_channel;
+		StringName rim_texture_channel;
+		StringName depth_texture_channel;
+		StringName refraction_texture_channel;
+		StringName alpha_scissor_threshold;
 
 		StringName texture_names[TEXTURE_MAX];
 	};
@@ -289,15 +340,20 @@ private:
 	float refraction;
 	float line_width;
 	float point_size;
+	float alpha_scissor_threshold;
+	bool grow_enabled;
+	float grow;
 	int particles_anim_h_frames;
 	int particles_anim_v_frames;
 	bool particles_anim_loop;
 
-	Vector2 uv1_scale;
-	Vector2 uv1_offset;
+	Vector3 uv1_scale;
+	Vector3 uv1_offset;
+	float uv1_triplanar_sharpness;
 
-	Vector2 uv2_scale;
-	Vector2 uv2_offset;
+	Vector3 uv2_scale;
+	Vector3 uv2_offset;
+	float uv2_triplanar_sharpness;
 
 	DetailUV detail_uv;
 
@@ -310,14 +366,26 @@ private:
 	DepthDrawMode depth_draw_mode;
 	CullMode cull_mode;
 	bool flags[FLAG_MAX];
+	SpecularMode specular_mode;
 	DiffuseMode diffuse_mode;
 	BillboardMode billboard_mode;
+
+	TextureChannel metallic_texture_channel;
+	TextureChannel roughness_texture_channel;
+	TextureChannel ao_texture_channel;
+	TextureChannel refraction_texture_channel;
 
 	bool features[FEATURE_MAX];
 
 	Ref<Texture> textures[TEXTURE_MAX];
 
 	_FORCE_INLINE_ void _validate_feature(const String &text, Feature feature, PropertyInfo &property) const;
+
+	enum {
+		MAX_MATERIALS_FOR_2D = 32
+	};
+
+	static Ref<SpatialMaterial> materials_for_2d[MAX_MATERIALS_FOR_2D]; //used by Sprite3D and other stuff
 
 protected:
 	static void _bind_methods();
@@ -372,7 +440,7 @@ public:
 	void set_depth_deep_parallax_max_layers(int p_layer);
 	int get_depth_deep_parallax_max_layers() const;
 
-	void set_subsurface_scattering_strength(float p_strength);
+	void set_subsurface_scattering_strength(float p_subsurface_scattering_strength);
 	float get_subsurface_scattering_strength() const;
 
 	void set_refraction(float p_refraction);
@@ -402,6 +470,9 @@ public:
 	void set_diffuse_mode(DiffuseMode p_mode);
 	DiffuseMode get_diffuse_mode() const;
 
+	void set_specular_mode(SpecularMode p_mode);
+	SpecularMode get_specular_mode() const;
+
 	void set_flag(Flags p_flag, bool p_enabled);
 	bool get_flag(Flags p_flag) const;
 
@@ -411,17 +482,23 @@ public:
 	void set_feature(Feature p_feature, bool p_enabled);
 	bool get_feature(Feature p_feature) const;
 
-	void set_uv1_scale(const Vector2 &p_scale);
-	Vector2 get_uv1_scale() const;
+	void set_uv1_scale(const Vector3 &p_scale);
+	Vector3 get_uv1_scale() const;
 
-	void set_uv1_offset(const Vector2 &p_offset);
-	Vector2 get_uv1_offset() const;
+	void set_uv1_offset(const Vector3 &p_offset);
+	Vector3 get_uv1_offset() const;
 
-	void set_uv2_scale(const Vector2 &p_scale);
-	Vector2 get_uv2_scale() const;
+	void set_uv1_triplanar_blend_sharpness(float p_sharpness);
+	float get_uv1_triplanar_blend_sharpness() const;
 
-	void set_uv2_offset(const Vector2 &p_offset);
-	Vector2 get_uv2_offset() const;
+	void set_uv2_scale(const Vector3 &p_scale);
+	Vector3 get_uv2_scale() const;
+
+	void set_uv2_offset(const Vector3 &p_offset);
+	Vector3 get_uv2_offset() const;
+
+	void set_uv2_triplanar_blend_sharpness(float p_sharpness);
+	float get_uv2_triplanar_blend_sharpness() const;
 
 	void set_billboard_mode(BillboardMode p_mode);
 	BillboardMode get_billboard_mode() const;
@@ -434,9 +511,31 @@ public:
 	void set_particles_anim_loop(int p_frames);
 	int get_particles_anim_loop() const;
 
+	void set_grow_enabled(bool p_enable);
+	bool is_grow_enabled() const;
+
+	void set_grow(float p_grow);
+	float get_grow() const;
+
+	void set_alpha_scissor_threshold(float p_treshold);
+	float get_alpha_scissor_threshold() const;
+
+	void set_on_top_of_alpha();
+
+	void set_metallic_texture_channel(TextureChannel p_channel);
+	TextureChannel get_metallic_texture_channel() const;
+	void set_roughness_texture_channel(TextureChannel p_channel);
+	TextureChannel get_roughness_texture_channel() const;
+	void set_ao_texture_channel(TextureChannel p_channel);
+	TextureChannel get_ao_texture_channel() const;
+	void set_refraction_texture_channel(TextureChannel p_channel);
+	TextureChannel get_refraction_texture_channel() const;
+
 	static void init_shaders();
 	static void finish_shaders();
 	static void flush_changes();
+
+	static RID get_material_rid_for_2d(bool p_shaded, bool p_transparent, bool p_double_sided, bool p_cut_alpha, bool p_opaque_prepass);
 
 	SpatialMaterial();
 	virtual ~SpatialMaterial();
@@ -450,7 +549,9 @@ VARIANT_ENUM_CAST(SpatialMaterial::DepthDrawMode)
 VARIANT_ENUM_CAST(SpatialMaterial::CullMode)
 VARIANT_ENUM_CAST(SpatialMaterial::Flags)
 VARIANT_ENUM_CAST(SpatialMaterial::DiffuseMode)
+VARIANT_ENUM_CAST(SpatialMaterial::SpecularMode)
 VARIANT_ENUM_CAST(SpatialMaterial::BillboardMode)
+VARIANT_ENUM_CAST(SpatialMaterial::TextureChannel)
 
 //////////////////////
 

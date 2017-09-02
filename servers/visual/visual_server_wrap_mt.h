@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
@@ -128,7 +128,9 @@ public:
 	FUNC3(material_set_param, RID, const StringName &, const Variant &)
 	FUNC2RC(Variant, material_get_param, RID, const StringName &)
 
+	FUNC2(material_set_render_priority, RID, int)
 	FUNC2(material_set_line_width, RID, float)
+	FUNC2(material_set_next_pass, RID, RID)
 
 	/* MESH API */
 
@@ -224,6 +226,7 @@ public:
 	FUNC2(light_set_projector, RID, RID)
 	FUNC2(light_set_negative, RID, bool)
 	FUNC2(light_set_cull_mask, RID, uint32_t)
+	FUNC2(light_set_reverse_cull_face_mode, RID, bool)
 
 	FUNC2(light_omni_set_shadow_mode, RID, LightOmniShadowMode)
 	FUNC2(light_omni_set_shadow_detail, RID, LightOmniShadowDetail)
@@ -248,23 +251,6 @@ public:
 	FUNC2(reflection_probe_set_enable_shadows, RID, bool)
 	FUNC2(reflection_probe_set_cull_mask, RID, uint32_t)
 
-	/* ROOM API */
-
-	FUNC0R(RID, room_create)
-	FUNC4(room_add_bounds, RID, const PoolVector<Vector2> &, float, const Transform &)
-	FUNC1(room_clear_bounds, RID)
-
-	/* PORTAL API */
-
-	// portals are only (x/y) points, forming a convex shape, which its clockwise
-	// order points outside. (z is 0);
-
-	FUNC0R(RID, portal_create)
-	FUNC2(portal_set_shape, RID, const Vector<Point2> &)
-	FUNC2(portal_set_enabled, RID, bool)
-	FUNC2(portal_set_disable_distance, RID, float)
-	FUNC2(portal_set_disabled_color, RID, const Color &)
-
 	/* BAKED LIGHT API */
 
 	FUNC0R(RID, gi_probe_create)
@@ -286,6 +272,9 @@ public:
 
 	FUNC2(gi_probe_set_bias, RID, float)
 	FUNC1RC(float, gi_probe_get_bias, RID)
+
+	FUNC2(gi_probe_set_normal_bias, RID, float)
+	FUNC1RC(float, gi_probe_get_normal_bias, RID)
 
 	FUNC2(gi_probe_set_propagation, RID, float)
 	FUNC1RC(float, gi_probe_get_propagation, RID)
@@ -339,6 +328,8 @@ public:
 	/* VIEWPORT TARGET API */
 
 	FUNC0R(RID, viewport_create)
+
+	FUNC2(viewport_set_use_arvr, RID, bool)
 
 	FUNC3(viewport_set_size, RID, int, int)
 
@@ -424,14 +415,13 @@ public:
 	FUNC2(instance_set_scenario, RID, RID) // from can be mesh, light, poly, area and portal so far.
 	FUNC2(instance_set_layer_mask, RID, uint32_t)
 	FUNC2(instance_set_transform, RID, const Transform &)
-	FUNC2(instance_attach_object_instance_ID, RID, ObjectID)
+	FUNC2(instance_attach_object_instance_id, RID, ObjectID)
 	FUNC3(instance_set_blend_shape_weight, RID, int, float)
 	FUNC3(instance_set_surface_material, RID, int, RID)
 	FUNC2(instance_set_visible, RID, bool)
 
 	FUNC2(instance_attach_skeleton, RID, RID)
 	FUNC2(instance_set_exterior, RID, bool)
-	FUNC2(instance_set_room, RID, RID)
 
 	FUNC2(instance_set_extra_visibility_margin, RID, real_t)
 
@@ -476,7 +466,7 @@ public:
 	FUNC8(canvas_item_add_texture_rect_region, RID, const Rect2 &, RID, const Rect2 &, const Color &, bool, RID, bool)
 	FUNC11(canvas_item_add_nine_patch, RID, const Rect2 &, const Rect2 &, RID, const Vector2 &, const Vector2 &, NinePatchAxisMode, NinePatchAxisMode, bool, const Color &, RID)
 	FUNC7(canvas_item_add_primitive, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, float, RID)
-	FUNC6(canvas_item_add_polygon, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, RID)
+	FUNC7(canvas_item_add_polygon, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, RID, bool)
 	FUNC8(canvas_item_add_triangle_array, RID, const Vector<int> &, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, int, RID)
 	FUNC3(canvas_item_add_mesh, RID, const RID &, RID)
 	FUNC3(canvas_item_add_multimesh, RID, RID, RID)
@@ -531,12 +521,6 @@ public:
 	FUNC2(canvas_occluder_polygon_set_shape_as_lines, RID, const PoolVector<Vector2> &)
 
 	FUNC2(canvas_occluder_polygon_set_cull_mode, RID, CanvasOccluderPolygonCullMode)
-
-	/* CURSOR */
-	FUNC2(cursor_set_rotation, float, int) // radians
-	FUNC4(cursor_set_texture, RID, const Point2 &, int, const Rect2 &)
-	FUNC2(cursor_set_visible, bool, int)
-	FUNC2(cursor_set_pos, const Point2 &, int)
 
 	/* BLACK BARS */
 

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -28,8 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "item_list.h"
-#include "global_config.h"
 #include "os/os.h"
+#include "project_settings.h"
 
 void ItemList::add_item(const String &p_item, const Ref<Texture> &p_texture, bool p_selectable) {
 
@@ -339,7 +339,7 @@ void ItemList::set_same_column_width(bool p_enable) {
 	update();
 	shape_changed = true;
 }
-int ItemList::is_same_column_width() const {
+bool ItemList::is_same_column_width() const {
 
 	return same_column_width;
 }
@@ -431,7 +431,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 	if (mb.is_valid() && (mb->get_button_index() == BUTTON_LEFT || (allow_rmb_select && mb->get_button_index() == BUTTON_RIGHT)) && mb->is_pressed()) {
 
 		search_string = ""; //any mousepress cancels
-		Vector2 pos(mb->get_position().x, mb->get_position().y);
+		Vector2 pos = mb->get_position();
 		Ref<StyleBox> bg = get_stylebox("bg");
 		pos -= bg->get_offset();
 		pos.y += scroll_bar->get_value();
@@ -475,7 +475,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 
 				if (mb->get_button_index() == BUTTON_RIGHT) {
 
-					emit_signal("item_rmb_selected", i, Vector2(mb->get_position().x, mb->get_position().y));
+					emit_signal("item_rmb_selected", i, pos);
 				}
 			} else {
 
@@ -486,7 +486,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 
 				if (items[i].selected && mb->get_button_index() == BUTTON_RIGHT) {
 
-					emit_signal("item_rmb_selected", i, Vector2(mb->get_position().x, mb->get_position().y));
+					emit_signal("item_rmb_selected", i, pos);
 				} else {
 					bool selected = !items[i].selected;
 
@@ -501,7 +501,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 
 					if (mb->get_button_index() == BUTTON_RIGHT) {
 
-						emit_signal("item_rmb_selected", i, Vector2(mb->get_position().x, mb->get_position().y));
+						emit_signal("item_rmb_selected", i, pos);
 					} else if (/*select_mode==SELECT_SINGLE &&*/ mb->is_doubleclick()) {
 
 						emit_signal("item_activated", i);
@@ -534,7 +534,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 				uint64_t now = OS::get_singleton()->get_ticks_msec();
 				uint64_t diff = now - search_time_msec;
 
-				if (diff < int(GlobalConfig::get_singleton()->get("gui/timers/incremental_search_max_interval_msec")) * 2) {
+				if (diff < uint64_t(ProjectSettings::get_singleton()->get("gui/timers/incremental_search_max_interval_msec")) * 2) {
 
 					for (int i = current - 1; i >= 0; i--) {
 
@@ -569,7 +569,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 				uint64_t now = OS::get_singleton()->get_ticks_msec();
 				uint64_t diff = now - search_time_msec;
 
-				if (diff < int(GlobalConfig::get_singleton()->get("gui/timers/incremental_search_max_interval_msec")) * 2) {
+				if (diff < uint64_t(ProjectSettings::get_singleton()->get("gui/timers/incremental_search_max_interval_msec")) * 2) {
 
 					for (int i = current + 1; i < items.size(); i++) {
 
@@ -736,19 +736,17 @@ void ItemList::_notification(int p_what) {
 		Ref<StyleBox> bg = get_stylebox("bg");
 
 		int mw = scroll_bar->get_minimum_size().x;
-		scroll_bar->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, mw + bg->get_margin(MARGIN_RIGHT));
-		scroll_bar->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, bg->get_margin(MARGIN_RIGHT));
+		scroll_bar->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, -mw + bg->get_margin(MARGIN_RIGHT));
+		scroll_bar->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, -bg->get_margin(MARGIN_RIGHT));
 		scroll_bar->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, bg->get_margin(MARGIN_TOP));
-		scroll_bar->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, bg->get_margin(MARGIN_BOTTOM));
+		scroll_bar->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, -bg->get_margin(MARGIN_BOTTOM));
 
 		Size2 size = get_size();
 
-		float page = size.height - bg->get_minimum_size().height;
 		int width = size.width - bg->get_minimum_size().width;
 		if (scroll_bar->is_visible()) {
 			width -= mw + bg->get_margin(MARGIN_RIGHT);
 		}
-		scroll_bar->set_page(page);
 
 		draw_style_box(bg, Rect2(Point2(), size));
 
@@ -883,8 +881,12 @@ void ItemList::_notification(int p_what) {
 				}
 
 				if (all_fit) {
+					float page = size.height - bg->get_minimum_size().height;
 					float max = MAX(page, ofs.y + max_h);
+					if (auto_height)
+						auto_height_value = ofs.y + max_h + bg->get_minimum_size().height;
 					scroll_bar->set_max(max);
+					scroll_bar->set_page(page);
 					//print_line("max: "+rtos(max)+" page "+rtos(page));
 					if (max <= page) {
 						scroll_bar->set_value(0);
@@ -1223,16 +1225,66 @@ Vector<int> ItemList::get_selected_items() {
 	return selected;
 }
 
+void ItemList::_set_items(const Array &p_items) {
+
+	ERR_FAIL_COND(p_items.size() % 3);
+	clear();
+
+	for (int i = 0; i < p_items.size(); i += 3) {
+
+		String text = p_items[i + 0];
+		Ref<Texture> icon = p_items[i + 1];
+		bool disabled = p_items[i + 2];
+
+		int idx = get_item_count();
+		add_item(text, icon);
+		set_item_disabled(idx, disabled);
+	}
+}
+
+Array ItemList::_get_items() const {
+
+	Array items;
+	for (int i = 0; i < get_item_count(); i++) {
+
+		items.push_back(get_item_text(i));
+		items.push_back(get_item_icon(i));
+		items.push_back(is_item_disabled(i));
+	}
+
+	return items;
+}
+
+Size2 ItemList::get_minimum_size() const {
+
+	if (auto_height) {
+		return Size2(0, auto_height_value);
+	}
+	return Size2();
+}
+
+void ItemList::set_auto_height(bool p_enable) {
+
+	auto_height = p_enable;
+	shape_changed = true;
+	update();
+}
+
+bool ItemList::has_auto_height() const {
+
+	return auto_height;
+}
+
 void ItemList::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("add_item", "text", "icon:Texture", "selectable"), &ItemList::add_item, DEFVAL(Variant()), DEFVAL(true));
-	ClassDB::bind_method(D_METHOD("add_icon_item", "icon:Texture", "selectable"), &ItemList::add_icon_item, DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("add_item", "text", "icon", "selectable"), &ItemList::add_item, DEFVAL(Variant()), DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("add_icon_item", "icon", "selectable"), &ItemList::add_icon_item, DEFVAL(true));
 
 	ClassDB::bind_method(D_METHOD("set_item_text", "idx", "text"), &ItemList::set_item_text);
 	ClassDB::bind_method(D_METHOD("get_item_text", "idx"), &ItemList::get_item_text);
 
-	ClassDB::bind_method(D_METHOD("set_item_icon", "idx", "icon:Texture"), &ItemList::set_item_icon);
-	ClassDB::bind_method(D_METHOD("get_item_icon:Texture", "idx"), &ItemList::get_item_icon);
+	ClassDB::bind_method(D_METHOD("set_item_icon", "idx", "icon"), &ItemList::set_item_icon);
+	ClassDB::bind_method(D_METHOD("get_item_icon", "idx"), &ItemList::get_item_icon);
 
 	ClassDB::bind_method(D_METHOD("set_item_icon_region", "idx", "rect"), &ItemList::set_item_icon_region);
 	ClassDB::bind_method(D_METHOD("get_item_icon_region", "idx"), &ItemList::get_item_icon_region);
@@ -1293,6 +1345,9 @@ void ItemList::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_allow_rmb_select", "allow"), &ItemList::set_allow_rmb_select);
 	ClassDB::bind_method(D_METHOD("get_allow_rmb_select"), &ItemList::get_allow_rmb_select);
 
+	ClassDB::bind_method(D_METHOD("set_auto_height", "enable"), &ItemList::set_auto_height);
+	ClassDB::bind_method(D_METHOD("has_auto_height"), &ItemList::has_auto_height);
+
 	ClassDB::bind_method(D_METHOD("get_item_at_pos", "pos", "exact"), &ItemList::get_item_at_pos, DEFVAL(false));
 
 	ClassDB::bind_method(D_METHOD("ensure_current_is_visible"), &ItemList::ensure_current_is_visible);
@@ -1302,10 +1357,28 @@ void ItemList::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_scroll_changed"), &ItemList::_scroll_changed);
 	ClassDB::bind_method(D_METHOD("_gui_input"), &ItemList::_gui_input);
 
-	BIND_CONSTANT(ICON_MODE_TOP);
-	BIND_CONSTANT(ICON_MODE_LEFT);
-	BIND_CONSTANT(SELECT_SINGLE);
-	BIND_CONSTANT(SELECT_MULTI);
+	ClassDB::bind_method(D_METHOD("_set_items"), &ItemList::_set_items);
+	ClassDB::bind_method(D_METHOD("_get_items"), &ItemList::_get_items);
+
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "items", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "_set_items", "_get_items");
+
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "select_mode", PROPERTY_HINT_ENUM, "Single,Multi"), "set_select_mode", "get_select_mode");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "allow_rmb_select"), "set_allow_rmb_select", "get_allow_rmb_select");
+	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "max_text_lines"), "set_max_text_lines", "get_max_text_lines");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "auto_height"), "set_auto_height", "has_auto_height");
+	ADD_GROUP("Columns", "");
+	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "max_columns"), "set_max_columns", "get_max_columns");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "same_column_width"), "set_same_column_width", "is_same_column_width");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::INT, "fixed_column_width"), "set_fixed_column_width", "get_fixed_column_width");
+	ADD_GROUP("Icon", "");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "icon_mode", PROPERTY_HINT_ENUM, "Top,Left"), "set_icon_mode", "get_icon_mode");
+	ADD_PROPERTYNO(PropertyInfo(Variant::REAL, "icon_scale"), "set_icon_scale", "get_icon_scale");
+
+	BIND_ENUM_CONSTANT(ICON_MODE_TOP);
+	BIND_ENUM_CONSTANT(ICON_MODE_LEFT);
+
+	BIND_ENUM_CONSTANT(SELECT_SINGLE);
+	BIND_ENUM_CONSTANT(SELECT_MULTI);
 
 	ADD_SIGNAL(MethodInfo("item_selected", PropertyInfo(Variant::INT, "index")));
 	ADD_SIGNAL(MethodInfo("item_rmb_selected", PropertyInfo(Variant::INT, "index"), PropertyInfo(Variant::VECTOR2, "atpos")));
@@ -1326,6 +1399,8 @@ ItemList::ItemList() {
 	same_column_width = false;
 	max_text_lines = 1;
 	max_columns = 1;
+	auto_height = false;
+	auto_height_value = 0.0f;
 
 	scroll_bar = memnew(VScrollBar);
 	add_child(scroll_bar);

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -271,7 +271,7 @@ public:
 	void set_speed_scale(float p_speed);
 	float get_speed_scale() const;
 
-	void set_autoplay(const String &pname);
+	void set_autoplay(const String &p_name);
 	String get_autoplay() const;
 
 	void set_animation_process_mode(AnimationProcessMode p_mode);

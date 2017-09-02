@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -31,7 +31,7 @@
 
 #include "collada.h"
 
-#include "stdio.h"
+#include <stdio.h>
 
 //#define DEBUG_DEFAULT_ANIMATION
 //#define DEBUG_COLLADA
@@ -306,7 +306,7 @@ void Collada::_parse_image(XMLParser &parser) {
 		String path = parser.get_attribute_value("source").strip_edges();
 		if (path.find("://") == -1 && path.is_rel_path()) {
 			// path is relative to file being loaded, so convert to a resource path
-			image.path = GlobalConfig::get_singleton()->localize_path(state.local_path.get_base_dir() + "/" + path.percent_decode());
+			image.path = ProjectSettings::get_singleton()->localize_path(state.local_path.get_base_dir() + "/" + path.percent_decode());
 		}
 	} else {
 
@@ -323,11 +323,11 @@ void Collada::_parse_image(XMLParser &parser) {
 
 					if (path.find("://") == -1 && path.is_rel_path()) {
 						// path is relative to file being loaded, so convert to a resource path
-						path = GlobalConfig::get_singleton()->localize_path(state.local_path.get_base_dir() + "/" + path);
+						path = ProjectSettings::get_singleton()->localize_path(state.local_path.get_base_dir() + "/" + path);
 
 					} else if (path.find("file:///") == 0) {
 						path = path.replace_first("file:///", "");
-						path = GlobalConfig::get_singleton()->localize_path(path);
+						path = ProjectSettings::get_singleton()->localize_path(path);
 					}
 
 					image.path = path;
@@ -671,15 +671,7 @@ void Collada::_parse_effect_material(XMLParser &parser, Effect &effect, String &
 							}
 
 						} else if (what == "shininess") {
-#if 1
 							effect.shininess = _parse_param(parser);
-#else
-
-							parser.read();
-							float shininess = parser.get_node_data().to_double();
-							effect.shininess = shininess;
-							COLLADA_PRINT("shininess: " + rtos(shininess));
-#endif
 						}
 					} else if (parser.get_node_type() == XMLParser::NODE_ELEMENT_END && (parser.get_node_name() == "constant" ||
 																								parser.get_node_name() == "lambert" ||
@@ -2220,6 +2212,7 @@ void Collada::_merge_skeletons(VisualScene *p_vscene, Node *p_node) {
 				ERR_CONTINUE(!state.scene_map.has(nodeid)); //weird, it should have it...
 
 				NodeJoint *nj = SAFE_CAST<NodeJoint *>(state.scene_map[nodeid]);
+				ERR_CONTINUE(!nj); //broken collada
 				if (!nj->owner) {
 					print_line("no owner for: " + String(nodeid));
 				}
@@ -2504,7 +2497,7 @@ void Collada::_optimize() {
 		for (int i = 0; i < vs.root_nodes.size(); i++) {
 			_create_skeletons(&vs.root_nodes[i]);
 		}
-#if 1
+
 		for (int i = 0; i < vs.root_nodes.size(); i++) {
 			_merge_skeletons(&vs, vs.root_nodes[i]);
 		}
@@ -2530,7 +2523,7 @@ void Collada::_optimize() {
 				mgeom.pop_front();
 			}
 		}
-#endif
+
 		for (int i = 0; i < vs.root_nodes.size(); i++) {
 			_find_morph_nodes(&vs, vs.root_nodes[i]);
 		}
@@ -2556,7 +2549,7 @@ Error Collada::load(const String &p_path, int p_flags) {
 	Error err = parser.open(p_path);
 	ERR_FAIL_COND_V(err, err);
 
-	state.local_path = GlobalConfig::get_singleton()->localize_path(p_path);
+	state.local_path = ProjectSettings::get_singleton()->localize_path(p_path);
 	state.import_flags = p_flags;
 	/* Skip headers */
 	err = OK;

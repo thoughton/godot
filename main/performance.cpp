@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -40,35 +40,35 @@ void Performance::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_monitor", "monitor"), &Performance::get_monitor);
 
-	BIND_CONSTANT(TIME_FPS);
-	BIND_CONSTANT(TIME_PROCESS);
-	BIND_CONSTANT(TIME_FIXED_PROCESS);
-	BIND_CONSTANT(MEMORY_STATIC);
-	BIND_CONSTANT(MEMORY_DYNAMIC);
-	BIND_CONSTANT(MEMORY_STATIC_MAX);
-	BIND_CONSTANT(MEMORY_DYNAMIC_MAX);
-	BIND_CONSTANT(MEMORY_MESSAGE_BUFFER_MAX);
-	BIND_CONSTANT(OBJECT_COUNT);
-	BIND_CONSTANT(OBJECT_RESOURCE_COUNT);
-	BIND_CONSTANT(OBJECT_NODE_COUNT);
-	BIND_CONSTANT(RENDER_OBJECTS_IN_FRAME);
-	BIND_CONSTANT(RENDER_VERTICES_IN_FRAME);
-	BIND_CONSTANT(RENDER_MATERIAL_CHANGES_IN_FRAME);
-	BIND_CONSTANT(RENDER_SHADER_CHANGES_IN_FRAME);
-	BIND_CONSTANT(RENDER_SURFACE_CHANGES_IN_FRAME);
-	BIND_CONSTANT(RENDER_DRAW_CALLS_IN_FRAME);
-	BIND_CONSTANT(RENDER_USAGE_VIDEO_MEM_TOTAL);
-	BIND_CONSTANT(RENDER_VIDEO_MEM_USED);
-	BIND_CONSTANT(RENDER_TEXTURE_MEM_USED);
-	BIND_CONSTANT(RENDER_VERTEX_MEM_USED);
-	BIND_CONSTANT(PHYSICS_2D_ACTIVE_OBJECTS);
-	BIND_CONSTANT(PHYSICS_2D_COLLISION_PAIRS);
-	BIND_CONSTANT(PHYSICS_2D_ISLAND_COUNT);
-	BIND_CONSTANT(PHYSICS_3D_ACTIVE_OBJECTS);
-	BIND_CONSTANT(PHYSICS_3D_COLLISION_PAIRS);
-	BIND_CONSTANT(PHYSICS_3D_ISLAND_COUNT);
+	BIND_ENUM_CONSTANT(TIME_FPS);
+	BIND_ENUM_CONSTANT(TIME_PROCESS);
+	BIND_ENUM_CONSTANT(TIME_FIXED_PROCESS);
+	BIND_ENUM_CONSTANT(MEMORY_STATIC);
+	BIND_ENUM_CONSTANT(MEMORY_DYNAMIC);
+	BIND_ENUM_CONSTANT(MEMORY_STATIC_MAX);
+	BIND_ENUM_CONSTANT(MEMORY_DYNAMIC_MAX);
+	BIND_ENUM_CONSTANT(MEMORY_MESSAGE_BUFFER_MAX);
+	BIND_ENUM_CONSTANT(OBJECT_COUNT);
+	BIND_ENUM_CONSTANT(OBJECT_RESOURCE_COUNT);
+	BIND_ENUM_CONSTANT(OBJECT_NODE_COUNT);
+	BIND_ENUM_CONSTANT(RENDER_OBJECTS_IN_FRAME);
+	BIND_ENUM_CONSTANT(RENDER_VERTICES_IN_FRAME);
+	BIND_ENUM_CONSTANT(RENDER_MATERIAL_CHANGES_IN_FRAME);
+	BIND_ENUM_CONSTANT(RENDER_SHADER_CHANGES_IN_FRAME);
+	BIND_ENUM_CONSTANT(RENDER_SURFACE_CHANGES_IN_FRAME);
+	BIND_ENUM_CONSTANT(RENDER_DRAW_CALLS_IN_FRAME);
+	BIND_ENUM_CONSTANT(RENDER_USAGE_VIDEO_MEM_TOTAL);
+	BIND_ENUM_CONSTANT(RENDER_VIDEO_MEM_USED);
+	BIND_ENUM_CONSTANT(RENDER_TEXTURE_MEM_USED);
+	BIND_ENUM_CONSTANT(RENDER_VERTEX_MEM_USED);
+	BIND_ENUM_CONSTANT(PHYSICS_2D_ACTIVE_OBJECTS);
+	BIND_ENUM_CONSTANT(PHYSICS_2D_COLLISION_PAIRS);
+	BIND_ENUM_CONSTANT(PHYSICS_2D_ISLAND_COUNT);
+	BIND_ENUM_CONSTANT(PHYSICS_3D_ACTIVE_OBJECTS);
+	BIND_ENUM_CONSTANT(PHYSICS_3D_COLLISION_PAIRS);
+	BIND_ENUM_CONSTANT(PHYSICS_3D_ISLAND_COUNT);
 
-	BIND_CONSTANT(MONITOR_MAX);
+	BIND_ENUM_CONSTANT(MONITOR_MAX);
 }
 
 String Performance::get_monitor_name(Monitor p_monitor) const {
@@ -117,17 +117,15 @@ float Performance::get_monitor(Monitor p_monitor) const {
 		case TIME_FIXED_PROCESS: return _fixed_process_time;
 		case MEMORY_STATIC: return Memory::get_mem_usage();
 		case MEMORY_DYNAMIC: return MemoryPool::total_memory;
-		case MEMORY_STATIC_MAX: return MemoryPool::max_memory;
-		case MEMORY_DYNAMIC_MAX: return 0;
+		case MEMORY_STATIC_MAX: return Memory::get_mem_max_usage();
+		case MEMORY_DYNAMIC_MAX: return MemoryPool::max_memory;
 		case MEMORY_MESSAGE_BUFFER_MAX: return MessageQueue::get_singleton()->get_max_buffer_usage();
 		case OBJECT_COUNT: return ObjectDB::get_object_count();
 		case OBJECT_RESOURCE_COUNT: return ResourceCache::get_cached_resource_count();
 		case OBJECT_NODE_COUNT: {
 
 			MainLoop *ml = OS::get_singleton()->get_main_loop();
-			if (!ml)
-				return 0;
-			SceneTree *sml = ml->cast_to<SceneTree>();
+			SceneTree *sml = Object::cast_to<SceneTree>(ml);
 			if (!sml)
 				return 0;
 			return sml->get_node_count();

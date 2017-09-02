@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -560,7 +560,7 @@ void MeshDataTool::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_vertex_faces", "idx"), &MeshDataTool::get_vertex_faces);
 
 	ClassDB::bind_method(D_METHOD("get_edge_vertex", "idx", "vertex"), &MeshDataTool::get_edge_vertex);
-	ClassDB::bind_method(D_METHOD("get_edge_faces", "idx", "faces"), &MeshDataTool::get_edge_faces);
+	ClassDB::bind_method(D_METHOD("get_edge_faces", "idx"), &MeshDataTool::get_edge_faces);
 
 	ClassDB::bind_method(D_METHOD("set_edge_meta", "idx", "meta"), &MeshDataTool::set_edge_meta);
 	ClassDB::bind_method(D_METHOD("get_edge_meta", "idx"), &MeshDataTool::get_edge_meta);
@@ -573,8 +573,8 @@ void MeshDataTool::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_face_normal", "idx"), &MeshDataTool::get_face_normal);
 
-	ClassDB::bind_method(D_METHOD("set_material", "material:Material"), &MeshDataTool::set_material);
-	ClassDB::bind_method(D_METHOD("get_material", "material"), &MeshDataTool::get_material);
+	ClassDB::bind_method(D_METHOD("set_material", "material"), &MeshDataTool::set_material);
+	ClassDB::bind_method(D_METHOD("get_material"), &MeshDataTool::get_material);
 }
 
 MeshDataTool::MeshDataTool() {

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -110,11 +110,8 @@ private:
 
 	mutable String data_dir_cache;
 
-#if 0
-	AudioDriverAndroid audio_driver_android;
-#else
+	//AudioDriverAndroid audio_driver_android;
 	AudioDriverOpenSL audio_driver_android;
-#endif
 
 	const char *gl_extensions;
 
@@ -222,7 +219,7 @@ public:
 	virtual String get_model_name() const;
 	virtual int get_screen_dpi(int p_screen = 0) const;
 
-	virtual String get_unique_ID() const;
+	virtual String get_unique_id() const;
 
 	virtual String get_system_dir(SystemDir p_dir) const;
 
@@ -243,6 +240,7 @@ public:
 	virtual String get_joy_guid(int p_device) const;
 	void joy_connection_changed(int p_device, bool p_connected, String p_name);
 
+	virtual bool _check_internal_feature_support(const String &p_feature);
 	OS_Android(GFXInitFunc p_gfx_init_func, void *p_gfx_init_ud, OpenURIFunc p_open_uri_func, GetDataDirFunc p_get_data_dir_func, GetLocaleFunc p_get_locale_func, GetModelFunc p_get_model_func, GetScreenDPIFunc p_get_screen_dpi_func, ShowVirtualKeyboardFunc p_show_vk, HideVirtualKeyboardFunc p_hide_vk, SetScreenOrientationFunc p_screen_orient, GetUniqueIDFunc p_get_unique_id, GetSystemDirFunc p_get_sdir_func, VideoPlayFunc p_video_play_func, VideoIsPlayingFunc p_video_is_playing_func, VideoPauseFunc p_video_pause_func, VideoStopFunc p_video_stop_func, SetKeepScreenOnFunc p_set_keep_screen_on_func, AlertFunc p_alert_func, bool p_use_apk_expansion);
 	~OS_Android();
 };

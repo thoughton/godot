@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -42,6 +42,7 @@ public:
 
 		float projection_matrix[16];
 		float time;
+		uint8_t padding[12];
 	};
 
 	RasterizerSceneGLES3 *scene_render;
@@ -102,6 +103,7 @@ public:
 			float light_height;
 			float light_outside_alpha;
 			float shadow_distance_mult;
+			uint8_t padding[4];
 		} ubo_data;
 
 		GLuint ubo;
@@ -137,6 +139,8 @@ public:
 
 	void initialize();
 	void finalize();
+
+	virtual void draw_window_margins(int *black_margin, RID *black_image);
 
 	RasterizerCanvasGLES3();
 };

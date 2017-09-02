@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -101,12 +101,12 @@ public:
 	bool maximized;
 	bool zoomed;
 
-	Vector<Rect2> screens;
-	Vector<int> screen_dpi;
-
 	Size2 window_size;
-	int current_screen;
 	Rect2 restore_rect;
+
+	Point2 im_position;
+	ImeCallback im_callback;
+	void *im_target;
 
 	power_osx *power_manager;
 
@@ -116,6 +116,8 @@ public:
 		else
 			return 1.0;
 	}
+
+	void _update_window();
 
 	float display_scale;
 
@@ -138,6 +140,8 @@ public:
 
 	virtual String get_name();
 
+	virtual void print_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, ErrorType p_type = ERR_ERROR);
+
 	virtual void alert(const String &p_alert, const String &p_title = "ALERT!");
 
 	virtual void set_cursor_shape(CursorShape p_shape);
@@ -155,6 +159,8 @@ public:
 	virtual void set_icon(const Ref<Image> &p_icon);
 
 	virtual MainLoop *get_main_loop() const;
+
+	virtual String get_system_dir(SystemDir p_dir) const;
 
 	virtual bool can_draw() const;
 
@@ -183,9 +189,9 @@ public:
 	virtual int get_screen_count() const;
 	virtual int get_current_screen() const;
 	virtual void set_current_screen(int p_screen);
-	virtual Point2 get_screen_position(int p_screen = 0) const;
-	virtual Size2 get_screen_size(int p_screen = 0) const;
-	virtual int get_screen_dpi(int p_screen = 0) const;
+	virtual Point2 get_screen_position(int p_screen = -1) const;
+	virtual Size2 get_screen_size(int p_screen = -1) const;
+	virtual int get_screen_dpi(int p_screen = -1) const;
 
 	virtual Point2 get_window_position() const;
 	virtual void set_window_position(const Point2 &p_position);
@@ -203,10 +209,14 @@ public:
 
 	virtual void set_borderless_window(int p_borderless);
 	virtual bool get_borderless_window();
+	virtual void set_ime_position(const Point2 &p_pos);
+	virtual void set_ime_intermediate_text_callback(ImeCallback p_callback, void *p_inp);
 
 	virtual PowerState get_power_state();
 	virtual int get_power_seconds_left();
 	virtual int get_power_percent_left();
+
+	virtual bool _check_internal_feature_support(const String &p_feature);
 
 	void run();
 

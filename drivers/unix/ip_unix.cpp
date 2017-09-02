@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -100,6 +100,7 @@ IP_Address IP_Unix::_resolve_hostname(const String &p_hostname, Type p_type) {
 		hints.ai_family = AF_UNSPEC;
 		hints.ai_flags = AI_ADDRCONFIG;
 	};
+	hints.ai_flags &= !AI_NUMERICHOST;
 
 	int s = getaddrinfo(p_hostname.utf8().get_data(), NULL, &hints, &result);
 	if (s != 0) {

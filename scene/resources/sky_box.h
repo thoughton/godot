@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -30,13 +30,16 @@
 #ifndef Sky_H
 #define Sky_H
 
+#include "os/thread.h"
 #include "scene/resources/texture.h"
-
 class Sky : public Resource {
 	GDCLASS(Sky, Resource);
 
 public:
 	enum RadianceSize {
+		RADIANCE_SIZE_32,
+		RADIANCE_SIZE_64,
+		RADIANCE_SIZE_128,
 		RADIANCE_SIZE_256,
 		RADIANCE_SIZE_512,
 		RADIANCE_SIZE_1024,
@@ -85,6 +88,8 @@ class ProceduralSky : public Sky {
 
 public:
 	enum TextureSize {
+		TEXTURE_SIZE_256,
+		TEXTURE_SIZE_512,
 		TEXTURE_SIZE_1024,
 		TEXTURE_SIZE_2048,
 		TEXTURE_SIZE_4096,
@@ -92,6 +97,7 @@ public:
 	};
 
 private:
+	Thread *sky_thread;
 	Color sky_top_color;
 	Color sky_horizon_color;
 	float sky_curve;
@@ -116,12 +122,20 @@ private:
 	RID texture;
 
 	bool update_queued;
+	bool regen_queued;
+
+	bool first_time;
+
+	void _thread_done(const Ref<Image> &p_image);
+	static void _thread_function(void *p_ud);
 
 protected:
 	static void _bind_methods();
 	virtual void _radiance_changed();
 
+	Ref<Image> _generate_sky();
 	void _update_sky();
+
 	void _queue_update();
 
 public:

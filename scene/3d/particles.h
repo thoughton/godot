@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -78,6 +78,7 @@ private:
 
 protected:
 	static void _bind_methods();
+	void _notification(int p_what);
 	virtual void _validate_property(PropertyInfo &property) const;
 
 public:
@@ -87,7 +88,7 @@ public:
 	void set_emitting(bool p_emitting);
 	void set_amount(int p_amount);
 	void set_lifetime(float p_lifetime);
-	void set_one_shot(bool p_enabled);
+	void set_one_shot(bool p_one_shot);
 	void set_pre_process_time(float p_time);
 	void set_explosiveness_ratio(float p_ratio);
 	void set_randomness_ratio(float p_ratio);

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -30,9 +30,9 @@
 #ifndef STREAM_PEER_OPEN_SSL_H
 #define STREAM_PEER_OPEN_SSL_H
 
-#include "global_config.h"
 #include "io/stream_peer_ssl.h"
 #include "os/file_access.h"
+#include "project_settings.h"
 
 #include "thirdparty/misc/curl_hostcheck.h"
 

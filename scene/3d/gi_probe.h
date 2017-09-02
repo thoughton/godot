@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -66,6 +66,9 @@ public:
 
 	void set_bias(float p_range);
 	float get_bias() const;
+
+	void set_normal_bias(float p_range);
+	float get_normal_bias() const;
 
 	void set_interior(bool p_enable);
 	bool is_interior() const;
@@ -145,7 +148,7 @@ private:
 		struct PlotMesh {
 			Ref<Material> override_material;
 			Vector<Ref<Material> > instance_materials;
-			Ref<ArrayMesh> mesh;
+			Ref<Mesh> mesh;
 			Transform local_xform;
 		};
 
@@ -163,6 +166,7 @@ private:
 	int dynamic_range;
 	float energy;
 	float bias;
+	float normal_bias;
 	float propagation;
 	bool interior;
 	bool compress;
@@ -173,7 +177,7 @@ private:
 	Vector<Color> _get_bake_texture(Ref<Image> p_image, const Color &p_color);
 	Baker::MaterialCache _get_material_cache(Ref<Material> p_material, Baker *p_baker);
 	void _plot_face(int p_idx, int p_level, int p_x, int p_y, int p_z, const Vector3 *p_vtx, const Vector2 *p_uv, const Baker::MaterialCache &p_material, const Rect3 &p_aabb, Baker *p_baker);
-	void _plot_mesh(const Transform &p_xform, Ref<ArrayMesh> &p_mesh, Baker *p_baker, const Vector<Ref<Material> > &p_materials, const Ref<Material> &p_override_material);
+	void _plot_mesh(const Transform &p_xform, Ref<Mesh> &p_mesh, Baker *p_baker, const Vector<Ref<Material> > &p_materials, const Ref<Material> &p_override_material);
 	void _find_meshes(Node *p_at_node, Baker *p_baker);
 	void _fixup_plot(int p_idx, int p_level, int p_x, int p_y, int p_z, Baker *p_baker);
 
@@ -203,6 +207,9 @@ public:
 
 	void set_bias(float p_bias);
 	float get_bias() const;
+
+	void set_normal_bias(float p_normal_bias);
+	float get_normal_bias() const;
 
 	void set_propagation(float p_propagation);
 	float get_propagation() const;

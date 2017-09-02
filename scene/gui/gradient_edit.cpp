@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -61,10 +61,8 @@ int GradientEdit::_get_point_from_pos(int x) {
 void GradientEdit::_show_color_picker() {
 	if (grabbed == -1)
 		return;
-	Size2 ms = Size2(350, picker->get_combined_minimum_size().height + 10);
 	picker->set_pick_color(points[grabbed].color);
-	popup->set_position(get_global_position() - Vector2(ms.width - get_size().width, ms.height));
-	popup->set_size(ms);
+	popup->set_position(get_global_position() - popup->get_combined_minimum_size());
 	popup->popup();
 }
 

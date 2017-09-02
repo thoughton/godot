@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -93,8 +93,8 @@ String WorldEnvironment::get_configuration_warning() const {
 
 void WorldEnvironment::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_environment", "env:Environment"), &WorldEnvironment::set_environment);
-	ClassDB::bind_method(D_METHOD("get_environment:Environment"), &WorldEnvironment::get_environment);
+	ClassDB::bind_method(D_METHOD("set_environment", "env"), &WorldEnvironment::set_environment);
+	ClassDB::bind_method(D_METHOD("get_environment"), &WorldEnvironment::get_environment);
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "environment", PROPERTY_HINT_RESOURCE_TYPE, "Environment"), "set_environment", "get_environment");
 }
 

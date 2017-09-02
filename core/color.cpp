@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -43,6 +43,18 @@ uint32_t Color::to_ARGB32() const {
 	c |= (uint8_t)(g * 255);
 	c <<= 8;
 	c |= (uint8_t)(b * 255);
+
+	return c;
+}
+
+uint32_t Color::to_ABGR32() const {
+	uint32_t c = (uint8_t)(a * 255);
+	c <<= 8;
+	c |= (uint8_t)(b * 255);
+	c <<= 8;
+	c |= (uint8_t)(g * 255);
+	c <<= 8;
+	c |= (uint8_t)(r * 255);
 
 	return c;
 }

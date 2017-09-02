@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -112,7 +112,7 @@ void TouchScreenButton::_notification(int p_what) {
 
 			if (!is_inside_tree())
 				return;
-			if (!get_tree()->is_editor_hint() && !OS::get_singleton()->has_touchscreen_ui_hint() && visibility == VISIBILITY_TOUCHSCREEN_ONLY)
+			if (!Engine::get_singleton()->is_editor_hint() && !OS::get_singleton()->has_touchscreen_ui_hint() && visibility == VISIBILITY_TOUCHSCREEN_ONLY)
 				return;
 
 			if (finger_pressed != -1) {
@@ -129,7 +129,7 @@ void TouchScreenButton::_notification(int p_what) {
 
 			if (!shape_visible)
 				return;
-			if (!get_tree()->is_editor_hint() && !get_tree()->is_debugging_collisions_hint())
+			if (!Engine::get_singleton()->is_editor_hint() && !get_tree()->is_debugging_collisions_hint())
 				return;
 			if (shape.is_valid()) {
 				Color draw_col = get_tree()->get_debug_collisions_color();
@@ -141,11 +141,11 @@ void TouchScreenButton::_notification(int p_what) {
 		} break;
 		case NOTIFICATION_ENTER_TREE: {
 
-			if (!get_tree()->is_editor_hint() && !OS::get_singleton()->has_touchscreen_ui_hint() && visibility == VISIBILITY_TOUCHSCREEN_ONLY)
+			if (!Engine::get_singleton()->is_editor_hint() && !OS::get_singleton()->has_touchscreen_ui_hint() && visibility == VISIBILITY_TOUCHSCREEN_ONLY)
 				return;
 			update();
 
-			if (!get_tree()->is_editor_hint())
+			if (!Engine::get_singleton()->is_editor_hint())
 				set_process_input(is_visible_in_tree());
 
 		} break;
@@ -154,7 +154,7 @@ void TouchScreenButton::_notification(int p_what) {
 				_release(true);
 		} break;
 		case NOTIFICATION_VISIBILITY_CHANGED: {
-			if (get_tree()->is_editor_hint())
+			if (Engine::get_singleton()->is_editor_hint())
 				break;
 			if (is_visible_in_tree()) {
 				set_process_input(true);
@@ -196,11 +196,11 @@ void TouchScreenButton::_input(const Ref<InputEvent> &p_event) {
 
 	ERR_FAIL_COND(!is_visible_in_tree());
 
-	const InputEventScreenTouch *st = p_event->cast_to<InputEventScreenTouch>();
+	const InputEventScreenTouch *st = Object::cast_to<InputEventScreenTouch>(*p_event);
 
 	if (passby_press) {
 
-		const InputEventScreenDrag *sd = p_event->cast_to<InputEventScreenDrag>();
+		const InputEventScreenDrag *sd = Object::cast_to<InputEventScreenDrag>(*p_event);
 
 		if (st && !st->is_pressed() && finger_pressed == st->get_index()) {
 

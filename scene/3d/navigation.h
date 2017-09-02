@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -58,9 +58,9 @@ class Navigation : public Spatial {
 			return (a.key == p_key.a.key) ? (b.key < p_key.b.key) : (a.key < p_key.a.key);
 		};
 
-		EdgeKey(const Point &p_a = Point(), const Point &p_b = Point()) {
-			a = p_a;
-			b = p_b;
+		EdgeKey(const Point &p_a = Point(), const Point &p_b = Point())
+			: a(p_a),
+			  b(p_b) {
 			if (a.key > b.key) {
 				SWAP(a, b);
 			}

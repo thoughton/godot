@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -117,8 +117,8 @@ static void _compress_etc(Image *p_img, float p_lossy_quality, bool force_etc1_f
 		return;
 	}
 
-	int imgw = p_img->get_width(), imgh = p_img->get_height();
-	ERR_FAIL_COND(nearest_power_of_2(imgw) != imgw || nearest_power_of_2(imgh) != imgh);
+	uint32_t imgw = p_img->get_width(), imgh = p_img->get_height();
+	ERR_FAIL_COND(next_power_of_2(imgw) != imgw || next_power_of_2(imgh) != imgh);
 
 	Image::Format etc_format = force_etc1_format ? Image::FORMAT_ETC : _get_etc2_mode(detected_channels);
 
@@ -153,6 +153,9 @@ static void _compress_etc(Image *p_img, float p_lossy_quality, bool force_etc1_f
 	Etc::Image::Format etc2comp_etc_format = _image_format_to_etc2comp_format(etc_format);
 
 	int wofs = 0;
+
+	print_line("begin encoding, format: " + Image::get_format_name(etc_format));
+	uint64_t t = OS::get_singleton()->get_ticks_msec();
 	for (int i = 0; i < mmc + 1; i++) {
 		// convert source image to internal etc2comp format (which is equivalent to Image::FORMAT_RGBAF)
 		// NOTE: We can alternatively add a case to Image::convert to handle Image::FORMAT_RGBAF conversion.
@@ -177,6 +180,7 @@ static void _compress_etc(Image *p_img, float p_lossy_quality, bool force_etc1_f
 		delete[] etc_data;
 		delete[] src_rgba_f;
 	}
+	print_line("time encoding: " + rtos(OS::get_singleton()->get_ticks_msec() - t));
 
 	p_img->create(imgw, imgh, mmc > 1 ? true : false, etc_format, dst_data);
 }

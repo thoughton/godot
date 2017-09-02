@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -96,8 +96,8 @@ public:
 	virtual int get_screen_count() const;
 	virtual int get_current_screen() const;
 	virtual void set_current_screen(int p_screen);
-	virtual Point2 get_screen_position(int p_screen = 0) const;
-	virtual Size2 get_screen_size(int p_screen = 0) const;
+	virtual Point2 get_screen_position(int p_screen = -1) const;
+	virtual Size2 get_screen_size(int p_screen = -1) const;
 	virtual void set_window_title(const String &p_title);
 	virtual Size2 get_window_size() const;
 	virtual void set_window_size(const Size2 p_size);
@@ -120,6 +120,8 @@ public:
 	virtual PowerState get_power_state();
 	virtual int get_power_seconds_left();
 	virtual int get_power_percent_left();
+
+	virtual bool _check_internal_feature_support(const String &p_feature);
 };
 
 #endif

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -106,7 +106,7 @@ class DependencyErrorDialog : public ConfirmationDialog {
 	void custom_action(const String &);
 
 public:
-	void show(const String &p_for, const Vector<String> &report);
+	void show(const String &p_for_file, const Vector<String> &report);
 	DependencyErrorDialog();
 };
 

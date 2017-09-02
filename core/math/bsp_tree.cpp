@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -577,12 +577,11 @@ BSP_Tree::BSP_Tree(const PoolVector<Face3> &p_faces, real_t p_error_radius) {
 	error_radius = p_error_radius;
 }
 
-BSP_Tree::BSP_Tree(const Vector<Node> &p_nodes, const Vector<Plane> &p_planes, const Rect3 &p_aabb, real_t p_error_radius) {
-
-	nodes = p_nodes;
-	planes = p_planes;
-	aabb = p_aabb;
-	error_radius = p_error_radius;
+BSP_Tree::BSP_Tree(const Vector<Node> &p_nodes, const Vector<Plane> &p_planes, const Rect3 &p_aabb, real_t p_error_radius)
+	: nodes(p_nodes),
+	  planes(p_planes),
+	  aabb(p_aabb),
+	  error_radius(p_error_radius) {
 }
 
 BSP_Tree::~BSP_Tree() {

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -69,6 +69,7 @@ void NavigationPolygonEditor::_create_nav() {
 	undo_redo->add_do_method(node, "set_navigation_polygon", Ref<NavigationPolygon>(memnew(NavigationPolygon)));
 	undo_redo->add_undo_method(node, "set_navigation_polygon", Variant(REF()));
 	undo_redo->commit_action();
+	_menu_option(MODE_CREATE);
 }
 
 void NavigationPolygonEditor::_menu_option(int p_option) {
@@ -140,7 +141,7 @@ bool NavigationPolygonEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 		cpoint = node->get_global_transform().affine_inverse().xform(cpoint);
 
 		//first check if a point is to be added (segment split)
-		real_t grab_treshold = EDITOR_DEF("editors/poly_editor/point_grab_radius", 8);
+		real_t grab_threshold = EDITOR_DEF("editors/poly_editor/point_grab_radius", 8);
 
 		switch (mode) {
 
@@ -160,7 +161,7 @@ bool NavigationPolygonEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 						return true;
 					} else {
 
-						if (wip.size() > 1 && xform.xform(wip[0]).distance_to(gpoint) < grab_treshold) {
+						if (wip.size() > 1 && xform.xform(wip[0]).distance_to(gpoint) < grab_threshold) {
 							//wip closed
 							_wip_close();
 
@@ -211,7 +212,7 @@ bool NavigationPolygonEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 										continue; //not valid to reuse point
 
 									real_t d = cp.distance_to(gpoint);
-									if (d < closest_dist && d < grab_treshold) {
+									if (d < closest_dist && d < grab_threshold) {
 										closest_dist = d;
 										closest_outline = j;
 										closest_pos = cp;
@@ -252,7 +253,7 @@ bool NavigationPolygonEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 									Vector2 cp = xform.xform(poly[i]);
 
 									real_t d = cp.distance_to(gpoint);
-									if (d < closest_dist && d < grab_treshold) {
+									if (d < closest_dist && d < grab_threshold) {
 										closest_dist = d;
 										closest_pos = cp;
 										closest_outline = j;
@@ -312,7 +313,7 @@ bool NavigationPolygonEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 							Vector2 cp = xform.xform(poly[i]);
 
 							real_t d = cp.distance_to(gpoint);
-							if (d < closest_dist && d < grab_treshold) {
+							if (d < closest_dist && d < grab_threshold) {
 								closest_dist = d;
 								closest_pos = cp;
 								closest_outline = j;
@@ -422,7 +423,12 @@ void NavigationPolygonEditor::edit(Node *p_collision_polygon) {
 
 	if (p_collision_polygon) {
 
-		node = p_collision_polygon->cast_to<NavigationPolygonInstance>();
+		node = Object::cast_to<NavigationPolygonInstance>(p_collision_polygon);
+		//Enable the pencil tool if the polygon is empty
+		if (!node->get_navigation_polygon().is_null()) {
+			if (node->get_navigation_polygon()->get_polygon_count() == 0)
+				_menu_option(MODE_CREATE);
+		}
 		if (!canvas_item_editor->get_viewport_control()->is_connected("draw", this, "_canvas_draw"))
 			canvas_item_editor->get_viewport_control()->connect("draw", this, "_canvas_draw");
 		wip.clear();
@@ -468,17 +474,6 @@ NavigationPolygonEditor::NavigationPolygonEditor(EditorNode *p_editor) {
 	add_child(create_nav);
 	create_nav->get_ok()->set_text(TTR("Create"));
 
-//add_constant_override("separation",0);
-
-#if 0
-	options = memnew( MenuButton );
-	add_child(options);
-	options->set_area_as_parent_rect();
-	options->set_text("Polygon");
-	//options->get_popup()->add_item("Parse BBCode",PARSE_BBCODE);
-	options->get_popup()->connect("id_pressed", this,"_menu_option");
-#endif
-
 	mode = MODE_EDIT;
 	wip_active = false;
 	edited_outline = -1;
@@ -486,7 +481,7 @@ NavigationPolygonEditor::NavigationPolygonEditor(EditorNode *p_editor) {
 
 void NavigationPolygonEditorPlugin::edit(Object *p_object) {
 
-	collision_polygon_editor->edit(p_object->cast_to<Node>());
+	collision_polygon_editor->edit(Object::cast_to<Node>(p_object));
 }
 
 bool NavigationPolygonEditorPlugin::handles(Object *p_object) const {

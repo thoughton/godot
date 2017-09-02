@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -165,6 +165,7 @@ const char *ShaderLanguage::token_names[TK_MAX] = {
 	"CF_BREAK",
 	"CF_CONTINUE",
 	"CF_RETURN",
+	"CF_DISCARD",
 	"BRACKET_OPEN",
 	"BRACKET_CLOSE",
 	"CURLY_BRACKET_OPEN",
@@ -1357,11 +1358,8 @@ const ShaderLanguage::BuiltinFuncDef ShaderLanguage::builtin_func_defs[] = {
 	{ "tanh", TYPE_FLOAT, { TYPE_FLOAT, TYPE_VOID } },
 	//builtins - exponential
 	{ "pow", TYPE_FLOAT, { TYPE_FLOAT, TYPE_FLOAT, TYPE_VOID } },
-	{ "pow", TYPE_VEC2, { TYPE_VEC2, TYPE_FLOAT, TYPE_VOID } },
 	{ "pow", TYPE_VEC2, { TYPE_VEC2, TYPE_VEC2, TYPE_VOID } },
-	{ "pow", TYPE_VEC3, { TYPE_VEC3, TYPE_FLOAT, TYPE_VOID } },
 	{ "pow", TYPE_VEC3, { TYPE_VEC3, TYPE_VEC3, TYPE_VOID } },
-	{ "pow", TYPE_VEC4, { TYPE_VEC4, TYPE_FLOAT, TYPE_VOID } },
 	{ "pow", TYPE_VEC4, { TYPE_VEC4, TYPE_VEC4, TYPE_VOID } },
 	{ "exp", TYPE_FLOAT, { TYPE_FLOAT, TYPE_VOID } },
 	{ "exp", TYPE_VEC2, { TYPE_VEC2, TYPE_VOID } },
@@ -1566,9 +1564,9 @@ const ShaderLanguage::BuiltinFuncDef ShaderLanguage::builtin_func_defs[] = {
 	{ "reflect", TYPE_VEC3, { TYPE_VEC3, TYPE_VEC3, TYPE_VOID } },
 	{ "refract", TYPE_VEC3, { TYPE_VEC3, TYPE_VEC3, TYPE_FLOAT, TYPE_VOID } },
 
-	{ "facefordward", TYPE_VEC2, { TYPE_VEC2, TYPE_VEC2, TYPE_VEC2, TYPE_VOID } },
-	{ "facefordward", TYPE_VEC3, { TYPE_VEC3, TYPE_VEC3, TYPE_VEC3, TYPE_VOID } },
-	{ "facefordward", TYPE_VEC4, { TYPE_VEC4, TYPE_VEC4, TYPE_VEC4, TYPE_VOID } },
+	{ "faceforward", TYPE_VEC2, { TYPE_VEC2, TYPE_VEC2, TYPE_VEC2, TYPE_VOID } },
+	{ "faceforward", TYPE_VEC3, { TYPE_VEC3, TYPE_VEC3, TYPE_VEC3, TYPE_VOID } },
+	{ "faceforward", TYPE_VEC4, { TYPE_VEC4, TYPE_VEC4, TYPE_VEC4, TYPE_VOID } },
 
 	{ "matrixCompMult", TYPE_MAT2, { TYPE_MAT2, TYPE_MAT2, TYPE_VOID } },
 	{ "matrixCompMult", TYPE_MAT3, { TYPE_MAT3, TYPE_MAT3, TYPE_VOID } },
@@ -1934,7 +1932,8 @@ bool ShaderLanguage::_validate_function_call(BlockNode *p_block, OperatorNode *p
 		}
 
 		if (!fail) {
-			p_func->return_cache = pfunc->return_type;
+			if (r_ret_type)
+				*r_ret_type = pfunc->return_type;
 			return true;
 		}
 	}
@@ -2587,7 +2586,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 				}
 
 				bool index_valid = false;
-				DataType member_type;
+				DataType member_type = TYPE_VOID;
 
 				switch (expr->get_datatype()) {
 					case TYPE_BVEC2:
@@ -2954,7 +2953,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 			if (expression[next_op + 1].is_op) {
 				// this is not invalid and can really appear
 				// but it becomes invalid anyway because no binary op
-				// can be followed by an unary op in a valid combination,
+				// can be followed by a unary op in a valid combination,
 				// due to how precedence works, unaries will always disappear first
 
 				_set_error("Parser bug..");
@@ -3153,6 +3152,11 @@ Error ShaderLanguage::_parse_block(BlockNode *p_block, const Map<StringName, Dat
 					assign->op = OP_ASSIGN;
 					p_block->statements.push_back(assign);
 					tk = _get_token();
+
+					if (!_validate_operator(assign)) {
+						_set_error("Invalid assignment of '" + get_datatype_name(n->get_datatype()) + "' to '" + get_datatype_name(type) + "'");
+						return ERR_PARSE_ERROR;
+					}
 				}
 
 				if (tk.type == TK_COMMA) {
@@ -3288,6 +3292,34 @@ Error ShaderLanguage::_parse_block(BlockNode *p_block, const Map<StringName, Dat
 			}
 
 			p_block->statements.push_back(flow);
+		} else if (tk.type == TK_CF_DISCARD) {
+
+			//check return type
+			BlockNode *b = p_block;
+			while (b && !b->parent_function) {
+				b = b->parent_block;
+			}
+			if (!b) {
+				_set_error("Bug");
+				return ERR_BUG;
+			}
+
+			if (!b->parent_function->can_discard) {
+				_set_error("Use of 'discard' is not allowed here.");
+				return ERR_PARSE_ERROR;
+			}
+
+			ControlFlowNode *flow = alloc_node<ControlFlowNode>();
+			flow->flow_op = FLOW_OP_DISCARD;
+
+			pos = _get_tkpos();
+			tk = _get_token();
+			if (tk.type != TK_SEMICOLON) {
+				//all is good
+				_set_error("Expected ';' after discard");
+			}
+
+			p_block->statements.push_back(flow);
 
 		} else {
 
@@ -3312,12 +3344,12 @@ Error ShaderLanguage::_parse_block(BlockNode *p_block, const Map<StringName, Dat
 	return OK;
 }
 
-Error ShaderLanguage::_parse_shader(const Map<StringName, Map<StringName, DataType> > &p_functions, const Set<String> &p_render_modes, const Set<String> &p_shader_types) {
+Error ShaderLanguage::_parse_shader(const Map<StringName, FunctionInfo> &p_functions, const Set<String> &p_render_modes, const Set<String> &p_shader_types) {
 
 	Token tk = _get_token();
 
 	if (tk.type != TK_SHADER_TYPE) {
-		_set_error("Expected 'shader_type' at the begining of shader.");
+		_set_error("Expected 'shader_type' at the beginning of shader.");
 		return ERR_PARSE_ERROR;
 	}
 
@@ -3649,7 +3681,7 @@ Error ShaderLanguage::_parse_shader(const Map<StringName, Map<StringName, DataTy
 
 				Map<StringName, DataType> builtin_types;
 				if (p_functions.has(name)) {
-					builtin_types = p_functions[name];
+					builtin_types = p_functions[name].built_ins;
 				}
 
 				ShaderNode::Function function;
@@ -3813,7 +3845,7 @@ String ShaderLanguage::get_shader_type(const String &p_code) {
 	return String();
 }
 
-Error ShaderLanguage::compile(const String &p_code, const Map<StringName, Map<StringName, DataType> > &p_functions, const Set<String> &p_render_modes, const Set<String> &p_shader_types) {
+Error ShaderLanguage::compile(const String &p_code, const Map<StringName, FunctionInfo> &p_functions, const Set<String> &p_render_modes, const Set<String> &p_shader_types) {
 
 	clear();
 
@@ -3830,7 +3862,7 @@ Error ShaderLanguage::compile(const String &p_code, const Map<StringName, Map<St
 	return OK;
 }
 
-Error ShaderLanguage::complete(const String &p_code, const Map<StringName, Map<StringName, DataType> > &p_functions, const Set<String> &p_render_modes, const Set<String> &p_shader_types, List<String> *r_options, String &r_call_hint) {
+Error ShaderLanguage::complete(const String &p_code, const Map<StringName, FunctionInfo> &p_functions, const Set<String> &p_render_modes, const Set<String> &p_shader_types, List<String> *r_options, String &r_call_hint) {
 
 	clear();
 
@@ -3857,7 +3889,7 @@ Error ShaderLanguage::complete(const String &p_code, const Map<StringName, Map<S
 		} break;
 		case COMPLETION_MAIN_FUNCTION: {
 
-			for (const Map<StringName, Map<StringName, DataType> >::Element *E = p_functions.front(); E; E = E->next()) {
+			for (const Map<StringName, FunctionInfo>::Element *E = p_functions.front(); E; E = E->next()) {
 
 				r_options->push_back(E->key());
 			}
@@ -3898,7 +3930,7 @@ Error ShaderLanguage::complete(const String &p_code, const Map<StringName, Map<S
 
 			if (comp_ident && skip_function != StringName() && p_functions.has(skip_function)) {
 
-				for (Map<StringName, DataType>::Element *E = p_functions[skip_function].front(); E; E = E->next()) {
+				for (Map<StringName, DataType>::Element *E = p_functions[skip_function].built_ins.front(); E; E = E->next()) {
 					matches.insert(E->key());
 				}
 			}

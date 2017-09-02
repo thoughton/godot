@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -306,7 +306,7 @@ void PHashTranslation::_get_property_list(List<PropertyInfo> *p_list) const {
 }
 void PHashTranslation::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("generate", "from:Translation"), &PHashTranslation::generate);
+	ClassDB::bind_method(D_METHOD("generate", "from"), &PHashTranslation::generate);
 }
 
 PHashTranslation::PHashTranslation() {

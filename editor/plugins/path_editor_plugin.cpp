@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -104,7 +104,7 @@ void PathSpatialGizmo::set_handle(int p_idx, Camera *p_camera, const Point2 &p_p
 
 			if (SpatialEditor::get_singleton()->is_snap_enabled()) {
 				float snap = SpatialEditor::get_singleton()->get_translate_snap();
-				inters.snap(snap);
+				inters.snap(Vector3(snap, snap, snap));
 			}
 
 			Vector3 local = gi.xform(inters);
@@ -204,7 +204,7 @@ void PathSpatialGizmo::redraw() {
 	if (c.is_null())
 		return;
 
-	PoolVector<Vector3> v3a = c->tesselate();
+	PoolVector<Vector3> v3a = c->tessellate();
 	//PoolVector<Vector3> v3a=c->get_baked_points();
 
 	int v3s = v3a.size();
@@ -222,8 +222,10 @@ void PathSpatialGizmo::redraw() {
 		//v3p.push_back(r[i]+Vector3(0,0.2,0));
 	}
 
-	add_lines(v3p, PathEditorPlugin::singleton->path_material);
-	add_collision_segments(v3p);
+	if (v3p.size() > 1) {
+		add_lines(v3p, PathEditorPlugin::singleton->path_material);
+		add_collision_segments(v3p);
+	}
 
 	if (PathEditorPlugin::singleton->get_edited_path() == path) {
 		v3p.clear();
@@ -247,9 +249,15 @@ void PathSpatialGizmo::redraw() {
 			}
 		}
 
-		add_lines(v3p, PathEditorPlugin::singleton->path_thin_material);
-		add_handles(handles);
-		add_handles(sec_handles, false, true);
+		if (v3p.size() > 1) {
+			add_lines(v3p, PathEditorPlugin::singleton->path_thin_material);
+		}
+		if (handles.size()) {
+			add_handles(handles);
+		}
+		if (sec_handles.size()) {
+			add_handles(sec_handles, false, true);
+		}
 	}
 }
 
@@ -261,9 +269,9 @@ PathSpatialGizmo::PathSpatialGizmo(Path *p_path) {
 
 Ref<SpatialEditorGizmo> PathEditorPlugin::create_spatial_gizmo(Spatial *p_spatial) {
 
-	if (p_spatial->cast_to<Path>()) {
+	if (Object::cast_to<Path>(p_spatial)) {
 
-		return memnew(PathSpatialGizmo(p_spatial->cast_to<Path>()));
+		return memnew(PathSpatialGizmo(Object::cast_to<Path>(p_spatial)));
 	}
 
 	return Ref<SpatialEditorGizmo>();
@@ -289,7 +297,7 @@ bool PathEditorPlugin::forward_spatial_gui_input(Camera *p_camera, const Ref<Inp
 
 		if (mb->is_pressed() && mb->get_button_index() == BUTTON_LEFT && (curve_create->is_pressed() || (curve_edit->is_pressed() && mb->get_control()))) {
 			//click into curve, break it down
-			PoolVector<Vector3> v3a = c->tesselate();
+			PoolVector<Vector3> v3a = c->tessellate();
 			int idx = 0;
 			int rc = v3a.size();
 			int closest_seg = -1;
@@ -425,7 +433,7 @@ bool PathEditorPlugin::forward_spatial_gui_input(Camera *p_camera, const Ref<Inp
 void PathEditorPlugin::edit(Object *p_object) {
 
 	if (p_object) {
-		path = p_object->cast_to<Path>();
+		path = Object::cast_to<Path>(p_object);
 		if (path) {
 
 			if (path->get_curve().is_valid()) {
@@ -439,7 +447,7 @@ void PathEditorPlugin::edit(Object *p_object) {
 			pre->get_curve()->emit_signal("changed");
 		}
 	}
-	//collision_polygon_editor->edit(p_object->cast_to<Node>());
+	//collision_polygon_editor->edit(Object::cast_to<Node>(p_object));
 }
 
 bool PathEditorPlugin::handles(Object *p_object) const {

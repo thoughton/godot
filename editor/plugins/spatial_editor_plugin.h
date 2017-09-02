@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -49,6 +49,7 @@ class SpatialEditorGizmo : public SpatialGizmo {
 	GDCLASS(SpatialEditorGizmo, SpatialGizmo);
 
 	bool selected;
+	bool instanced;
 
 public:
 	void set_selected(bool p_selected) { selected = p_selected; }
@@ -83,6 +84,7 @@ class SpatialEditorViewport : public Control {
 		VIEW_ENVIRONMENT,
 		VIEW_ORTHOGONAL,
 		VIEW_AUDIO_LISTENER,
+		VIEW_AUDIO_DOPPLER,
 		VIEW_GIZMOS,
 		VIEW_INFORMATION,
 		VIEW_DISPLAY_NORMAL,
@@ -120,6 +122,7 @@ private:
 	float gizmo_scale;
 
 	bool freelook_active;
+	Vector3 freelook_velocity;
 
 	PanelContainer *info;
 	Label *info_label;
@@ -193,6 +196,9 @@ private:
 		TRANSFORM_X_AXIS,
 		TRANSFORM_Y_AXIS,
 		TRANSFORM_Z_AXIS,
+		TRANSFORM_YZ,
+		TRANSFORM_XZ,
+		TRANSFORM_XY,
 	};
 
 	struct EditData {
@@ -230,7 +236,7 @@ private:
 
 	real_t zoom_indicator_delay;
 
-	RID move_gizmo_instance[3], rotate_gizmo_instance[3];
+	RID move_gizmo_instance[3], move_plane_gizmo_instance[3], rotate_gizmo_instance[3];
 
 	String last_message;
 	String message;
@@ -239,12 +245,12 @@ private:
 	void set_message(String p_message, float p_time = 5);
 
 	//
-	void _update_camera();
+	void _update_camera(float p_interp_delta);
 	Transform to_camera_transform(const Cursor &p_cursor) const;
 	void _draw();
 
 	void _smouseenter();
-	void _sinput(const Ref<InputEvent> &p_ie);
+	void _sinput(const Ref<InputEvent> &p_event);
 	void _update_freelook(real_t delta);
 	SpatialEditor *spatial_editor;
 
@@ -375,8 +381,9 @@ private:
 	bool grid_enable[3]; //should be always visible if true
 	bool grid_enabled;
 
-	Ref<ArrayMesh> move_gizmo[3], rotate_gizmo[3];
+	Ref<ArrayMesh> move_gizmo[3], move_plane_gizmo[3], rotate_gizmo[3];
 	Ref<SpatialMaterial> gizmo_color[3];
+	Ref<SpatialMaterial> plane_gizmo_color[3];
 	Ref<SpatialMaterial> gizmo_hl;
 
 	int over_gizmo_handle;
@@ -513,7 +520,10 @@ public:
 	float get_rotate_snap() const { return snap_rotate->get_text().to_double(); }
 	float get_scale_snap() const { return snap_scale->get_text().to_double(); }
 
+	bool are_local_coords_enabled() const { return transform_menu->get_popup()->is_item_checked(transform_menu->get_popup()->get_item_index(SpatialEditor::MENU_TRANSFORM_LOCAL_COORDS)); }
+
 	Ref<ArrayMesh> get_move_gizmo(int idx) const { return move_gizmo[idx]; }
+	Ref<ArrayMesh> get_move_plane_gizmo(int idx) const { return move_plane_gizmo[idx]; }
 	Ref<ArrayMesh> get_rotate_gizmo(int idx) const { return rotate_gizmo[idx]; }
 
 	void update_transform_gizmo();

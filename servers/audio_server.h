@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -53,6 +53,9 @@ public:
 		SPEAKER_SURROUND_51,
 		SPEAKER_SURROUND_71,
 	};
+
+	static const int DEFAULT_MIX_RATE = 44100;
+	static const int DEFAULT_OUTPUT_LATENCY = 15;
 
 	static AudioDriver *get_singleton();
 	void set_singleton();
@@ -113,7 +116,7 @@ private:
 	uint64_t mix_count;
 	uint64_t mix_frames;
 
-	float channel_disable_treshold_db;
+	float channel_disable_threshold_db;
 	uint32_t channel_disable_frames;
 
 	int to_mix;
@@ -124,6 +127,8 @@ private:
 		bool solo;
 		bool mute;
 		bool bypass;
+
+		bool soloed;
 
 		//Each channel is a stereo pair.
 		struct Channel {
@@ -215,6 +220,7 @@ public:
 
 	void set_bus_name(int p_bus, const String &p_name);
 	String get_bus_name(int p_bus) const;
+	int get_bus_index(const StringName &p_bus_name) const;
 
 	void set_bus_volume_db(int p_bus, float p_volume_db);
 	float get_bus_volume_db(int p_bus) const;

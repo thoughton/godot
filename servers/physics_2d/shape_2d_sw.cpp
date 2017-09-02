@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -28,6 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "shape_2d_sw.h"
+
 #include "geometry.h"
 #include "sort.h"
 
@@ -197,7 +198,7 @@ Variant RayShape2DSW::get_data() const {
 
 void SegmentShape2DSW::get_supports(const Vector2 &p_normal, Vector2 *r_supports, int &r_amount) const {
 
-	if (Math::abs(p_normal.dot(n)) > _SEGMENT_IS_VALID_SUPPORT_TRESHOLD) {
+	if (Math::abs(p_normal.dot(n)) > _SEGMENT_IS_VALID_SUPPORT_THRESHOLD) {
 		r_supports[0] = a;
 		r_supports[1] = b;
 		r_amount = 2;
@@ -337,7 +338,7 @@ void RectangleShape2DSW::get_supports(const Vector2 &p_normal, Vector2 *r_suppor
 		Vector2 ag;
 		ag[i] = 1.0;
 		real_t dp = ag.dot(p_normal);
-		if (Math::abs(dp) < _SEGMENT_IS_VALID_SUPPORT_TRESHOLD)
+		if (Math::abs(dp) < _SEGMENT_IS_VALID_SUPPORT_THRESHOLD)
 			continue;
 
 		real_t sgn = dp > 0 ? 1.0 : -1.0;
@@ -400,7 +401,7 @@ void CapsuleShape2DSW::get_supports(const Vector2 &p_normal, Vector2 *r_supports
 
 	real_t d = n.y;
 
-	if (Math::abs(d) < (1.0 - _SEGMENT_IS_VALID_SUPPORT_TRESHOLD)) {
+	if (Math::abs(d) < (1.0 - _SEGMENT_IS_VALID_SUPPORT_THRESHOLD)) {
 
 		// make it flat
 		n.y = 0.0;
@@ -547,7 +548,7 @@ void ConvexPolygonShape2DSW::get_supports(const Vector2 &p_normal, Vector2 *r_su
 		}
 
 		//test segment
-		if (points[i].normal.dot(p_normal) > _SEGMENT_IS_VALID_SUPPORT_TRESHOLD) {
+		if (points[i].normal.dot(p_normal) > _SEGMENT_IS_VALID_SUPPORT_THRESHOLD) {
 
 			r_amount = 2;
 			r_supports[0] = points[i].pos;

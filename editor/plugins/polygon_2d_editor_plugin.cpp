@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -220,7 +220,7 @@ bool Polygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 		Vector<Vector2> poly = Variant(node->get_polygon());
 
 		//first check if a point is to be added (segment split)
-		real_t grab_treshold = EDITOR_DEF("editors/poly_editor/point_grab_radius", 8);
+		real_t grab_threshold = EDITOR_DEF("editors/poly_editor/point_grab_radius", 8);
 
 		switch (mode) {
 
@@ -239,7 +239,7 @@ bool Polygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 						return true;
 					} else {
 
-						if (wip.size() > 1 && xform.xform(wip[0] + node->get_offset()).distance_to(gpoint) < grab_treshold) {
+						if (wip.size() > 1 && xform.xform(wip[0] + node->get_offset()).distance_to(gpoint) < grab_threshold) {
 							//wip closed
 							_wip_close();
 
@@ -293,7 +293,7 @@ bool Polygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 									continue; //not valid to reuse point
 
 								real_t d = cp.distance_to(gpoint);
-								if (d < closest_dist && d < grab_treshold) {
+								if (d < closest_dist && d < grab_threshold) {
 									closest_dist = d;
 									closest_pos = cp;
 									closest_idx = i;
@@ -322,7 +322,7 @@ bool Polygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 								Vector2 cp = xform.xform(poly[i] + node->get_offset());
 
 								real_t d = cp.distance_to(gpoint);
-								if (d < closest_dist && d < grab_treshold) {
+								if (d < closest_dist && d < grab_threshold) {
 									closest_dist = d;
 									closest_pos = cp;
 									closest_idx = i;
@@ -367,7 +367,7 @@ bool Polygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 						Vector2 cp = xform.xform(poly[i] + node->get_offset());
 
 						real_t d = cp.distance_to(gpoint);
-						if (d < closest_dist && d < grab_treshold) {
+						if (d < closest_dist && d < grab_threshold) {
 							closest_dist = d;
 							closest_pos = cp;
 							closest_idx = i;
@@ -402,6 +402,14 @@ bool Polygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 			cpoint = canvas_item_editor->snap_point(cpoint);
 			edited_point_pos = node->get_global_transform().affine_inverse().xform(cpoint);
 
+			if (!wip_active) {
+
+				Vector<Vector2> poly = Variant(node->get_polygon());
+				ERR_FAIL_INDEX_V(edited_point, poly.size(), false);
+				poly[edited_point] = edited_point_pos - node->get_offset();
+				node->set_polygon(Variant(poly));
+			}
+
 			canvas_item_editor->get_viewport_control()->update();
 		}
 	}
@@ -424,6 +432,23 @@ void Polygon2DEditor::_canvas_draw() {
 
 	Transform2D xform = canvas_item_editor->get_canvas_transform() * node->get_global_transform();
 	Ref<Texture> handle = get_icon("EditorHandle", "EditorIcons");
+
+	if (!wip_active && edited_point >= 0 && EDITOR_DEF("editors/poly_editor/show_previous_outline", true)) {
+
+		const Color col = node->get_color().contrasted();
+		const int n = pre_move_edit.size();
+		for (int i = 0; i < n; i++) {
+
+			Vector2 p, p2;
+			p = pre_move_edit[i] + node->get_offset();
+			p2 = pre_move_edit[(i + 1) % n] + node->get_offset();
+
+			Vector2 point = xform.xform(p);
+			Vector2 next_point = xform.xform(p2);
+
+			vpc->draw_line(point, next_point, col, 2);
+		}
+	}
 
 	for (int i = 0; i < poly.size(); i++) {
 
@@ -634,7 +659,7 @@ void Polygon2DEditor::_uv_draw() {
 
 	if (snap_show_grid) {
 		Size2 s = uv_edit_draw->get_size();
-		int last_cell;
+		int last_cell = 0;
 
 		if (snap_step.x != 0) {
 			for (int i = 0; i < s.width; i++) {
@@ -697,7 +722,11 @@ void Polygon2DEditor::edit(Node *p_collision_polygon) {
 
 	if (p_collision_polygon) {
 
-		node = p_collision_polygon->cast_to<Polygon2D>();
+		node = Object::cast_to<Polygon2D>(p_collision_polygon);
+		//Enable the pencil tool if the polygon is empty
+		if (node->get_polygon().size() == 0) {
+			_menu_option(MODE_CREATE);
+		}
 		if (!canvas_item_editor->get_viewport_control()->is_connected("draw", this, "_canvas_draw"))
 			canvas_item_editor->get_viewport_control()->connect("draw", this, "_canvas_draw");
 
@@ -769,17 +798,6 @@ Polygon2DEditor::Polygon2DEditor(EditorNode *p_editor) {
 	button_uv = memnew(ToolButton);
 	add_child(button_uv);
 	button_uv->connect("pressed", this, "_menu_option", varray(MODE_EDIT_UV));
-
-//add_constant_override("separation",0);
-
-#if 0
-	options = memnew( MenuButton );
-	add_child(options);
-	options->set_area_as_parent_rect();
-	options->set_text("Polygon");
-	//options->get_popup()->add_item("Parse BBCode",PARSE_BBCODE);
-	options->get_popup()->connect("id_pressed", this,"_menu_option");
-#endif
 
 	mode = MODE_EDIT;
 	wip_active = false;
@@ -925,7 +943,7 @@ Polygon2DEditor::Polygon2DEditor(EditorNode *p_editor) {
 
 void Polygon2DEditorPlugin::edit(Object *p_object) {
 
-	collision_polygon_editor->edit(p_object->cast_to<Node>());
+	collision_polygon_editor->edit(Object::cast_to<Node>(p_object));
 }
 
 bool Polygon2DEditorPlugin::handles(Object *p_object) const {

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -106,7 +106,7 @@ bool LightOccluder2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 	if (node->get_occluder_polygon().is_null()) {
 		Ref<InputEventMouseButton> mb = p_event;
 		if (mb.is_valid() && mb->get_button_index() == 1 && mb->is_pressed()) {
-			create_poly->set_text("No OccluderPolygon2D resource on this node.\nCreate and assign one?");
+			create_poly->set_text(TTR("No OccluderPolygon2D resource on this node.\nCreate and assign one?"));
 			create_poly->popup_centered_minsize();
 		}
 		return (mb.is_valid() && mb->get_button_index() == 1);
@@ -126,7 +126,7 @@ bool LightOccluder2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 		Vector<Vector2> poly = Variant(node->get_occluder_polygon()->get_polygon());
 
 		//first check if a point is to be added (segment split)
-		real_t grab_treshold = EDITOR_DEF("editors/poly_editor/point_grab_radius", 8);
+		real_t grab_threshold = EDITOR_DEF("editors/poly_editor/point_grab_radius", 8);
 
 		switch (mode) {
 
@@ -145,12 +145,12 @@ bool LightOccluder2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 						return true;
 					} else {
 
-						if (wip.size() > 1 && xform.xform(wip[0]).distance_to(gpoint) < grab_treshold) {
+						if (wip.size() > 1 && xform.xform(wip[0]).distance_to(gpoint) < grab_threshold) {
 							//wip closed
 							_wip_close(true);
 
 							return true;
-						} else if (wip.size() > 1 && xform.xform(wip[wip.size() - 1]).distance_to(gpoint) < grab_treshold) {
+						} else if (wip.size() > 1 && xform.xform(wip[wip.size() - 1]).distance_to(gpoint) < grab_threshold) {
 							//wip closed
 							_wip_close(false);
 							return true;
@@ -204,7 +204,7 @@ bool LightOccluder2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 									continue; //not valid to reuse point
 
 								real_t d = cp.distance_to(gpoint);
-								if (d < closest_dist && d < grab_treshold) {
+								if (d < closest_dist && d < grab_threshold) {
 									closest_dist = d;
 									closest_pos = cp;
 									closest_idx = i;
@@ -233,7 +233,7 @@ bool LightOccluder2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 								Vector2 cp = xform.xform(poly[i]);
 
 								real_t d = cp.distance_to(gpoint);
-								if (d < closest_dist && d < grab_treshold) {
+								if (d < closest_dist && d < grab_threshold) {
 									closest_dist = d;
 									closest_pos = cp;
 									closest_idx = i;
@@ -278,7 +278,7 @@ bool LightOccluder2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 						Vector2 cp = xform.xform(poly[i]);
 
 						real_t d = cp.distance_to(gpoint);
-						if (d < closest_dist && d < grab_treshold) {
+						if (d < closest_dist && d < grab_threshold) {
 							closest_dist = d;
 							closest_pos = cp;
 							closest_idx = i;
@@ -367,7 +367,7 @@ void LightOccluder2DEditor::edit(Node *p_collision_polygon) {
 
 	if (p_collision_polygon) {
 
-		node = p_collision_polygon->cast_to<LightOccluder2D>();
+		node = Object::cast_to<LightOccluder2D>(p_collision_polygon);
 		if (!canvas_item_editor->get_viewport_control()->is_connected("draw", this, "_canvas_draw"))
 			canvas_item_editor->get_viewport_control()->connect("draw", this, "_canvas_draw");
 		wip.clear();
@@ -424,24 +424,13 @@ LightOccluder2DEditor::LightOccluder2DEditor(EditorNode *p_editor) {
 	add_child(create_poly);
 	create_poly->get_ok()->set_text(TTR("Create"));
 
-//add_constant_override("separation",0);
-
-#if 0
-	options = memnew( MenuButton );
-	add_child(options);
-	options->set_area_as_parent_rect();
-	options->set_text("Polygon");
-	//options->get_popup()->add_item("Parse BBCode",PARSE_BBCODE);
-	options->get_popup()->connect("id_pressed", this,"_menu_option");
-#endif
-
 	mode = MODE_EDIT;
 	wip_active = false;
 }
 
 void LightOccluder2DEditorPlugin::edit(Object *p_object) {
 
-	collision_polygon_editor->edit(p_object->cast_to<Node>());
+	collision_polygon_editor->edit(Object::cast_to<Node>(p_object));
 }
 
 bool LightOccluder2DEditorPlugin::handles(Object *p_object) const {

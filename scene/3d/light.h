@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -38,8 +38,6 @@
 	@author Juan Linietsky <reduzio@gmail.com>
 */
 
-class BakedLight;
-
 class Light : public VisualInstance {
 
 	GDCLASS(Light, VisualInstance);
@@ -60,6 +58,7 @@ public:
 		PARAM_SHADOW_SPLIT_3_OFFSET = VS::LIGHT_PARAM_SHADOW_SPLIT_3_OFFSET,
 		PARAM_SHADOW_NORMAL_BIAS = VS::LIGHT_PARAM_SHADOW_NORMAL_BIAS,
 		PARAM_SHADOW_BIAS = VS::LIGHT_PARAM_SHADOW_BIAS,
+		PARAM_SHADOW_BIAS_SPLIT_SCALE = VS::LIGHT_PARAM_SHADOW_BIAS_SPLIT_SCALE,
 		PARAM_MAX = VS::LIGHT_PARAM_MAX
 	};
 
@@ -69,6 +68,7 @@ private:
 	Color shadow_color;
 	bool shadow;
 	bool negative;
+	bool reverse_cull;
 	uint32_t cull_mask;
 	VS::LightType type;
 	bool editor_only;
@@ -109,6 +109,9 @@ public:
 
 	void set_shadow_color(const Color &p_shadow_color);
 	Color get_shadow_color() const;
+
+	void set_shadow_reverse_cull_face(bool p_enable);
+	bool get_shadow_reverse_cull_face() const;
 
 	virtual Rect3 get_aabb() const;
 	virtual PoolVector<Face3> get_faces(uint32_t p_usage_flags) const;

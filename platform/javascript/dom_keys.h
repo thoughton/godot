@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -249,7 +249,7 @@ int dom2godot_scancode(int dom_keycode) {
 
 		case DOM_VK_RETURN:
 		case DOM_VK_ENTER: // unused according to MDN
-			return KEY_RETURN;
+			return KEY_ENTER;
 
 		case DOM_VK_SHIFT: return KEY_SHIFT;
 		case DOM_VK_CONTROL: return KEY_CONTROL;

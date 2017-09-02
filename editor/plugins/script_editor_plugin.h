@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -65,7 +65,7 @@ protected:
 	static void _bind_methods();
 
 public:
-	void popup(const Vector<String> &p_base, bool p_dontclear = false);
+	void popup(const Vector<String> &p_functions, bool p_dontclear = false);
 	ScriptEditorQuickOpen();
 };
 
@@ -115,9 +115,9 @@ typedef ScriptEditorBase *(*CreateScriptEditorFunc)(const Ref<Script> &p_script)
 
 class EditorScriptCodeCompletionCache;
 
-class ScriptEditor : public VBoxContainer {
+class ScriptEditor : public PanelContainer {
 
-	GDCLASS(ScriptEditor, VBoxContainer);
+	GDCLASS(ScriptEditor, PanelContainer);
 
 	EditorNode *editor;
 	enum {
@@ -131,9 +131,11 @@ class ScriptEditor : public VBoxContainer {
 		FILE_RELOAD_THEME,
 		FILE_SAVE_THEME,
 		FILE_SAVE_THEME_AS,
+		FILE_RUN,
 		FILE_CLOSE,
 		CLOSE_DOCS,
 		CLOSE_ALL,
+		TOGGLE_SCRIPTS_PANEL,
 		FILE_TOOL_RELOAD,
 		FILE_TOOL_RELOAD_SOFT,
 		DEBUG_NEXT,
@@ -222,14 +224,14 @@ class ScriptEditor : public VBoxContainer {
 	EditorHelpIndex *help_index;
 
 	void _tab_changed(int p_which);
-	void _menu_option(int p_optin);
+	void _menu_option(int p_option);
 
 	Tree *disk_changed_list;
 	ConfirmationDialog *disk_changed;
 
 	bool restoring_layout;
 
-	String _get_debug_tooltip(const String &p_text, Node *_ste);
+	String _get_debug_tooltip(const String &p_text, Node *_se);
 
 	void _resave_scripts(const String &p_str);
 	void _reload_scripts();
@@ -317,8 +319,12 @@ class ScriptEditor : public VBoxContainer {
 	void _update_script_colors();
 	void _update_modified_scripts_for_external_editor(Ref<Script> p_for_script = Ref<Script>());
 
+	void _script_changed();
 	int file_dialog_option;
 	void _file_dialog_action(String p_file);
+
+	Ref<Script> _get_current_script();
+	Array _get_open_scripts() const;
 
 	static void _open_script_request(const String &p_path);
 
@@ -339,13 +345,7 @@ public:
 	_FORCE_INLINE_ bool edit(const Ref<Script> &p_script, bool p_grab_focus = true) { return edit(p_script, -1, 0, p_grab_focus); }
 	bool edit(const Ref<Script> &p_script, int p_line, int p_col, bool p_grab_focus = true);
 
-	Dictionary get_state() const;
-	void set_state(const Dictionary &p_state);
-	void clear();
-
 	void get_breakpoints(List<String> *p_breakpoints);
-
-	//void swap_lines(TextEdit *tx, int line1, int line2);
 
 	void save_all_scripts();
 
@@ -353,10 +353,14 @@ public:
 	void get_window_layout(Ref<ConfigFile> p_layout);
 
 	void set_scene_root_script(Ref<Script> p_script);
+	Vector<Ref<Script> > get_open_scripts() const;
 
 	bool script_goto_method(Ref<Script> p_script, const String &p_method);
 
 	virtual void edited_scene_changed();
+
+	void notify_script_close(const Ref<Script> &p_script);
+	void notify_script_changed(const Ref<Script> &p_script);
 
 	void close_builtin_scripts_from_scene(const String &p_scene);
 
@@ -384,14 +388,10 @@ class ScriptEditorPlugin : public EditorPlugin {
 public:
 	virtual String get_name() const { return "Script"; }
 	bool has_main_screen() const { return true; }
-	virtual void edit(Object *p_node);
-	virtual bool handles(Object *p_node) const;
+	virtual void edit(Object *p_object);
+	virtual bool handles(Object *p_object) const;
 	virtual void make_visible(bool p_visible);
 	virtual void selected_notify();
-
-	Dictionary get_state() const;
-	virtual void set_state(const Dictionary &p_state);
-	virtual void clear();
 
 	virtual void save_external_data();
 	virtual void apply_changes();

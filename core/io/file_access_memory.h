@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -62,7 +62,7 @@ public:
 
 	virtual Error get_error() const; ///< get last error
 
-	virtual void store_8(uint8_t p_dest); ///< store a byte
+	virtual void store_8(uint8_t p_byte); ///< store a byte
 	virtual void store_buffer(const uint8_t *p_src, int p_length); ///< store an array of bytes
 
 	virtual bool file_exists(const String &p_name); ///< return true if a file exists

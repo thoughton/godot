@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -208,8 +208,7 @@ Transform::operator String() const {
 	return basis.operator String() + " - " + origin.operator String();
 }
 
-Transform::Transform(const Basis &p_basis, const Vector3 &p_origin) {
-
-	basis = p_basis;
-	origin = p_origin;
+Transform::Transform(const Basis &p_basis, const Vector3 &p_origin)
+	: basis(p_basis),
+	  origin(p_origin) {
 }

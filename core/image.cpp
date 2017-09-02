@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -343,6 +343,11 @@ int Image::get_height() const {
 	return height;
 }
 
+Vector2 Image::get_size() const {
+
+	return Vector2(width, height);
+}
+
 bool Image::has_mipmaps() const {
 
 	return mipmaps;
@@ -423,7 +428,7 @@ void Image::convert(Format p_new_format) {
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
 
-				new_img.put_pixel(i, j, get_pixel(i, j));
+				new_img.set_pixel(i, j, get_pixel(i, j));
 			}
 		}
 
@@ -676,8 +681,8 @@ void Image::resize_to_po2(bool p_square) {
 		ERR_FAIL();
 	}
 
-	int w = nearest_power_of_2(width);
-	int h = nearest_power_of_2(height);
+	int w = next_power_of_2(width);
+	int h = next_power_of_2(height);
 
 	if (w == width && h == height) {
 
@@ -1060,7 +1065,7 @@ Error Image::generate_mipmaps() {
 
 	PoolVector<uint8_t>::Write wp = data.write();
 
-	if (nearest_power_of_2(width) == uint32_t(width) && nearest_power_of_2(height) == uint32_t(height)) {
+	if (next_power_of_2(width) == uint32_t(width) && next_power_of_2(height) == uint32_t(height)) {
 		//use fast code for powers of 2
 		int prev_ofs = 0;
 		int prev_h = height;
@@ -1251,9 +1256,9 @@ void Image::create(const char **p_xpm) {
 
 					if (*line_ptr == '#') {
 						line_ptr++;
-						uint8_t col_r;
-						uint8_t col_g;
-						uint8_t col_b;
+						uint8_t col_r = 0;
+						uint8_t col_g = 0;
+						uint8_t col_b = 0;
 						//uint8_t col_a=255;
 
 						for (int i = 0; i < 6; i++) {
@@ -1325,19 +1330,19 @@ void Image::create(const char **p_xpm) {
 		line++;
 	}
 }
-#define DETECT_ALPHA_MAX_TRESHOLD 254
-#define DETECT_ALPHA_MIN_TRESHOLD 2
+#define DETECT_ALPHA_MAX_THRESHOLD 254
+#define DETECT_ALPHA_MIN_THRESHOLD 2
 
-#define DETECT_ALPHA(m_value)                         \
-	{                                                 \
-		uint8_t value = m_value;                      \
-		if (value < DETECT_ALPHA_MIN_TRESHOLD)        \
-			bit = true;                               \
-		else if (value < DETECT_ALPHA_MAX_TRESHOLD) { \
-                                                      \
-			detected = true;                          \
-			break;                                    \
-		}                                             \
+#define DETECT_ALPHA(m_value)                          \
+	{                                                  \
+		uint8_t value = m_value;                       \
+		if (value < DETECT_ALPHA_MIN_THRESHOLD)        \
+			bit = true;                                \
+		else if (value < DETECT_ALPHA_MAX_THRESHOLD) { \
+                                                       \
+			detected = true;                           \
+			break;                                     \
+		}                                              \
 	}
 
 #define DETECT_NON_ALPHA(m_value) \
@@ -1673,7 +1678,7 @@ void Image::blit_rect_mask(const Ref<Image> &p_src, const Ref<Image> &p_mask, co
 	const uint8_t *src_data_ptr = rp.ptr();
 
 	int pixel_size = get_format_pixel_size(format);
-	
+
 	Ref<Image> msk = p_mask;
 	msk->lock();
 
@@ -1683,7 +1688,7 @@ void Image::blit_rect_mask(const Ref<Image> &p_src, const Ref<Image> &p_mask, co
 
 			int src_x = clipped_src_rect.position.x + j;
 			int src_y = clipped_src_rect.position.y + i;
-			
+
 			if (msk->get_pixel(src_x, src_y).a != 0) {
 
 				int dst_x = dest_rect.position.x + j;
@@ -1737,7 +1742,7 @@ void Image::blend_rect(const Ref<Image> &p_src, const Rect2 &p_src_rect, const P
 			dc.g = (double)(sc.a * sc.g + dc.a * (1.0 - sc.a) * dc.g);
 			dc.b = (double)(sc.a * sc.b + dc.a * (1.0 - sc.a) * dc.b);
 			dc.a = (double)(sc.a + dc.a * (1.0 - sc.a));
-			put_pixel(dst_x, dst_y, dc);
+			set_pixel(dst_x, dst_y, dc);
 		}
 	}
 
@@ -1792,7 +1797,7 @@ void Image::blend_rect_mask(const Ref<Image> &p_src, const Ref<Image> &p_mask, c
 				dc.g = (double)(sc.a * sc.g + dc.a * (1.0 - sc.a) * dc.g);
 				dc.b = (double)(sc.a * sc.b + dc.a * (1.0 - sc.a) * dc.b);
 				dc.a = (double)(sc.a + dc.a * (1.0 - sc.a));
-				put_pixel(dst_x, dst_y, dc);
+				set_pixel(dst_x, dst_y, dc);
 			}
 		}
 	}
@@ -1812,7 +1817,7 @@ void Image::fill(const Color &c) {
 	int pixel_size = get_format_pixel_size(format);
 
 	// put first pixel with the format-aware API
-	put_pixel(0, 0, c);
+	set_pixel(0, 0, c);
 
 	for (int y = 0; y < height; y++) {
 
@@ -2041,12 +2046,12 @@ Color Image::get_pixel(int p_x, int p_y) const {
 	return Color();
 }
 
-void Image::put_pixel(int p_x, int p_y, const Color &p_color) {
+void Image::set_pixel(int p_x, int p_y, const Color &p_color) {
 
 	uint8_t *ptr = write_lock.ptr();
 #ifdef DEBUG_ENABLED
 	if (!ptr) {
-		ERR_EXPLAIN("Image must be locked with 'lock()' before using put_pixel()");
+		ERR_EXPLAIN("Image must be locked with 'lock()' before using set_pixel()");
 		ERR_FAIL_COND(!ptr);
 	}
 
@@ -2160,7 +2165,7 @@ void Image::put_pixel(int p_x, int p_y, const Color &p_color) {
 
 		} break;
 		default: {
-			ERR_EXPLAIN("Can't put_pixel() on compressed image, sorry.");
+			ERR_EXPLAIN("Can't set_pixel() on compressed image, sorry.");
 			ERR_FAIL();
 		}
 	}
@@ -2215,6 +2220,7 @@ void Image::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_width"), &Image::get_width);
 	ClassDB::bind_method(D_METHOD("get_height"), &Image::get_height);
+	ClassDB::bind_method(D_METHOD("get_size"), &Image::get_size);
 	ClassDB::bind_method(D_METHOD("has_mipmaps"), &Image::has_mipmaps);
 	ClassDB::bind_method(D_METHOD("get_format"), &Image::get_format);
 	ClassDB::bind_method(D_METHOD("get_data"), &Image::get_data);
@@ -2245,7 +2251,7 @@ void Image::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("detect_alpha"), &Image::detect_alpha);
 	ClassDB::bind_method(D_METHOD("is_invisible"), &Image::is_invisible);
 
-	ClassDB::bind_method(D_METHOD("compress", "mode"), &Image::compress);
+	ClassDB::bind_method(D_METHOD("compress", "mode", "source", "lossy_quality"), &Image::compress);
 	ClassDB::bind_method(D_METHOD("decompress"), &Image::decompress);
 	ClassDB::bind_method(D_METHOD("is_compressed"), &Image::is_compressed);
 
@@ -2254,83 +2260,83 @@ void Image::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("srgb_to_linear"), &Image::srgb_to_linear);
 	ClassDB::bind_method(D_METHOD("normalmap_to_xy"), &Image::normalmap_to_xy);
 
-	ClassDB::bind_method(D_METHOD("blit_rect", "src:Image", "src_rect", "dst"), &Image::blit_rect);
-	ClassDB::bind_method(D_METHOD("blit_rect_mask", "src:Image", "mask:Image", "src_rect", "dst"), &Image::blit_rect_mask);
-	ClassDB::bind_method(D_METHOD("blend_rect", "src:Image", "src_rect", "dst"), &Image::blend_rect);
-	ClassDB::bind_method(D_METHOD("blend_rect_mask", "src:Image", "mask:Image", "src_rect", "dst"), &Image::blend_rect_mask);
+	ClassDB::bind_method(D_METHOD("blit_rect", "src", "src_rect", "dst"), &Image::blit_rect);
+	ClassDB::bind_method(D_METHOD("blit_rect_mask", "src", "mask", "src_rect", "dst"), &Image::blit_rect_mask);
+	ClassDB::bind_method(D_METHOD("blend_rect", "src", "src_rect", "dst"), &Image::blend_rect);
+	ClassDB::bind_method(D_METHOD("blend_rect_mask", "src", "mask", "src_rect", "dst"), &Image::blend_rect_mask);
 	ClassDB::bind_method(D_METHOD("fill", "color"), &Image::fill);
 
 	ClassDB::bind_method(D_METHOD("get_used_rect"), &Image::get_used_rect);
-	ClassDB::bind_method(D_METHOD("get_rect:Image", "rect"), &Image::get_rect);
+	ClassDB::bind_method(D_METHOD("get_rect", "rect"), &Image::get_rect);
 
-	ClassDB::bind_method(D_METHOD("copy_from", "src:Image"), &Image::copy_internals_from);
+	ClassDB::bind_method(D_METHOD("copy_from", "src"), &Image::copy_internals_from);
 
 	ClassDB::bind_method(D_METHOD("_set_data", "data"), &Image::_set_data);
 	ClassDB::bind_method(D_METHOD("_get_data"), &Image::_get_data);
 
 	ClassDB::bind_method(D_METHOD("lock"), &Image::lock);
 	ClassDB::bind_method(D_METHOD("unlock"), &Image::unlock);
-	ClassDB::bind_method(D_METHOD("put_pixel", "x", "y", "color"), &Image::put_pixel);
+	ClassDB::bind_method(D_METHOD("set_pixel", "x", "y", "color"), &Image::set_pixel);
 	ClassDB::bind_method(D_METHOD("get_pixel", "x", "y"), &Image::get_pixel);
 
 	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "_set_data", "_get_data");
 
-	BIND_CONSTANT(FORMAT_L8); //luminance
-	BIND_CONSTANT(FORMAT_LA8); //luminance-alpha
-	BIND_CONSTANT(FORMAT_R8);
-	BIND_CONSTANT(FORMAT_RG8);
-	BIND_CONSTANT(FORMAT_RGB8);
-	BIND_CONSTANT(FORMAT_RGBA8);
-	BIND_CONSTANT(FORMAT_RGBA4444);
-	BIND_CONSTANT(FORMAT_RGBA5551);
-	BIND_CONSTANT(FORMAT_RF); //float
-	BIND_CONSTANT(FORMAT_RGF);
-	BIND_CONSTANT(FORMAT_RGBF);
-	BIND_CONSTANT(FORMAT_RGBAF);
-	BIND_CONSTANT(FORMAT_RH); //half float
-	BIND_CONSTANT(FORMAT_RGH);
-	BIND_CONSTANT(FORMAT_RGBH);
-	BIND_CONSTANT(FORMAT_RGBAH);
-	BIND_CONSTANT(FORMAT_RGBE9995);
-	BIND_CONSTANT(FORMAT_DXT1); //s3tc bc1
-	BIND_CONSTANT(FORMAT_DXT3); //bc2
-	BIND_CONSTANT(FORMAT_DXT5); //bc3
-	BIND_CONSTANT(FORMAT_RGTC_R);
-	BIND_CONSTANT(FORMAT_RGTC_RG);
-	BIND_CONSTANT(FORMAT_BPTC_RGBA); //btpc bc6h
-	BIND_CONSTANT(FORMAT_BPTC_RGBF); //float /
-	BIND_CONSTANT(FORMAT_BPTC_RGBFU); //unsigned float
-	BIND_CONSTANT(FORMAT_PVRTC2); //pvrtc
-	BIND_CONSTANT(FORMAT_PVRTC2A);
-	BIND_CONSTANT(FORMAT_PVRTC4);
-	BIND_CONSTANT(FORMAT_PVRTC4A);
-	BIND_CONSTANT(FORMAT_ETC); //etc1
-	BIND_CONSTANT(FORMAT_ETC2_R11); //etc2
-	BIND_CONSTANT(FORMAT_ETC2_R11S); //signed ); NOT srgb.
-	BIND_CONSTANT(FORMAT_ETC2_RG11);
-	BIND_CONSTANT(FORMAT_ETC2_RG11S);
-	BIND_CONSTANT(FORMAT_ETC2_RGB8);
-	BIND_CONSTANT(FORMAT_ETC2_RGBA8);
-	BIND_CONSTANT(FORMAT_ETC2_RGB8A1);
-	BIND_CONSTANT(FORMAT_MAX);
+	BIND_ENUM_CONSTANT(FORMAT_L8); //luminance
+	BIND_ENUM_CONSTANT(FORMAT_LA8); //luminance-alpha
+	BIND_ENUM_CONSTANT(FORMAT_R8);
+	BIND_ENUM_CONSTANT(FORMAT_RG8);
+	BIND_ENUM_CONSTANT(FORMAT_RGB8);
+	BIND_ENUM_CONSTANT(FORMAT_RGBA8);
+	BIND_ENUM_CONSTANT(FORMAT_RGBA4444);
+	BIND_ENUM_CONSTANT(FORMAT_RGBA5551);
+	BIND_ENUM_CONSTANT(FORMAT_RF); //float
+	BIND_ENUM_CONSTANT(FORMAT_RGF);
+	BIND_ENUM_CONSTANT(FORMAT_RGBF);
+	BIND_ENUM_CONSTANT(FORMAT_RGBAF);
+	BIND_ENUM_CONSTANT(FORMAT_RH); //half float
+	BIND_ENUM_CONSTANT(FORMAT_RGH);
+	BIND_ENUM_CONSTANT(FORMAT_RGBH);
+	BIND_ENUM_CONSTANT(FORMAT_RGBAH);
+	BIND_ENUM_CONSTANT(FORMAT_RGBE9995);
+	BIND_ENUM_CONSTANT(FORMAT_DXT1); //s3tc bc1
+	BIND_ENUM_CONSTANT(FORMAT_DXT3); //bc2
+	BIND_ENUM_CONSTANT(FORMAT_DXT5); //bc3
+	BIND_ENUM_CONSTANT(FORMAT_RGTC_R);
+	BIND_ENUM_CONSTANT(FORMAT_RGTC_RG);
+	BIND_ENUM_CONSTANT(FORMAT_BPTC_RGBA); //btpc bc6h
+	BIND_ENUM_CONSTANT(FORMAT_BPTC_RGBF); //float /
+	BIND_ENUM_CONSTANT(FORMAT_BPTC_RGBFU); //unsigned float
+	BIND_ENUM_CONSTANT(FORMAT_PVRTC2); //pvrtc
+	BIND_ENUM_CONSTANT(FORMAT_PVRTC2A);
+	BIND_ENUM_CONSTANT(FORMAT_PVRTC4);
+	BIND_ENUM_CONSTANT(FORMAT_PVRTC4A);
+	BIND_ENUM_CONSTANT(FORMAT_ETC); //etc1
+	BIND_ENUM_CONSTANT(FORMAT_ETC2_R11); //etc2
+	BIND_ENUM_CONSTANT(FORMAT_ETC2_R11S); //signed ); NOT srgb.
+	BIND_ENUM_CONSTANT(FORMAT_ETC2_RG11);
+	BIND_ENUM_CONSTANT(FORMAT_ETC2_RG11S);
+	BIND_ENUM_CONSTANT(FORMAT_ETC2_RGB8);
+	BIND_ENUM_CONSTANT(FORMAT_ETC2_RGBA8);
+	BIND_ENUM_CONSTANT(FORMAT_ETC2_RGB8A1);
+	BIND_ENUM_CONSTANT(FORMAT_MAX);
 
-	BIND_CONSTANT(INTERPOLATE_NEAREST);
-	BIND_CONSTANT(INTERPOLATE_BILINEAR);
-	BIND_CONSTANT(INTERPOLATE_CUBIC);
+	BIND_ENUM_CONSTANT(INTERPOLATE_NEAREST);
+	BIND_ENUM_CONSTANT(INTERPOLATE_BILINEAR);
+	BIND_ENUM_CONSTANT(INTERPOLATE_CUBIC);
 
-	BIND_CONSTANT(ALPHA_NONE);
-	BIND_CONSTANT(ALPHA_BIT);
-	BIND_CONSTANT(ALPHA_BLEND);
+	BIND_ENUM_CONSTANT(ALPHA_NONE);
+	BIND_ENUM_CONSTANT(ALPHA_BIT);
+	BIND_ENUM_CONSTANT(ALPHA_BLEND);
 
-	BIND_CONSTANT(COMPRESS_S3TC);
-	BIND_CONSTANT(COMPRESS_PVRTC2);
-	BIND_CONSTANT(COMPRESS_PVRTC4);
-	BIND_CONSTANT(COMPRESS_ETC);
-	BIND_CONSTANT(COMPRESS_ETC2);
+	BIND_ENUM_CONSTANT(COMPRESS_S3TC);
+	BIND_ENUM_CONSTANT(COMPRESS_PVRTC2);
+	BIND_ENUM_CONSTANT(COMPRESS_PVRTC4);
+	BIND_ENUM_CONSTANT(COMPRESS_ETC);
+	BIND_ENUM_CONSTANT(COMPRESS_ETC2);
 
-	BIND_CONSTANT(COMPRESS_SOURCE_GENERIC);
-	BIND_CONSTANT(COMPRESS_SOURCE_SRGB);
-	BIND_CONSTANT(COMPRESS_SOURCE_NORMAL);
+	BIND_ENUM_CONSTANT(COMPRESS_SOURCE_GENERIC);
+	BIND_ENUM_CONSTANT(COMPRESS_SOURCE_SRGB);
+	BIND_ENUM_CONSTANT(COMPRESS_SOURCE_NORMAL);
 }
 
 void Image::set_compress_bc_func(void (*p_compress_func)(Image *, CompressSource)) {
@@ -2434,7 +2440,7 @@ void Image::fix_alpha_edges() {
 	unsigned char *data_ptr = wp.ptr();
 
 	const int max_radius = 4;
-	const int alpha_treshold = 20;
+	const int alpha_threshold = 20;
 	const int max_dist = 0x7FFFFFFF;
 
 	for (int i = 0; i < height; i++) {
@@ -2443,7 +2449,7 @@ void Image::fix_alpha_edges() {
 			const uint8_t *rptr = &srcptr[(i * width + j) * 4];
 			uint8_t *wptr = &data_ptr[(i * width + j) * 4];
 
-			if (rptr[3] >= alpha_treshold)
+			if (rptr[3] >= alpha_threshold)
 				continue;
 
 			int closest_dist = max_dist;
@@ -2465,7 +2471,7 @@ void Image::fix_alpha_edges() {
 
 					const uint8_t *rp = &srcptr[(k * width + l) << 2];
 
-					if (rp[3] < alpha_treshold)
+					if (rp[3] < alpha_threshold)
 						continue;
 
 					closest_color[0] = rp[0];

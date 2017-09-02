@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -29,14 +29,13 @@
 /*************************************************************************/
 #include "editor_preview_plugins.h"
 
+#include "editor/editor_scale.h"
 #include "editor/editor_settings.h"
 #include "io/file_access_memory.h"
 #include "io/resource_loader.h"
 #include "os/os.h"
-#include "scene/resources/material.h"
-//#include "scene/resources/sample.h"
-#include "editor/editor_scale.h"
 #include "scene/resources/bit_mask.h"
+#include "scene/resources/material.h"
 #include "scene/resources/mesh.h"
 
 bool EditorTexturePreviewPlugin::handles(const String &p_type) const {
@@ -186,7 +185,7 @@ Ref<Texture> EditorPackedScenePreviewPlugin::generate(const RES &p_from) {
 Ref<Texture> EditorPackedScenePreviewPlugin::generate_from_path(const String &p_path) {
 
 	String temp_path = EditorSettings::get_singleton()->get_settings_path().plus_file("tmp");
-	String cache_base = GlobalConfig::get_singleton()->globalize_path(p_path).md5_text();
+	String cache_base = ProjectSettings::get_singleton()->globalize_path(p_path).md5_text();
 	cache_base = temp_path.plus_file("resthumb-" + cache_base);
 
 	//does not have it, try to load a cached thumbnail
@@ -239,7 +238,6 @@ Ref<Texture> EditorMaterialPreviewPlugin::generate(const RES &p_from) {
 	VS::get_singleton()->mesh_surface_set_material(sphere, 0, material->get_rid());
 
 	VS::get_singleton()->viewport_set_update_mode(viewport, VS::VIEWPORT_UPDATE_ONCE); //once used for capture
-	//print_line("queue capture!");
 
 	preview_done = false;
 	VS::get_singleton()->request_frame_drawn_callback(this, "_preview_done", Variant());
@@ -431,7 +429,7 @@ Ref<Texture> EditorScriptPreviewPlugin::generate(const RES &p_from) {
 
 	for (int i = 0; i < thumbnail_size; i++) {
 		for (int j = 0; j < thumbnail_size; j++) {
-			img->put_pixel(i, j, bg_color);
+			img->set_pixel(i, j, bg_color);
 		}
 	}
 
@@ -454,9 +452,7 @@ Ref<Texture> EditorScriptPreviewPlugin::generate(const RES &p_from) {
 					while (_is_text_char(code[pos])) {
 						pos++;
 					}
-					///print_line("from "+itos(i)+" to "+itos(pos));
 					String word = code.substr(i, pos - i);
-					//print_line("found word: "+word);
 					if (keywords.has(word))
 						in_keyword = true;
 
@@ -469,8 +465,8 @@ Ref<Texture> EditorScriptPreviewPlugin::generate(const RES &p_from) {
 
 				Color ul = color;
 				ul.a *= 0.5;
-				img->put_pixel(col, line * 2, bg_color.blend(ul));
-				img->put_pixel(col, line * 2 + 1, color);
+				img->set_pixel(col, line * 2, bg_color.blend(ul));
+				img->set_pixel(col, line * 2 + 1, color);
 
 				prev_is_text = _is_text_char(c);
 			}
@@ -502,6 +498,8 @@ Ref<Texture> EditorScriptPreviewPlugin::generate(const RES &p_from) {
 EditorScriptPreviewPlugin::EditorScriptPreviewPlugin() {
 }
 ///////////////////////////////////////////////////////////////////
+
+// FIXME: Needs to be rewritten for AudioStream in Godot 3.0+
 #if 0
 bool EditorSamplePreviewPlugin::handles(const String& p_type) const {
 
@@ -766,10 +764,9 @@ Ref<Texture> EditorSamplePreviewPlugin::generate(const RES& p_from) {
 }
 
 EditorSamplePreviewPlugin::EditorSamplePreviewPlugin() {
-
-
 }
 #endif
+
 ///////////////////////////////////////////////////////////////////////////
 
 void EditorMeshPreviewPlugin::_preview_done(const Variant &p_udata) {
@@ -788,14 +785,12 @@ bool EditorMeshPreviewPlugin::handles(const String &p_type) const {
 
 Ref<Texture> EditorMeshPreviewPlugin::generate(const RES &p_from) {
 
-	print_line("**Generating for mesh finally??");
 	Ref<Mesh> mesh = p_from;
 	ERR_FAIL_COND_V(mesh.is_null(), Ref<Texture>());
 
 	VS::get_singleton()->instance_set_base(mesh_instance, mesh->get_rid());
 
 	Rect3 aabb = mesh->get_aabb();
-	print_line("mesh aabb: " + aabb);
 	Vector3 ofs = aabb.position + aabb.size * 0.5;
 	aabb.position -= ofs;
 	Transform xform;
@@ -807,14 +802,12 @@ Ref<Texture> EditorMeshPreviewPlugin::generate(const RES &p_from) {
 		return Ref<Texture>();
 	m = 1.0 / m;
 	m *= 0.5;
-	//print_line("scale: "+rtos(m));
 	xform.basis.scale(Vector3(m, m, m));
 	xform.origin = -xform.basis.xform(ofs); //-ofs*m;
 	xform.origin.z -= rot_aabb.size.z * 2;
 	VS::get_singleton()->instance_set_transform(mesh_instance, xform);
 
 	VS::get_singleton()->viewport_set_update_mode(viewport, VS::VIEWPORT_UPDATE_ONCE); //once used for capture
-	//print_line("queue capture!");
 
 	preview_done = false;
 	VS::get_singleton()->request_frame_drawn_callback(this, "_preview_done", Variant());
@@ -826,7 +819,6 @@ Ref<Texture> EditorMeshPreviewPlugin::generate(const RES &p_from) {
 	Ref<Image> img = VS::get_singleton()->VS::get_singleton()->texture_get_data(viewport_texture);
 	ERR_FAIL_COND_V(img.is_null(), Ref<ImageTexture>());
 
-	print_line("captured! " + itos(img->get_width()) + "x" + itos(img->get_height()));
 	VS::get_singleton()->instance_set_base(mesh_instance, RID());
 
 	int thumbnail_size = EditorSettings::get_singleton()->get("filesystem/file_dialog/thumbnail_size");

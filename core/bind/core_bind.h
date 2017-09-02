@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -85,6 +85,8 @@ public:
 	_ResourceSaver();
 };
 
+VARIANT_ENUM_CAST(_ResourceSaver::SaverFlags);
+
 class MainLoop;
 
 class _OS : public Object {
@@ -138,9 +140,9 @@ public:
 	virtual int get_screen_count() const;
 	virtual int get_current_screen() const;
 	virtual void set_current_screen(int p_screen);
-	virtual Point2 get_screen_position(int p_screen = 0) const;
-	virtual Size2 get_screen_size(int p_screen = 0) const;
-	virtual int get_screen_dpi(int p_screen = 0) const;
+	virtual Point2 get_screen_position(int p_screen = -1) const;
+	virtual Size2 get_screen_size(int p_screen = -1) const;
+	virtual int get_screen_dpi(int p_screen = -1) const;
 	virtual Point2 get_window_position() const;
 	virtual void set_window_position(const Point2 &p_position);
 	virtual Size2 get_window_size() const;
@@ -158,6 +160,8 @@ public:
 	virtual void set_borderless_window(bool p_borderless);
 	virtual bool get_borderless_window() const;
 
+	virtual void set_ime_position(const Point2 &p_pos);
+
 	Error native_video_play(String p_path, float p_volume, String p_audio_track, String p_subtitle_track);
 	bool native_video_is_playing();
 	void native_video_pause();
@@ -173,7 +177,7 @@ public:
 	Error kill(int p_pid);
 	Error shell_open(String p_uri);
 
-	int get_process_ID() const;
+	int get_process_id() const;
 
 	bool has_environment(const String &p_var) const;
 	String get_environment(const String &p_var) const;
@@ -202,7 +206,7 @@ public:
 
 	bool is_debug_build() const;
 
-	String get_unique_ID() const;
+	String get_unique_id() const;
 
 	String get_scancode_string(uint32_t p_code) const;
 	bool is_scancode_unicode(uint32_t p_unicode) const;
@@ -308,6 +312,8 @@ public:
 	_OS();
 };
 
+VARIANT_ENUM_CAST(_OS::Weekday);
+VARIANT_ENUM_CAST(_OS::Month);
 VARIANT_ENUM_CAST(_OS::SystemDir);
 VARIANT_ENUM_CAST(_OS::ScreenOrientation);
 
@@ -370,7 +376,8 @@ public:
 	enum CompressionMode {
 		COMPRESSION_FASTLZ = Compression::MODE_FASTLZ,
 		COMPRESSION_DEFLATE = Compression::MODE_DEFLATE,
-		COMPRESSION_ZSTD = Compression::MODE_ZSTD
+		COMPRESSION_ZSTD = Compression::MODE_ZSTD,
+		COMPRESSION_GZIP = Compression::MODE_GZIP
 	};
 
 	Error open_encrypted(const String &p_path, int p_mode_flags, const Vector<uint8_t> &p_key);
@@ -444,6 +451,9 @@ public:
 	virtual ~_File();
 };
 
+VARIANT_ENUM_CAST(_File::ModeFlags);
+VARIANT_ENUM_CAST(_File::CompressionMode);
+
 class _Directory : public Reference {
 
 	GDCLASS(_Directory, Reference);
@@ -455,7 +465,7 @@ protected:
 public:
 	Error open(const String &p_path);
 
-	Error list_dir_begin(bool p_skip_internal = false, bool p_skip_hidden = false); ///< This starts dir listing
+	Error list_dir_begin(bool p_skip_navigational = false, bool p_skip_hidden = false); ///< This starts dir listing
 	String get_next();
 	bool current_is_dir() const;
 
@@ -575,6 +585,8 @@ public:
 	~_Thread();
 };
 
+VARIANT_ENUM_CAST(_Thread::Priority);
+
 class _ClassDB : public Object {
 
 	GDCLASS(_ClassDB, Object)
@@ -636,13 +648,14 @@ public:
 	void set_time_scale(float p_scale);
 	float get_time_scale();
 
-	String get_custom_level() const;
-
 	MainLoop *get_main_loop() const;
 
 	Dictionary get_version_info() const;
 
 	bool is_in_fixed_frame() const;
+
+	void set_editor_hint(bool p_enabled);
+	bool is_editor_hint() const;
 
 	_Engine();
 };

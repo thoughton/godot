@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -194,6 +194,7 @@ public:
 	_FORCE_INLINE_ void add_constraint(ConstraintSW *p_constraint, int p_pos) { constraint_map[p_constraint] = p_pos; }
 	_FORCE_INLINE_ void remove_constraint(ConstraintSW *p_constraint) { constraint_map.erase(p_constraint); }
 	const Map<ConstraintSW *, int> &get_constraint_map() const { return constraint_map; }
+	_FORCE_INLINE_ void clear_constraint_map() { constraint_map.clear(); }
 
 	_FORCE_INLINE_ void set_omit_force_integration(bool p_omit_force_integration) { omit_force_integration = p_omit_force_integration; }
 	_FORCE_INLINE_ bool get_omit_force_integration() const { return omit_force_integration; }

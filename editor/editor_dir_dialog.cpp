@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -112,19 +112,19 @@ void EditorDirDialog::_notification(int p_what) {
 	}
 }
 
-void EditorDirDialog::_item_collapsed(Object *_p_item) {
+void EditorDirDialog::_item_collapsed(Object *p_item) {
 
-	TreeItem *p_item = _p_item->cast_to<TreeItem>();
+	TreeItem *item = Object::cast_to<TreeItem>(p_item);
 
-	if (updating || p_item->is_collapsed())
+	if (updating || item->is_collapsed())
 		return;
 
-	TreeItem *ci = p_item->get_children();
+	TreeItem *ci = item->get_children();
 	while (ci) {
 
 		String p = ci->get_metadata(0);
 		if (p == "") {
-			String pp = p_item->get_metadata(0);
+			String pp = item->get_metadata(0);
 			ci->set_metadata(0, pp.plus_file(ci->get_text(0)));
 			_update_dir(ci);
 		}
@@ -184,7 +184,7 @@ void EditorDirDialog::_make_dir() {
 
 	TreeItem *ti = tree->get_selected();
 	if (!ti) {
-		mkdirerr->set_text("Please select a base directory first");
+		mkdirerr->set_text(TTR("Please select a base directory first"));
 		mkdirerr->popup_centered_minsize();
 		return;
 	}

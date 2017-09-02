@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -236,7 +236,7 @@ public:
 	virtual void move_window_to_foreground();
 	virtual String get_data_dir() const;
 
-	virtual bool check_feature_support(const String &p_feature);
+	virtual bool _check_internal_feature_support(const String &p_feature);
 
 	void set_gl_context(ContextEGL *p_context);
 	void screen_size_changed();

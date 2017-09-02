@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -64,9 +64,9 @@ private:
 		Rect3 aabb_cache; //for rayqueries
 		real_t area_cache;
 		ShapeSW *shape;
-		bool trigger;
+		bool disabled;
 
-		Shape() { trigger = false; }
+		Shape() { disabled = false; }
 	};
 
 	Vector<Shape> shapes;
@@ -98,7 +98,7 @@ protected:
 	void _set_static(bool p_static);
 
 	virtual void _shapes_changed() = 0;
-	void _set_space(SpaceSW *space);
+	void _set_space(SpaceSW *p_space);
 
 	bool ray_pickable;
 
@@ -131,8 +131,8 @@ public:
 	_FORCE_INLINE_ void set_ray_pickable(bool p_enable) { ray_pickable = p_enable; }
 	_FORCE_INLINE_ bool is_ray_pickable() const { return ray_pickable; }
 
-	_FORCE_INLINE_ void set_shape_as_trigger(int p_idx, bool p_enable) { shapes[p_idx].trigger = p_enable; }
-	_FORCE_INLINE_ bool is_shape_set_as_trigger(int p_idx) const { return shapes[p_idx].trigger; }
+	_FORCE_INLINE_ void set_shape_as_disabled(int p_idx, bool p_enable) { shapes[p_idx].disabled = p_enable; }
+	_FORCE_INLINE_ bool is_shape_set_as_disabled(int p_idx) const { return shapes[p_idx].disabled; }
 
 	_FORCE_INLINE_ void set_collision_layer(uint32_t p_layer) { collision_layer = p_layer; }
 	_FORCE_INLINE_ uint32_t get_collision_layer() const { return collision_layer; }

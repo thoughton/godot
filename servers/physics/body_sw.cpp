@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -706,7 +706,7 @@ bool BodySW::sleep_test(real_t p_step) {
 	else if (!can_sleep)
 		return false;
 
-	if (Math::abs(angular_velocity.length()) < get_space()->get_body_angular_velocity_sleep_treshold() && Math::abs(linear_velocity.length_squared()) < get_space()->get_body_linear_velocity_sleep_treshold() * get_space()->get_body_linear_velocity_sleep_treshold()) {
+	if (Math::abs(angular_velocity.length()) < get_space()->get_body_angular_velocity_sleep_threshold() && Math::abs(linear_velocity.length_squared()) < get_space()->get_body_linear_velocity_sleep_threshold() * get_space()->get_body_linear_velocity_sleep_threshold()) {
 
 		still_time += p_step;
 
@@ -757,7 +757,8 @@ BodySW::BodySW()
 
 	contact_count = 0;
 	gravity_scale = 1.0;
-
+	linear_damp = -1;
+	angular_damp = -1;
 	area_angular_damp = 0;
 	area_linear_damp = 0;
 

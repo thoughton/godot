@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -96,7 +96,7 @@ void GraphNode::_get_property_list(List<PropertyInfo> *p_list) const {
 
 	int idx = 0;
 	for (int i = 0; i < get_child_count(); i++) {
-		Control *c = get_child(i)->cast_to<Control>();
+		Control *c = Object::cast_to<Control>(get_child(i));
 		if (!c || c->is_set_as_toplevel())
 			continue;
 
@@ -122,7 +122,7 @@ void GraphNode::_resort() {
 	Size2 minsize;
 
 	for (int i = 0; i < get_child_count(); i++) {
-		Control *c = get_child(i)->cast_to<Control>();
+		Control *c = Object::cast_to<Control>(get_child(i));
 		if (!c)
 			continue;
 		if (c->is_set_as_toplevel())
@@ -144,7 +144,7 @@ void GraphNode::_resort() {
 
 	cache_y.clear();
 	for (int i = 0; i < get_child_count(); i++) {
-		Control *c = get_child(i)->cast_to<Control>();
+		Control *c = Object::cast_to<Control>(get_child(i));
 		if (!c)
 			continue;
 		if (c->is_set_as_toplevel())
@@ -176,6 +176,7 @@ bool GraphNode::has_point(const Point2 &p_point) const {
 		if (Rect2(get_size() - resizer->get_size(), resizer->get_size()).has_point(p_point)) {
 			return true;
 		}
+
 		if (Rect2(0, 0, get_size().width, comment->get_margin(MARGIN_TOP)).has_point(p_point)) {
 			return true;
 		}
@@ -374,7 +375,7 @@ Size2 GraphNode::get_minimum_size() const {
 
 	for (int i = 0; i < get_child_count(); i++) {
 
-		Control *c = get_child(i)->cast_to<Control>();
+		Control *c = Object::cast_to<Control>(get_child(i));
 		if (!c)
 			continue;
 		if (c->is_set_as_toplevel())
@@ -461,7 +462,7 @@ void GraphNode::_connpos_update() {
 	int idx = 0;
 
 	for (int i = 0; i < get_child_count(); i++) {
-		Control *c = get_child(i)->cast_to<Control>();
+		Control *c = Object::cast_to<Control>(get_child(i));
 		if (!c)
 			continue;
 		if (c->is_set_as_toplevel())
@@ -663,7 +664,7 @@ void GraphNode::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_slot", "idx", "enable_left", "type_left", "color_left", "enable_right", "type_right", "color_right", "custom_left", "custom_right"), &GraphNode::set_slot, DEFVAL(Ref<Texture>()), DEFVAL(Ref<Texture>()));
 	ClassDB::bind_method(D_METHOD("clear_slot", "idx"), &GraphNode::clear_slot);
-	ClassDB::bind_method(D_METHOD("clear_all_slots", "idx"), &GraphNode::clear_all_slots);
+	ClassDB::bind_method(D_METHOD("clear_all_slots"), &GraphNode::clear_all_slots);
 	ClassDB::bind_method(D_METHOD("is_slot_enabled_left", "idx"), &GraphNode::is_slot_enabled_left);
 	ClassDB::bind_method(D_METHOD("get_slot_type_left", "idx"), &GraphNode::get_slot_type_left);
 	ClassDB::bind_method(D_METHOD("get_slot_color_left", "idx"), &GraphNode::get_slot_color_left);
@@ -709,9 +710,9 @@ void GraphNode::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("close_request"));
 	ADD_SIGNAL(MethodInfo("resize_request", PropertyInfo(Variant::VECTOR2, "new_minsize")));
 
-	BIND_CONSTANT(OVERLAY_DISABLED);
-	BIND_CONSTANT(OVERLAY_BREAKPOINT);
-	BIND_CONSTANT(OVERLAY_POSITION);
+	BIND_ENUM_CONSTANT(OVERLAY_DISABLED);
+	BIND_ENUM_CONSTANT(OVERLAY_BREAKPOINT);
+	BIND_ENUM_CONSTANT(OVERLAY_POSITION);
 }
 
 GraphNode::GraphNode() {
@@ -719,7 +720,7 @@ GraphNode::GraphNode() {
 	overlay = OVERLAY_DISABLED;
 	show_close = false;
 	connpos_dirty = true;
-	set_mouse_filter(MOUSE_FILTER_PASS);
+	set_mouse_filter(MOUSE_FILTER_STOP);
 	comment = false;
 	resizeable = false;
 	resizing = false;

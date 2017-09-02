@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -32,8 +32,8 @@
 #include "editor_file_system.h"
 #include "editor_node.h"
 #include "editor_settings.h"
-#include "global_config.h"
 #include "os/keyboard.h"
+#include "project_settings.h"
 #include "scene/gui/margin_container.h"
 
 void EditorSettingsDialog::ok_pressed() {
@@ -191,7 +191,7 @@ void EditorSettingsDialog::_update_shortcuts() {
 
 void EditorSettingsDialog::_shortcut_button_pressed(Object *p_item, int p_column, int p_idx) {
 
-	TreeItem *ti = p_item->cast_to<TreeItem>();
+	TreeItem *ti = Object::cast_to<TreeItem>(p_item);
 	ERR_FAIL_COND(!ti);
 
 	String item = ti->get_metadata(0);
@@ -332,7 +332,7 @@ EditorSettingsDialog::EditorSettingsDialog() {
 	property_editor = memnew(SectionedPropertyEditor);
 	//property_editor->hide_top_label();
 	property_editor->get_property_editor()->set_use_filter(true);
-	property_editor->get_property_editor()->register_text_enter(search_box);
+	property_editor->register_search_box(search_box);
 	property_editor->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 	vbc->add_child(property_editor);
 	property_editor->get_property_editor()->connect("property_edited", this, "_settings_property_edited");
@@ -382,10 +382,6 @@ EditorSettingsDialog::EditorSettingsDialog() {
 	press_a_key->add_child(l);
 	press_a_key->connect("gui_input", this, "_wait_for_key");
 	press_a_key->connect("confirmed", this, "_press_a_key_confirm");
-	//Button *load = memnew( Button );
-
-	//load->set_text("Load..");
-	//hbc->add_child(load);
 
 	//get_ok()->set_text("Apply");
 	set_hide_on_ok(true);

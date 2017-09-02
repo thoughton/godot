@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -113,6 +113,9 @@ class OS_X11 : public OS_Unix {
 	::XIC xic;
 	::XIM xim;
 	::XIMStyle xim_style;
+	static void xim_destroy_callback(::XIM im, ::XPointer client_data,
+			::XPointer call_data);
+
 	Point2i last_mouse_pos;
 	bool last_mouse_pos_valid;
 	Point2i last_click_pos;
@@ -230,9 +233,9 @@ public:
 	virtual int get_screen_count() const;
 	virtual int get_current_screen() const;
 	virtual void set_current_screen(int p_screen);
-	virtual Point2 get_screen_position(int p_screen = 0) const;
-	virtual Size2 get_screen_size(int p_screen = 0) const;
-	virtual int get_screen_dpi(int p_screen = 0) const;
+	virtual Point2 get_screen_position(int p_screen = -1) const;
+	virtual Size2 get_screen_size(int p_screen = -1) const;
+	virtual int get_screen_dpi(int p_screen = -1) const;
 	virtual Point2 get_window_position() const;
 	virtual void set_window_position(const Point2 &p_position);
 	virtual Size2 get_window_size() const;
@@ -246,6 +249,10 @@ public:
 	virtual void set_window_maximized(bool p_enabled);
 	virtual bool is_window_maximized() const;
 	virtual void request_attention();
+
+	virtual void set_borderless_window(int p_borderless);
+	virtual bool get_borderless_window();
+	virtual void set_ime_position(const Point2 &p_pos);
 
 	virtual void move_window_to_foreground();
 	virtual void alert(const String &p_alert, const String &p_title = "ALERT!");
@@ -261,6 +268,8 @@ public:
 	virtual PowerState get_power_state();
 	virtual int get_power_seconds_left();
 	virtual int get_power_percent_left();
+
+	virtual bool _check_internal_feature_support(const String &p_feature);
 
 	void run();
 

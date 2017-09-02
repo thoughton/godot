@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -56,6 +56,8 @@ public:
 	Transform2D prev_xform;
 	float prev_rot;
 	Rect2 prev_rect;
+	Vector2 prev_pivot;
+	float prev_anchors[4];
 
 	CanvasItemEditorSelectedItem() { prev_rot = 0; }
 };
@@ -92,8 +94,6 @@ class CanvasItemEditor : public VBoxContainer {
 		UNLOCK_SELECTED,
 		GROUP_SELECTED,
 		UNGROUP_SELECTED,
-		ALIGN_HORIZONTAL,
-		ALIGN_VERTICAL,
 		ANCHOR_ALIGN_TOP_LEFT,
 		ANCHOR_ALIGN_TOP_RIGHT,
 		ANCHOR_ALIGN_BOTTOM_LEFT,
@@ -110,10 +110,7 @@ class CanvasItemEditor : public VBoxContainer {
 		ANCHOR_ALIGN_VCENTER_WIDE,
 		ANCHOR_ALIGN_HCENTER_WIDE,
 		ANCHOR_ALIGN_WIDE,
-
-		SPACE_HORIZONTAL,
-		SPACE_VERTICAL,
-		EXPAND_TO_PARENT,
+		ANCHOR_ALIGN_WIDE_FIT,
 		ANIM_INSERT_KEY,
 		ANIM_INSERT_KEY_EXISTING,
 		ANIM_INSERT_POS,
@@ -142,11 +139,15 @@ class CanvasItemEditor : public VBoxContainer {
 		DRAG_BOTTOM_RIGHT,
 		DRAG_BOTTOM,
 		DRAG_BOTTOM_LEFT,
+		DRAG_ANCHOR_TOP_LEFT,
+		DRAG_ANCHOR_TOP_RIGHT,
+		DRAG_ANCHOR_BOTTOM_RIGHT,
+		DRAG_ANCHOR_BOTTOM_LEFT,
+		DRAG_ANCHOR_ALL,
 		DRAG_ALL,
 		DRAG_ROTATE,
 		DRAG_PIVOT,
 		DRAG_NODE_2D,
-
 	};
 
 	enum KeyMoveMODE {
@@ -283,30 +284,18 @@ class CanvasItemEditor : public VBoxContainer {
 	bool updating_value_dialog;
 	Point2 display_rotate_from;
 	Point2 display_rotate_to;
-#if 0
-	struct EditInfo {
 
-		Variant undo_state;
-
-		Matrix32 prev_xform;
-		float prev_rot;
-		Rect2 prev_rect;
-		EditInfo() { prev_rot=0; }
-	};
-
-	typedef Map<CanvasItem*,EditInfo> CanvasItemMap;
-	CanvasItemMap canvas_items;
-#endif
 	Ref<StyleBoxTexture> select_sb;
 	Ref<Texture> select_handle;
+	Ref<Texture> anchor_handle;
 
 	int handle_len;
 	bool _is_part_of_subscene(CanvasItem *p_item);
-	CanvasItem *_select_canvas_item_at_pos(const Point2 &p_pos, Node *p_node, const Transform2D &p_parent_xform, const Transform2D &p_canvas_xform);
-	void _find_canvas_items_at_pos(const Point2 &p_pos, Node *p_node, const Transform2D &p_parent_xform, const Transform2D &p_canvas_xform, Vector<_SelectResult> &r_items);
+	void _find_canvas_items_at_pos(const Point2 &p_pos, Node *p_node, const Transform2D &p_parent_xform, const Transform2D &p_canvas_xform, Vector<_SelectResult> &r_items, int limit = 0);
 	void _find_canvas_items_at_rect(const Rect2 &p_rect, Node *p_node, const Transform2D &p_parent_xform, const Transform2D &p_canvas_xform, List<CanvasItem *> *r_items);
 
-	bool _select(CanvasItem *item, Point2 p_click_pos, bool p_append, bool p_drag = true);
+	void _select_click_on_empty_area(Point2 p_click_pos, bool p_append, bool p_box_selection);
+	bool _select_click_on_item(CanvasItem *item, Point2 p_click_pos, bool p_append, bool p_drag);
 
 	ConfirmationDialog *snap_dialog;
 
@@ -320,12 +309,16 @@ class CanvasItemEditor : public VBoxContainer {
 	void _add_canvas_item(CanvasItem *p_canvas_item);
 	void _remove_canvas_item(CanvasItem *p_canvas_item);
 	void _clear_canvas_items();
-	void _visibility_changed(ObjectID p_canvas_item);
 	void _key_move(const Vector2 &p_dir, bool p_snap, KeyMoveMODE p_move_mode);
 	void _list_select(const Ref<InputEventMouseButton> &b);
 
-	DragType _find_drag_type(const Transform2D &p_xform, const Rect2 &p_local_rect, const Point2 &p_click, Vector2 &r_point);
+	DragType _get_resize_handle_drag_type(const Point2 &p_click, Vector2 &r_point);
 	void _prepare_drag(const Point2 &p_click_pos);
+	DragType _get_anchor_handle_drag_type(const Point2 &p_click, Vector2 &r_point);
+
+	float _anchor_snap(float anchor, bool *snapped = NULL, float p_opposite_anchor = -1);
+	Vector2 _anchor_to_position(Control *p_control, Vector2 anchor);
+	Vector2 _position_to_anchor(Control *p_control, Vector2 position);
 
 	void _popup_callback(int p_op);
 	bool updating_scroll;
@@ -354,12 +347,15 @@ class CanvasItemEditor : public VBoxContainer {
 
 	void _unhandled_key_input(const Ref<InputEvent> &p_ev);
 
+	void _draw_percentage_at_position(float p_value, Point2 p_position, Margin p_side);
+
 	void _viewport_gui_input(const Ref<InputEvent> &p_event);
 	void _viewport_draw();
 
 	void _focus_selection(int p_op);
 
-	void _set_anchor(Control::AnchorType p_left, Control::AnchorType p_top, Control::AnchorType p_right, Control::AnchorType p_bottom);
+	void _set_anchors_preset(Control::LayoutPreset p_preset);
+	void _set_full_rect();
 
 	HSplitContainer *palette_split;
 	VSplitContainer *bottom_split;
@@ -369,7 +365,6 @@ class CanvasItemEditor : public VBoxContainer {
 protected:
 	void _notification(int p_what);
 
-	void _node_removed(Node *p_node);
 	static void _bind_methods();
 	void end_drag();
 	void box_selection_start(Point2 &click);
@@ -421,7 +416,6 @@ public:
 
 	Control *get_viewport_control() { return viewport; }
 
-	bool get_remove_list(List<Node *> *p_list);
 	void set_undo_redo(UndoRedo *p_undo_redo) { undo_redo = p_undo_redo; }
 	void edit(CanvasItem *p_canvas_item);
 
@@ -443,7 +437,6 @@ public:
 	virtual void edit(Object *p_object);
 	virtual bool handles(Object *p_object) const;
 	virtual void make_visible(bool p_visible);
-	virtual bool get_remove_list(List<Node *> *p_list) { return canvas_item_editor->get_remove_list(p_list); }
 	virtual Dictionary get_state() const;
 	virtual void set_state(const Dictionary &p_state);
 
@@ -497,6 +490,7 @@ public:
 	virtual void drop_data(const Point2 &p_point, const Variant &p_data);
 
 	CanvasItemEditorViewport(EditorNode *p_node, CanvasItemEditor *p_canvas);
+	~CanvasItemEditorViewport();
 };
 
 #endif

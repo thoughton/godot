@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -176,6 +176,7 @@ class VisualScriptEditor : public ScriptEditorBase {
 	int port_action_new_node;
 	void _port_action_menu(int p_option);
 	void _selected_connect_node_method_or_setget(const String &p_text);
+	void _cancel_connect_node_method_or_setget();
 
 	int error_line;
 

@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -117,7 +117,7 @@ void TriangleMesh::create(const PoolVector<Vector3> &p_faces) {
 			for (int j = 0; j < 3; j++) {
 
 				int vidx = -1;
-				Vector3 vs = v[j].snapped(0.0001);
+				Vector3 vs = v[j].snapped(Vector3(0.0001, 0.0001, 0.0001));
 				Map<Vector3, int>::Element *E = db.find(vs);
 				if (E) {
 					vidx = E->get();

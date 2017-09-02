@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -105,7 +105,7 @@ public:
 		} else {
 			//yield
 
-			SceneTree *tree = OS::get_singleton()->get_main_loop()->cast_to<SceneTree>();
+			SceneTree *tree = Object::cast_to<SceneTree>(OS::get_singleton()->get_main_loop());
 			if (!tree) {
 				r_error_str = "Main Loop is not SceneTree";
 				r_error.error = Variant::CallError::CALL_ERROR_INVALID_METHOD;
@@ -189,9 +189,9 @@ void VisualScriptYield::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "mode", PROPERTY_HINT_ENUM, "Frame,FixedFrame,Time", PROPERTY_USAGE_NOEDITOR), "set_yield_mode", "get_yield_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "wait_time"), "set_wait_time", "get_wait_time");
 
-	BIND_CONSTANT(YIELD_FRAME);
-	BIND_CONSTANT(YIELD_FIXED_FRAME);
-	BIND_CONSTANT(YIELD_WAIT);
+	BIND_ENUM_CONSTANT(YIELD_FRAME);
+	BIND_ENUM_CONSTANT(YIELD_FIXED_FRAME);
+	BIND_ENUM_CONSTANT(YIELD_WAIT);
 }
 
 VisualScriptYield::VisualScriptYield() {
@@ -252,10 +252,7 @@ Node *VisualScriptYieldSignal::_get_base_node() const {
 		return NULL;
 
 	MainLoop *main_loop = OS::get_singleton()->get_main_loop();
-	if (!main_loop)
-		return NULL;
-
-	SceneTree *scene_tree = main_loop->cast_to<SceneTree>();
+	SceneTree *scene_tree = Object::cast_to<SceneTree>(main_loop);
 
 	if (!scene_tree)
 		return NULL;
@@ -493,9 +490,9 @@ void VisualScriptYieldSignal::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "node_path", PROPERTY_HINT_NODE_PATH_TO_EDITED_NODE), "set_base_path", "get_base_path");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "signal"), "set_signal", "get_signal");
 
-	BIND_CONSTANT(CALL_MODE_SELF);
-	BIND_CONSTANT(CALL_MODE_NODE_PATH);
-	BIND_CONSTANT(CALL_MODE_INSTANCE);
+	BIND_ENUM_CONSTANT(CALL_MODE_SELF);
+	BIND_ENUM_CONSTANT(CALL_MODE_NODE_PATH);
+	BIND_ENUM_CONSTANT(CALL_MODE_INSTANCE);
 }
 
 class VisualScriptNodeInstanceYieldSignal : public VisualScriptNodeInstance {
@@ -519,7 +516,7 @@ public:
 		} else {
 			//yield
 
-			Object *object;
+			Object *object = NULL;
 
 			switch (call_mode) {
 
@@ -530,7 +527,7 @@ public:
 				} break;
 				case VisualScriptYieldSignal::CALL_MODE_NODE_PATH: {
 
-					Node *node = instance->get_owner_ptr()->cast_to<Node>();
+					Node *node = Object::cast_to<Node>(instance->get_owner_ptr());
 					if (!node) {
 						r_error.error = Variant::CallError::CALL_ERROR_INVALID_METHOD;
 						r_error_str = "Base object is not a Node!";
@@ -538,7 +535,7 @@ public:
 					}
 
 					Node *another = node->get_node(node_path);
-					if (!node) {
+					if (!another) {
 						r_error.error = Variant::CallError::CALL_ERROR_INVALID_METHOD;
 						r_error_str = "Path does not lead Node!";
 						return 0;

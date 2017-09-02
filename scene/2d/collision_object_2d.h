@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -81,6 +81,7 @@ public:
 	uint32_t create_shape_owner(Object *p_owner);
 	void remove_shape_owner(uint32_t owner);
 	void get_shape_owners(List<uint32_t> *r_owners);
+	Array _get_shape_owners();
 
 	void shape_owner_set_transform(uint32_t p_owner, const Transform2D &p_transform);
 	Transform2D shape_owner_get_transform(uint32_t p_owner) const;

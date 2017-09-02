@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -71,7 +71,7 @@ public:
 
 	virtual bool file_exists(const String &p_path); ///< return true if a file exists
 
-	static void setup(jobject io);
+	static void setup(jobject p_io);
 
 	virtual uint64_t _get_modified_time(const String &p_file) { return 0; }
 
