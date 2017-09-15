@@ -1156,6 +1156,7 @@ void AnimationTreePlayer::transition_node_set_xfade_time(const StringName &p_nod
 }
 
 void AnimationTreePlayer::TransitionNode::set_current(int p_current) {
+
 	ERR_FAIL_INDEX(p_current, inputs.size());
 
 	if (current == p_current)
@@ -1807,6 +1808,9 @@ void AnimationTreePlayer::_bind_methods() {
 	BIND_ENUM_CONSTANT(NODE_TIMESCALE);
 	BIND_ENUM_CONSTANT(NODE_TIMESEEK);
 	BIND_ENUM_CONSTANT(NODE_TRANSITION);
+
+	BIND_ENUM_CONSTANT(ANIMATION_PROCESS_FIXED);
+	BIND_ENUM_CONSTANT(ANIMATION_PROCESS_IDLE);
 }
 
 AnimationTreePlayer::AnimationTreePlayer() {

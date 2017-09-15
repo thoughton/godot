@@ -164,6 +164,8 @@ void ShaderTextEditor::_code_complete_script(const String &p_code, List<String> 
 	String calltip;
 
 	Error err = sl.complete(p_code, ShaderTypes::get_singleton()->get_functions(VisualServer::ShaderMode(shader->get_mode())), ShaderTypes::get_singleton()->get_modes(VisualServer::ShaderMode(shader->get_mode())), ShaderTypes::get_singleton()->get_types(), r_options, calltip);
+	if (err != OK)
+		ERR_PRINT("Shaderlang complete failed");
 
 	if (calltip != "") {
 		get_text_edit()->set_code_hint(calltip);
@@ -289,6 +291,8 @@ void ShaderEditor::_editor_settings_changed() {
 	shader_editor->get_text_edit()->cursor_set_blink_speed(EditorSettings::get_singleton()->get("text_editor/cursor/caret_blink_speed"));
 	shader_editor->get_text_edit()->add_constant_override("line_spacing", EditorSettings::get_singleton()->get("text_editor/theme/line_spacing"));
 	shader_editor->get_text_edit()->cursor_set_block_mode(EditorSettings::get_singleton()->get("text_editor/cursor/block_caret"));
+	shader_editor->get_text_edit()->set_smooth_scroll_enabled(EditorSettings::get_singleton()->get("text_editor/open_scripts/smooth_scrolling"));
+	shader_editor->get_text_edit()->set_v_scroll_speed(EditorSettings::get_singleton()->get("text_editor/open_scripts/v_scroll_speed"));
 }
 
 void ShaderEditor::_bind_methods() {
@@ -401,13 +405,7 @@ void ShaderEditorPlugin::edit(Object *p_object) {
 
 bool ShaderEditorPlugin::handles(Object *p_object) const {
 
-	bool handles = true;
 	Shader *shader = Object::cast_to<Shader>(p_object);
-	/*
-	if (Object::cast_to<ShaderGraph>(shader)) // Don't handle ShaderGraph's
-		handles = false;
-	*/
-
 	return shader != NULL;
 }
 

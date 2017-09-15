@@ -84,6 +84,7 @@
 #include "editor/plugins/mesh_editor_plugin.h"
 #include "editor/plugins/mesh_instance_editor_plugin.h"
 #include "editor/plugins/multimesh_editor_plugin.h"
+#include "editor/plugins/navigation_mesh_editor_plugin.h"
 #include "editor/plugins/navigation_polygon_editor_plugin.h"
 #include "editor/plugins/particles_2d_editor_plugin.h"
 #include "editor/plugins/particles_editor_plugin.h"
@@ -253,6 +254,7 @@ void EditorNode::_notification(int p_what) {
 		get_tree()->get_root()->set_as_audio_listener_2d(false);
 		get_tree()->set_auto_accept_quit(false);
 		get_tree()->connect("files_dropped", this, "_dropped_files");
+		property_editable_warning->set_icon(gui_base->get_icon("NodeWarning", "EditorIcons"));
 	}
 
 	if (p_what == NOTIFICATION_EXIT_TREE) {
@@ -283,13 +285,22 @@ void EditorNode::_notification(int p_what) {
 		scene_tabs->set_tab_close_display_policy((bool(EDITOR_DEF("interface/always_show_close_button_in_scene_tabs", false)) ? Tabs::CLOSE_BUTTON_SHOW_ALWAYS : Tabs::CLOSE_BUTTON_SHOW_ACTIVE_ONLY));
 		property_editor->set_enable_capitalize_paths(bool(EDITOR_DEF("interface/capitalize_properties", true)));
 		Ref<Theme> theme = create_editor_theme(theme_base->get_theme());
+
 		theme_base->set_theme(theme);
+
 		gui_base->add_style_override("panel", gui_base->get_stylebox("Background", "EditorStyles"));
 		play_button_panel->add_style_override("panel", gui_base->get_stylebox("PlayButtonPanel", "EditorStyles"));
 		scene_root_parent->add_style_override("panel", gui_base->get_stylebox("Content", "EditorStyles"));
 		bottom_panel->add_style_override("panel", gui_base->get_stylebox("panel", "TabContainer"));
 		scene_tabs->add_style_override("tab_fg", gui_base->get_stylebox("SceneTabFG", "EditorStyles"));
 		scene_tabs->add_style_override("tab_bg", gui_base->get_stylebox("SceneTabBG", "EditorStyles"));
+
+		file_menu->add_style_override("hover", gui_base->get_stylebox("MenuHover", "EditorStyles"));
+		project_menu->add_style_override("hover", gui_base->get_stylebox("MenuHover", "EditorStyles"));
+		debug_menu->add_style_override("hover", gui_base->get_stylebox("MenuHover", "EditorStyles"));
+		settings_menu->add_style_override("hover", gui_base->get_stylebox("MenuHover", "EditorStyles"));
+		help_menu->add_style_override("hover", gui_base->get_stylebox("MenuHover", "EditorStyles"));
+
 		if (bool(EDITOR_DEF("interface/scene_tabs/resize_if_many_tabs", true))) {
 			scene_tabs->set_min_width(int(EDITOR_DEF("interface/scene_tabs/minimum_width", 50)) * EDSCALE);
 		} else {
@@ -403,7 +414,6 @@ void EditorNode::_fs_changed() {
 		}
 
 		if (changed.size()) {
-			int idx = 0;
 			for (List<Ref<Resource> >::Element *E = changed.front(); E; E = E->next()) {
 				E->get()->reload_from_file();
 			}
@@ -1368,6 +1378,21 @@ void EditorNode::_set_editing_top_editors(Object *p_current_object) {
 	editor_plugins_over->edit(p_current_object);
 }
 
+static bool overrides_external_editor(Object *p_object) {
+
+	Script *script = Object::cast_to<Script>(p_object);
+
+	if (!script)
+		return false;
+
+	return script->get_language()->overrides_external_editor();
+}
+
+void EditorNode::_property_editable_warning_pressed() {
+
+	property_editable_warning_dialog->popup_centered_minsize();
+}
+
 void EditorNode::_edit_current() {
 
 	uint32_t current = editor_history.get_current();
@@ -1378,6 +1403,9 @@ void EditorNode::_edit_current() {
 
 	this->current = current_obj;
 	editor_path->update_path();
+
+	String editable_warning; //none by default
+	property_editable_warning->hide(); //hide by default
 
 	if (!current_obj) {
 
@@ -1406,6 +1434,22 @@ void EditorNode::_edit_current() {
 		node_dock->set_node(NULL);
 		object_menu->set_disabled(false);
 		EditorNode::get_singleton()->get_import_dock()->set_edit_path(current_res->get_path());
+
+		int subr_idx = current_res->get_path().find("::");
+		if (subr_idx != -1) {
+			String base_path = current_res->get_path().substr(0, subr_idx);
+			if (FileAccess::exists(base_path + ".import")) {
+				editable_warning = TTR("This resource belongs to a scene that was imported, so it's not editable.\nPlease read the documentation relevant to importing scenes to better understand this workflow.");
+			} else {
+				if (!get_edited_scene() || get_edited_scene()->get_filename() != base_path) {
+					editable_warning = TTR("This resource belongs to a scene that was instanced or inherited.\nChanges to it will not be kept when saving the current scene.");
+				}
+			}
+		} else if (current_res->get_path().is_resource_file()) {
+			if (FileAccess::exists(current_res->get_path() + ".import")) {
+				editable_warning = TTR("This resource was imported, so it's not editable. Change it's settings in the import panel and re-import.");
+			}
+		}
 	} else if (is_node) {
 
 		Node *current_node = Object::cast_to<Node>(current_obj);
@@ -1421,10 +1465,22 @@ void EditorNode::_edit_current() {
 		}
 		object_menu->get_popup()->clear();
 
+		if (get_edited_scene() && get_edited_scene()->get_filename() != String()) {
+			String source_scene = get_edited_scene()->get_filename();
+			if (FileAccess::exists(source_scene + ".import")) {
+				editable_warning = TTR("This scene was imported, so changes to it will not be kept.\nInstancing it or inheriting will allow making changes to it.\nPlease read the documentation relevant to importing scenes to better understand this workflow.");
+			}
+		}
+
 	} else {
 
 		property_editor->edit(current_obj);
 		node_dock->set_node(NULL);
+	}
+
+	if (editable_warning != String()) {
+		property_editable_warning->show(); //hide by default
+		property_editable_warning_dialog->set_text(editable_warning);
 	}
 
 	/* Take care of PLUGIN EDITOR */
@@ -1434,7 +1490,7 @@ void EditorNode::_edit_current() {
 	if (main_plugin) {
 
 		// special case if use of external editor is true
-		if (main_plugin->get_name() == "Script" && bool(EditorSettings::get_singleton()->get("text_editor/external/use_external_editor"))) {
+		if (main_plugin->get_name() == "Script" && (bool(EditorSettings::get_singleton()->get("text_editor/external/use_external_editor")) || overrides_external_editor(current_obj))) {
 			main_plugin->edit(current_obj);
 		}
 
@@ -1442,6 +1498,7 @@ void EditorNode::_edit_current() {
 			// update screen main_plugin
 
 			if (!changing_scene) {
+
 				if (editor_plugin_screen)
 					editor_plugin_screen->make_visible(false);
 				editor_plugin_screen = main_plugin;
@@ -1977,6 +2034,8 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			int cur_idx = editor_data.get_edited_scene();
 			_remove_edited_scene();
 			Error err = load_scene(filename);
+			if (err != OK)
+				ERR_PRINT("Failed to load scene");
 			editor_data.move_edited_scene_to_index(cur_idx);
 			get_undo_redo()->clear_history();
 			scene_tabs->set_current_tab(cur_idx);
@@ -2721,6 +2780,14 @@ Dictionary EditorNode::_get_main_scene_state() {
 	state["property_edit_offset"] = get_property_editor()->get_scene_tree()->get_vscroll_bar()->get_value();
 	state["saved_version"] = saved_version;
 	state["node_filter"] = scene_tree_dock->get_filter();
+	int current = -1;
+	for (int i = 0; i < editor_table.size(); i++) {
+		if (editor_plugin_screen == editor_table[i]) {
+			current = i;
+			break;
+		}
+	}
+	state["editor_index"] = current;
 	return state;
 }
 
@@ -2731,8 +2798,9 @@ void EditorNode::_set_main_scene_state(Dictionary p_state, Node *p_for_scene) {
 
 	changing_scene = false;
 
-	if (get_edited_scene()) {
+	if (p_state.has("editor_index")) {
 
+		int index = p_state["editor_index"];
 		int current = -1;
 		for (int i = 0; i < editor_table.size(); i++) {
 			if (editor_plugin_screen == editor_table[i]) {
@@ -2741,15 +2809,18 @@ void EditorNode::_set_main_scene_state(Dictionary p_state, Node *p_for_scene) {
 			}
 		}
 
-		if (current < 2) {
-			//use heuristic instead
-
-			int n2d = 0, n3d = 0;
-			_find_node_types(get_edited_scene(), n2d, n3d);
-			if (n2d > n3d) {
-				_editor_select(EDITOR_2D);
-			} else if (n3d > n2d) {
-				_editor_select(EDITOR_3D);
+		if (current < 2) { //if currently in spatial/2d, only switch to spatial/2d. if curently in script, stay there
+			if (index < 2 || !get_edited_scene()) {
+				_editor_select(index);
+			} else {
+				//use heuristic instead
+				int n2d = 0, n3d = 0;
+				_find_node_types(get_edited_scene(), n2d, n3d);
+				if (n2d > n3d) {
+					_editor_select(EDITOR_2D);
+				} else if (n3d > n2d) {
+					_editor_select(EDITOR_3D);
+				}
 			}
 		}
 	}
@@ -3180,9 +3251,9 @@ void EditorNode::register_editor_types() {
 	ClassDB::register_class<EditorFileSystemDirectory>();
 	ClassDB::register_virtual_class<ScriptEditor>();
 	ClassDB::register_virtual_class<EditorInterface>();
+	ClassDB::register_class<EditorExportPlugin>();
 
 	// FIXME: Is this stuff obsolete, or should it be ported to new APIs?
-	//ClassDB::register_class<EditorExportPlugin>();
 	//ClassDB::register_class<EditorScenePostImport>();
 	//ClassDB::register_type<EditorImportExport>();
 }
@@ -3573,13 +3644,6 @@ void EditorNode::_update_dock_slots_visibility() {
 		left_r_vsplit,
 		right_l_vsplit,
 		right_r_vsplit,
-	};
-
-	HSplitContainer *h_splits[4] = {
-		left_l_hsplit,
-		left_r_hsplit,
-		main_hsplit,
-		right_hsplit,
 	};
 
 	if (!docks_visible) {
@@ -4102,7 +4166,7 @@ Variant EditorNode::drag_resource(const Ref<Resource> &p_res, Control *p_from) {
 
 	{
 		//todo make proper previews
-		Ref<ImageTexture> pic = gui_base->get_icon("FileBig", "EditorIcons");
+		Ref<ImageTexture> pic = gui_base->get_icon("FileBigThumb", "EditorIcons");
 		Ref<Image> img = pic->get_data();
 		img = img->duplicate();
 		img->resize(48, 48); //meh
@@ -4444,6 +4508,7 @@ void EditorNode::_bind_methods() {
 	ClassDB::bind_method("_clear_undo_history", &EditorNode::_clear_undo_history);
 	ClassDB::bind_method("_dropped_files", &EditorNode::_dropped_files);
 	ClassDB::bind_method("_toggle_distraction_free_mode", &EditorNode::_toggle_distraction_free_mode);
+	ClassDB::bind_method("_property_editable_warning_pressed", &EditorNode::_property_editable_warning_pressed);
 
 	ClassDB::bind_method(D_METHOD("get_gui_base"), &EditorNode::get_gui_base);
 	ClassDB::bind_method(D_METHOD("_bottom_panel_switch"), &EditorNode::_bottom_panel_switch);
@@ -4818,9 +4883,10 @@ EditorNode::EditorNode() {
 	}
 
 	file_menu = memnew(MenuButton);
+	file_menu->set_flat(false);
 	file_menu->set_text(TTR("Scene"));
-	left_menu_hb->add_child(file_menu);
 	file_menu->add_style_override("hover", gui_base->get_stylebox("MenuHover", "EditorStyles"));
+	left_menu_hb->add_child(file_menu);
 
 	prev_scene = memnew(ToolButton);
 	prev_scene->set_icon(gui_base->get_icon("PrevScene", "EditorIcons"));
@@ -4845,6 +4911,7 @@ EditorNode::EditorNode() {
 	gui_base->add_child(dependency_fixer);
 
 	settings_config_dialog = memnew(EditorSettingsDialog);
+	// settings_config_dialog->add_style_override("panel", gui_base->get_stylebox("EditorSettingsDialog", "EditorStyles"));
 	gui_base->add_child(settings_config_dialog);
 
 	project_settings = memnew(ProjectSettingsEditor(&editor_data));
@@ -4908,6 +4975,7 @@ EditorNode::EditorNode() {
 	p->add_item(TTR("Quit"), FILE_QUIT, KEY_MASK_CMD + KEY_Q);
 
 	project_menu = memnew(MenuButton);
+	project_menu->set_flat(false);
 	project_menu->set_tooltip(TTR("Miscellaneous project or scene-wide tools."));
 	project_menu->set_text(TTR("Project"));
 	project_menu->add_style_override("hover", gui_base->get_stylebox("MenuHover", "EditorStyles"));
@@ -4941,9 +5009,11 @@ EditorNode::EditorNode() {
 	menu_hb->add_child(editor_region);
 
 	debug_menu = memnew(MenuButton);
+	debug_menu->set_flat(false);
 	debug_menu->set_text(TTR("Debug"));
 	debug_menu->add_style_override("hover", gui_base->get_stylebox("MenuHover", "EditorStyles"));
 	left_menu_hb->add_child(debug_menu);
+
 	p = debug_menu->get_popup();
 	p->set_hide_on_item_selection(false);
 	p->add_check_item(TTR("Deploy with Remote Debug"), RUN_DEPLOY_REMOTE_DEBUG);
@@ -4965,9 +5035,10 @@ EditorNode::EditorNode() {
 	menu_hb->add_spacer();
 
 	settings_menu = memnew(MenuButton);
-	left_menu_hb->add_child(settings_menu);
+	settings_menu->set_flat(false);
 	settings_menu->set_text(TTR("Editor"));
 	settings_menu->add_style_override("hover", gui_base->get_stylebox("MenuHover", "EditorStyles"));
+	left_menu_hb->add_child(settings_menu);
 	p = settings_menu->get_popup();
 
 	p->add_item(TTR("Editor Settings"), SETTINGS_PREFERENCES);
@@ -4982,10 +5053,12 @@ EditorNode::EditorNode() {
 	p->add_item(TTR("Manage Export Templates"), SETTINGS_MANAGE_EXPORT_TEMPLATES);
 
 	// Help Menu
-	MenuButton *help_menu = memnew(MenuButton);
-	left_menu_hb->add_child(help_menu);
+	help_menu = memnew(MenuButton);
+	help_menu->set_flat(false);
 	help_menu->set_text(TTR("Help"));
 	help_menu->add_style_override("hover", gui_base->get_stylebox("MenuHover", "EditorStyles"));
+	left_menu_hb->add_child(help_menu);
+
 	p = help_menu->get_popup();
 	p->connect("id_pressed", this, "_menu_option");
 	p->add_icon_item(gui_base->get_icon("ClassList", "EditorIcons"), TTR("Classes"), HELP_CLASSES);
@@ -4996,7 +5069,7 @@ EditorNode::EditorNode() {
 	p->add_icon_item(gui_base->get_icon("Instance", "EditorIcons"), TTR("Issue Tracker"), HELP_ISSUES);
 	p->add_icon_item(gui_base->get_icon("Instance", "EditorIcons"), TTR("Community"), HELP_COMMUNITY);
 	p->add_separator();
-	p->add_icon_item(gui_base->get_icon("GodotDocs", "EditorIcons"), TTR("About"), HELP_ABOUT);
+	p->add_icon_item(gui_base->get_icon("Godot", "EditorIcons"), TTR("About"), HELP_ABOUT);
 
 	play_cc = memnew(CenterContainer);
 	play_cc->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
@@ -5197,6 +5270,14 @@ EditorNode::EditorNode() {
 	search_bar->add_child(clear_button);
 	clear_button->connect("pressed", this, "_clear_search_box");
 
+	property_editable_warning = memnew(Button);
+	property_editable_warning->set_text(TTR("Changes may be lost!"));
+	prop_editor_base->add_child(property_editable_warning);
+	property_editable_warning_dialog = memnew(AcceptDialog);
+	gui_base->add_child(property_editable_warning_dialog);
+	property_editable_warning->hide();
+	property_editable_warning->connect("pressed", this, "_property_editable_warning_pressed");
+
 	property_editor = memnew(PropertyEditor);
 	property_editor->set_autoclear(true);
 	property_editor->set_show_categories(true);
@@ -5209,6 +5290,7 @@ EditorNode::EditorNode() {
 	property_editor->hide_top_label();
 	property_editor->register_text_enter(search_box);
 
+	Button *property_editable_warning;
 	prop_editor_base->add_child(property_editor);
 	property_editor->set_undo_redo(&editor_data.get_undo_redo());
 
@@ -5406,6 +5488,7 @@ EditorNode::EditorNode() {
 	add_editor_plugin(memnew(TextureEditorPlugin(this)));
 	add_editor_plugin(memnew(MeshEditorPlugin(this)));
 	add_editor_plugin(memnew(AudioBusesEditorPlugin(audio_bus_editor)));
+	add_editor_plugin(memnew(NavigationMeshEditorPlugin(this)));
 
 	// FIXME: Disabled as (according to reduz) users were complaining that it gets in the way
 	// Waiting for PropertyEditor rewrite (planned for 3.1) to be refactored.
