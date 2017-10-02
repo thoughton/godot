@@ -62,7 +62,7 @@ public:
 
 	virtual void seek(size_t p_position); ///< seek to a given position
 	virtual void seek_end(int64_t p_position = 0); ///< seek from the end of file
-	virtual size_t get_pos() const; ///< get position in the file
+	virtual size_t get_position() const; ///< get position in the file
 	virtual size_t get_len() const; ///< get size of the file
 
 	virtual bool eof_reached() const; ///< reading passed EOF
@@ -77,6 +77,8 @@ public:
 	virtual bool file_exists(const String &p_path); ///< return true if a file exists
 
 	virtual uint64_t _get_modified_time(const String &p_file);
+
+	virtual Error _chmod(const String &p_path, int p_mod);
 
 	FileAccessUnix();
 	virtual ~FileAccessUnix();

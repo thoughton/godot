@@ -97,6 +97,14 @@ protected:
 	static _OS *singleton;
 
 public:
+	enum PowerState {
+		POWERSTATE_UNKNOWN, /**< cannot determine power status */
+		POWERSTATE_ON_BATTERY, /**< Not plugged in, running on the battery */
+		POWERSTATE_NO_BATTERY, /**< Plugged in, no battery available */
+		POWERSTATE_CHARGING, /**< Plugged in, charging battery */
+		POWERSTATE_CHARGED /**< Plugged in, battery charged */
+	};
+
 	enum Weekday {
 		DAY_SUNDAY,
 		DAY_MONDAY,
@@ -303,7 +311,7 @@ public:
 	void set_use_vsync(bool p_enable);
 	bool is_vsync_enabled() const;
 
-	OS::PowerState get_power_state();
+	PowerState get_power_state();
 	int get_power_seconds_left();
 	int get_power_percent_left();
 
@@ -312,6 +320,7 @@ public:
 	_OS();
 };
 
+VARIANT_ENUM_CAST(_OS::PowerState);
 VARIANT_ENUM_CAST(_OS::Weekday);
 VARIANT_ENUM_CAST(_OS::Month);
 VARIANT_ENUM_CAST(_OS::SystemDir);
@@ -390,7 +399,7 @@ public:
 
 	void seek(int64_t p_position); ///< seek to a given position
 	void seek_end(int64_t p_position = 0); ///< seek from the end of file
-	int64_t get_pos() const; ///< get position in the file
+	int64_t get_position() const; ///< get position in the file
 	int64_t get_len() const; ///< get size of the file
 
 	bool eof_reached() const; ///< reading passed EOF
@@ -658,6 +667,52 @@ public:
 	bool is_editor_hint() const;
 
 	_Engine();
+};
+
+class _JSON;
+
+class JSONParseResult : public Reference {
+	GDCLASS(JSONParseResult, Reference)
+
+	friend class _JSON;
+
+	Error error;
+	String error_string;
+	int error_line;
+
+	Variant result;
+
+protected:
+	static void _bind_methods();
+
+public:
+	void set_error(Error p_error);
+	Error get_error() const;
+
+	void set_error_string(const String &p_error_string);
+	String get_error_string() const;
+
+	void set_error_line(int p_error_line);
+	int get_error_line() const;
+
+	void set_result(const Variant &p_result);
+	Variant get_result() const;
+};
+
+class _JSON : public Object {
+	GDCLASS(_JSON, Object)
+
+protected:
+	static void _bind_methods();
+	static _JSON *singleton;
+
+public:
+	static _JSON *get_singleton() { return singleton; }
+
+	String print(const Variant &p_value);
+	Ref<JSONParseResult> parse(const String &p_json);
+
+	_JSON();
 };
 
 #endif // CORE_BIND_H

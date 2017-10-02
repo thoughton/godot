@@ -268,7 +268,7 @@
 			</return>
 			<argument index="0" name="body" type="RID">
 			</argument>
-			<argument index="1" name="pos" type="Vector3">
+			<argument index="1" name="position" type="Vector3">
 			</argument>
 			<argument index="2" name="impulse" type="Vector3">
 			</argument>
@@ -1247,6 +1247,30 @@
 		<constant name="INFO_COLLISION_PAIRS" value="1">
 		</constant>
 		<constant name="INFO_ISLAND_COUNT" value="2">
+		</constant>
+		<constant name="SPACE_PARAM_CONTACT_RECYCLE_RADIUS" value="0">
+		</constant>
+		<constant name="SPACE_PARAM_CONTACT_MAX_SEPARATION" value="1">
+		</constant>
+		<constant name="SPACE_PARAM_BODY_MAX_ALLOWED_PENETRATION" value="2">
+		</constant>
+		<constant name="SPACE_PARAM_BODY_LINEAR_VELOCITY_SLEEP_THRESHOLD" value="3">
+		</constant>
+		<constant name="SPACE_PARAM_BODY_ANGULAR_VELOCITY_SLEEP_THRESHOLD" value="4">
+		</constant>
+		<constant name="SPACE_PARAM_BODY_TIME_TO_SLEEP" value="5">
+		</constant>
+		<constant name="SPACE_PARAM_BODY_ANGULAR_VELOCITY_DAMP_RATIO" value="6">
+		</constant>
+		<constant name="SPACE_PARAM_CONSTRAINT_DEFAULT_BIAS" value="7">
+		</constant>
+		<constant name="BODY_AXIS_LOCK_DISABLED" value="0">
+		</constant>
+		<constant name="BODY_AXIS_LOCK_X" value="1">
+		</constant>
+		<constant name="BODY_AXIS_LOCK_Y" value="2">
+		</constant>
+		<constant name="BODY_AXIS_LOCK_Z" value="3">
 		</constant>
 	</constants>
 </class>

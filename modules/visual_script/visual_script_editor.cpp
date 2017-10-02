@@ -481,7 +481,7 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 			continue;
 
 		Ref<VisualScriptNode> node = script->get_node(edited_func, E->get());
-		Vector2 pos = script->get_node_pos(edited_func, E->get());
+		Vector2 pos = script->get_node_position(edited_func, E->get());
 
 		GraphNode *gnode = memnew(GraphNode);
 		gnode->set_title(node->get_caption());
@@ -489,10 +489,6 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 			gnode->set_overlay(GraphNode::OVERLAY_POSITION);
 		} else if (node->is_breakpoint()) {
 			gnode->set_overlay(GraphNode::OVERLAY_BREAKPOINT);
-		}
-
-		if (node_styles.has(node->get_category())) {
-			gnode->add_style_override("frame", node_styles[node->get_category()]);
 		}
 
 		gnode->set_meta("__vnode", node);
@@ -525,6 +521,25 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 			gnode->set_resizable(true);
 			gnode->set_custom_minimum_size(vsc->get_size() * EDSCALE);
 			gnode->connect("resize_request", this, "_comment_node_resized", varray(E->get()));
+		}
+
+		if (node_styles.has(node->get_category())) {
+			Ref<StyleBoxFlat> sbf = node_styles[node->get_category()];
+			if (gnode->is_comment())
+				sbf = EditorNode::get_singleton()->get_theme_base()->get_theme()->get_stylebox("comment", "GraphNode");
+
+			Color c = sbf->get_border_color(MARGIN_TOP);
+			c.a = 1;
+			if (EditorSettings::get_singleton()->get("interface/theme/use_graph_node_headers")) {
+				Color mono_color = ((c.r + c.g + c.b) / 3) < 0.5 ? Color(1.0, 1.0, 1.0) : Color(0, 0, 0);
+				mono_color.a = 0.85;
+				c = mono_color;
+			}
+
+			gnode->add_color_override("title_color", c);
+			c.a = 0.7;
+			gnode->add_color_override("close_color", c);
+			gnode->add_style_override("frame", sbf);
 		}
 
 		int slot_idx = 0;
@@ -1050,7 +1065,7 @@ void VisualScriptEditor::_available_node_doubleclicked() {
 		List<int> existing;
 		script->get_node_list(edited_func, &existing);
 		for (List<int>::Element *E = existing.front(); E; E = E->next()) {
-			Point2 pos = script->get_node_pos(edited_func, E->get());
+			Point2 pos = script->get_node_position(edited_func, E->get());
 			if (pos.distance_to(ofs) < 15) {
 				ofs += Vector2(graph->get_snap(), graph->get_snap());
 				exists = true;
@@ -1171,7 +1186,7 @@ void VisualScriptEditor::_on_nodes_delete() {
 	for (List<int>::Element *F = to_erase.front(); F; F = F->next()) {
 
 		undo_redo->add_do_method(script.ptr(), "remove_node", edited_func, F->get());
-		undo_redo->add_undo_method(script.ptr(), "add_node", edited_func, F->get(), script->get_node(edited_func, F->get()), script->get_node_pos(edited_func, F->get()));
+		undo_redo->add_undo_method(script.ptr(), "add_node", edited_func, F->get(), script->get_node(edited_func, F->get()), script->get_node_position(edited_func, F->get()));
 
 		List<VisualScript::SequenceConnection> sequence_conns;
 		script->get_sequence_connection_list(edited_func, &sequence_conns);
@@ -1228,7 +1243,7 @@ void VisualScriptEditor::_on_nodes_duplicate() {
 
 		int new_id = idc++;
 		to_select.insert(new_id);
-		undo_redo->add_do_method(script.ptr(), "add_node", edited_func, new_id, dupe, script->get_node_pos(edited_func, F->get()) + Vector2(20, 20));
+		undo_redo->add_do_method(script.ptr(), "add_node", edited_func, new_id, dupe, script->get_node_position(edited_func, F->get()) + Vector2(20, 20));
 		undo_redo->add_undo_method(script.ptr(), "remove_node", edited_func, new_id);
 	}
 	undo_redo->add_do_method(this, "_update_graph");
@@ -1262,7 +1277,7 @@ Variant VisualScriptEditor::get_drag_data_fw(const Point2 &p_point, Control *p_f
 
 	if (p_from == nodes) {
 
-		TreeItem *it = nodes->get_item_at_pos(p_point);
+		TreeItem *it = nodes->get_item_at_position(p_point);
 		if (!it)
 			return Variant();
 		String type = it->get_metadata(0);
@@ -1281,7 +1296,7 @@ Variant VisualScriptEditor::get_drag_data_fw(const Point2 &p_point, Control *p_f
 
 	if (p_from == members) {
 
-		TreeItem *it = members->get_item_at_pos(p_point);
+		TreeItem *it = members->get_item_at_position(p_point);
 		if (!it)
 			return Variant();
 
@@ -2182,7 +2197,7 @@ void VisualScriptEditor::_move_node(String func, int p_id, const Vector2 &p_to) 
 		if (Object::cast_to<GraphNode>(node))
 			Object::cast_to<GraphNode>(node)->set_offset(p_to);
 	}
-	script->set_node_pos(edited_func, p_id, p_to / EDSCALE);
+	script->set_node_position(edited_func, p_id, p_to / EDSCALE);
 }
 
 void VisualScriptEditor::_node_moved(Vector2 p_from, Vector2 p_to, int p_id) {
@@ -2196,7 +2211,7 @@ void VisualScriptEditor::_remove_node(int p_id) {
 	undo_redo->create_action(TTR("Remove VisualScript Node"));
 
 	undo_redo->add_do_method(script.ptr(), "remove_node", edited_func, p_id);
-	undo_redo->add_undo_method(script.ptr(), "add_node", edited_func, p_id, script->get_node(edited_func, p_id), script->get_node_pos(edited_func, p_id));
+	undo_redo->add_undo_method(script.ptr(), "add_node", edited_func, p_id, script->get_node(edited_func, p_id), script->get_node_position(edited_func, p_id));
 
 	List<VisualScript::SequenceConnection> sequence_conns;
 	script->get_sequence_connection_list(edited_func, &sequence_conns);
@@ -2753,12 +2768,12 @@ void VisualScriptEditor::_notification(int p_what) {
 		signal_editor->connect("changed", this, "_update_members");
 
 		List<Pair<String, Color> > colors;
-		colors.push_back(Pair<String, Color>("functions", Color(1, 0.9, 0.9)));
-		colors.push_back(Pair<String, Color>("data", Color(0.9, 1.0, 0.9)));
-		colors.push_back(Pair<String, Color>("operators", Color(0.9, 0.9, 1.0)));
-		colors.push_back(Pair<String, Color>("flow_control", Color(1.0, 1.0, 1.0)));
-		colors.push_back(Pair<String, Color>("custom", Color(0.8, 1.0, 1.0)));
-		colors.push_back(Pair<String, Color>("constants", Color(1.0, 0.8, 1.0)));
+		colors.push_back(Pair<String, Color>("flow_control", Color::html("#f4f4f4")));
+		colors.push_back(Pair<String, Color>("functions", Color::html("#f58581")));
+		colors.push_back(Pair<String, Color>("data", Color::html("#80f6cf")));
+		colors.push_back(Pair<String, Color>("operators", Color::html("#ab97df")));
+		colors.push_back(Pair<String, Color>("custom", Color::html("#80bbf6")));
+		colors.push_back(Pair<String, Color>("constants", Color::html("#f680b0")));
 
 		for (List<Pair<String, Color> >::Element *E = colors.front(); E; E = E->next()) {
 			print_line(E->get().first);
@@ -2880,7 +2895,7 @@ void VisualScriptEditor::_menu_option(int p_what) {
 						}
 						if (node.is_valid()) {
 							clipboard->nodes[id] = node->duplicate();
-							clipboard->nodes_positions[id] = script->get_node_pos(edited_func, id);
+							clipboard->nodes_positions[id] = script->get_node_position(edited_func, id);
 						}
 					}
 				}
@@ -2940,7 +2955,7 @@ void VisualScriptEditor::_menu_option(int p_what) {
 				List<int> nodes;
 				script->get_node_list(edited_func, &nodes);
 				for (List<int>::Element *E = nodes.front(); E; E = E->next()) {
-					Vector2 pos = script->get_node_pos(edited_func, E->get()).snapped(Vector2(2, 2));
+					Vector2 pos = script->get_node_position(edited_func, E->get()).snapped(Vector2(2, 2));
 					existing_positions.insert(pos);
 				}
 			}
@@ -3054,7 +3069,7 @@ void VisualScriptEditor::_member_option(int p_option) {
 				List<int> nodes;
 				script->get_node_list(name, &nodes);
 				for (List<int>::Element *E = nodes.front(); E; E = E->next()) {
-					undo_redo->add_undo_method(script.ptr(), "add_node", name, E->get(), script->get_node(name, E->get()), script->get_node_pos(name, E->get()));
+					undo_redo->add_undo_method(script.ptr(), "add_node", name, E->get(), script->get_node(name, E->get()), script->get_node_position(name, E->get()));
 				}
 
 				List<VisualScript::SequenceConnection> seq_connections;
@@ -3252,8 +3267,7 @@ VisualScriptEditor::VisualScriptEditor() {
 
 	graph = memnew(GraphEdit);
 	add_child(graph);
-	graph->set_area_as_parent_rect();
-	graph->set_h_size_flags(SIZE_EXPAND_FILL);
+	graph->set_anchors_and_margins_preset(Control::PRESET_WIDE);
 	graph->connect("node_selected", this, "_node_selected");
 	graph->connect("_begin_node_move", this, "_begin_node_move");
 	graph->connect("_end_node_move", this, "_end_node_move");

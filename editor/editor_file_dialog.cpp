@@ -107,8 +107,6 @@ void EditorFileDialog::_notification(int p_what) {
 		fav_down->set_icon(get_icon("MoveDown", "EditorIcons"));
 		fav_rm->set_icon(get_icon("RemoveSmall", "EditorIcons"));
 
-		Theme::get_default()->clear_icon("ResizedFile", "EditorIcons");
-		Theme::get_default()->clear_icon("ResizedFolder", "EditorIcons");
 		update_file_list();
 	}
 }
@@ -1301,6 +1299,7 @@ EditorFileDialog::EditorFileDialog() {
 	pathhb->add_child(refresh);
 
 	favorite = memnew(ToolButton);
+	favorite->set_flat(true);
 	favorite->set_toggle_mode(true);
 	favorite->connect("toggled", this, "_favorite_toggled");
 	pathhb->add_child(favorite);

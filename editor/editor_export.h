@@ -240,14 +240,16 @@ class EditorExportPlugin : public Reference {
 		skipped = false;
 	}
 
-	void _export_file_script(const String &p_path, const PoolVector<String> &p_features);
+	void _export_file_script(const String &p_path, const String &p_type, const PoolVector<String> &p_features);
+	void _export_begin_script(const PoolVector<String> &p_features);
 
 protected:
 	void add_file(const String &p_path, const Vector<uint8_t> &p_file, bool p_remap);
 	void add_shared_object(const String &p_path);
 	void skip();
 
-	virtual void _export_file(const String &p_path, const Set<String> &p_features);
+	virtual void _export_file(const String &p_path, const String &p_type, const Set<String> &p_features);
+	virtual void _export_begin(const Set<String> &p_features);
 
 	static void _bind_methods();
 
@@ -317,6 +319,7 @@ class EditorExportPlatformPC : public EditorExportPlatform {
 	Set<String> extra_features;
 
 	bool use64;
+	int chmod_flags;
 
 public:
 	virtual void get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features);
@@ -344,6 +347,9 @@ public:
 
 	void add_platform_feature(const String &p_feature);
 	virtual void get_platform_features(List<String> *r_features);
+
+	int get_chmod_flags() const;
+	void set_chmod_flags(int p_flags);
 
 	EditorExportPlatformPC();
 };

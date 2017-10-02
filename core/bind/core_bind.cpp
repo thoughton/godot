@@ -33,6 +33,7 @@
 #include "geometry.h"
 #include "io/file_access_compressed.h"
 #include "io/file_access_encrypted.h"
+#include "io/json.h"
 #include "io/marshalls.h"
 #include "os/keyboard.h"
 #include "os/os.h"
@@ -440,8 +441,8 @@ bool _OS::is_vsync_enabled() const {
 	return OS::get_singleton()->is_vsync_enabled();
 }
 
-OS::PowerState _OS::get_power_state() {
-	return OS::get_singleton()->get_power_state();
+_OS::PowerState _OS::get_power_state() {
+	return _OS::PowerState(OS::get_singleton()->get_power_state());
 }
 
 int _OS::get_power_seconds_left() {
@@ -1032,10 +1033,8 @@ void _OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_time", "utc"), &_OS::get_time, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_time_zone_info"), &_OS::get_time_zone_info);
 	ClassDB::bind_method(D_METHOD("get_unix_time"), &_OS::get_unix_time);
-	ClassDB::bind_method(D_METHOD("get_datetime_from_unix_time", "unix_time_val"),
-			&_OS::get_datetime_from_unix_time);
-	ClassDB::bind_method(D_METHOD("get_unix_time_from_datetime", "datetime"),
-			&_OS::get_unix_time_from_datetime);
+	ClassDB::bind_method(D_METHOD("get_datetime_from_unix_time", "unix_time_val"), &_OS::get_datetime_from_unix_time);
+	ClassDB::bind_method(D_METHOD("get_unix_time_from_datetime", "datetime"), &_OS::get_unix_time_from_datetime);
 	ClassDB::bind_method(D_METHOD("get_system_time_secs"), &_OS::get_system_time_secs);
 
 	ClassDB::bind_method(D_METHOD("set_icon", "icon"), &_OS::set_icon);
@@ -1142,11 +1141,11 @@ void _OS::_bind_methods() {
 	BIND_ENUM_CONSTANT(SYSTEM_DIR_PICTURES);
 	BIND_ENUM_CONSTANT(SYSTEM_DIR_RINGTONES);
 
-	BIND_ENUM_CONSTANT(OS::POWERSTATE_UNKNOWN);
-	BIND_ENUM_CONSTANT(OS::POWERSTATE_ON_BATTERY);
-	BIND_ENUM_CONSTANT(OS::POWERSTATE_NO_BATTERY);
-	BIND_ENUM_CONSTANT(OS::POWERSTATE_CHARGING);
-	BIND_ENUM_CONSTANT(OS::POWERSTATE_CHARGED);
+	BIND_ENUM_CONSTANT(POWERSTATE_UNKNOWN);
+	BIND_ENUM_CONSTANT(POWERSTATE_ON_BATTERY);
+	BIND_ENUM_CONSTANT(POWERSTATE_NO_BATTERY);
+	BIND_ENUM_CONSTANT(POWERSTATE_CHARGING);
+	BIND_ENUM_CONSTANT(POWERSTATE_CHARGED);
 }
 
 _OS::_OS() {
@@ -1336,7 +1335,7 @@ void _Geometry::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("build_box_planes", "extents"), &_Geometry::build_box_planes);
 	ClassDB::bind_method(D_METHOD("build_cylinder_planes", "radius", "height", "sides", "axis"), &_Geometry::build_cylinder_planes, DEFVAL(Vector3::AXIS_Z));
 	ClassDB::bind_method(D_METHOD("build_capsule_planes", "radius", "height", "sides", "lats", "axis"), &_Geometry::build_capsule_planes, DEFVAL(Vector3::AXIS_Z));
-	ClassDB::bind_method(D_METHOD("segment_intersects_circle", "segment_from", "segment_to", "circle_pos", "circle_radius"), &_Geometry::segment_intersects_circle);
+	ClassDB::bind_method(D_METHOD("segment_intersects_circle", "segment_from", "segment_to", "circle_position", "circle_radius"), &_Geometry::segment_intersects_circle);
 	ClassDB::bind_method(D_METHOD("segment_intersects_segment_2d", "from_a", "to_a", "from_b", "to_b"), &_Geometry::segment_intersects_segment_2d);
 
 	ClassDB::bind_method(D_METHOD("get_closest_points_between_segments_2d", "p1", "q1", "p2", "q2"), &_Geometry::get_closest_points_between_segments_2d);
@@ -1352,7 +1351,7 @@ void _Geometry::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("ray_intersects_triangle", "from", "dir", "a", "b", "c"), &_Geometry::ray_intersects_triangle);
 	ClassDB::bind_method(D_METHOD("segment_intersects_triangle", "from", "to", "a", "b", "c"), &_Geometry::segment_intersects_triangle);
-	ClassDB::bind_method(D_METHOD("segment_intersects_sphere", "from", "to", "spos", "sradius"), &_Geometry::segment_intersects_sphere);
+	ClassDB::bind_method(D_METHOD("segment_intersects_sphere", "from", "to", "sphere_position", "sphere_radius"), &_Geometry::segment_intersects_sphere);
 	ClassDB::bind_method(D_METHOD("segment_intersects_cylinder", "from", "to", "height", "radius"), &_Geometry::segment_intersects_cylinder);
 	ClassDB::bind_method(D_METHOD("segment_intersects_convex", "from", "to", "planes"), &_Geometry::segment_intersects_convex);
 	ClassDB::bind_method(D_METHOD("point_is_inside_triangle", "point", "a", "b", "c"), &_Geometry::point_is_inside_triangle);
@@ -1451,10 +1450,10 @@ void _File::seek_end(int64_t p_position) {
 	ERR_FAIL_COND(!f);
 	f->seek_end(p_position);
 }
-int64_t _File::get_pos() const {
+int64_t _File::get_position() const {
 
 	ERR_FAIL_COND_V(!f, 0);
-	return f->get_pos();
+	return f->get_position();
 }
 
 int64_t _File::get_len() const {
@@ -1533,7 +1532,7 @@ String _File::get_as_text() const {
 	ERR_FAIL_COND_V(!f, String());
 
 	String text;
-	size_t original_pos = f->get_pos();
+	size_t original_pos = f->get_position();
 	f->seek(0);
 
 	String l = get_line();
@@ -1730,9 +1729,9 @@ void _File::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("open", "path", "flags"), &_File::open);
 	ClassDB::bind_method(D_METHOD("close"), &_File::close);
 	ClassDB::bind_method(D_METHOD("is_open"), &_File::is_open);
-	ClassDB::bind_method(D_METHOD("seek", "pos"), &_File::seek);
-	ClassDB::bind_method(D_METHOD("seek_end", "pos"), &_File::seek_end, DEFVAL(0));
-	ClassDB::bind_method(D_METHOD("get_pos"), &_File::get_pos);
+	ClassDB::bind_method(D_METHOD("seek", "position"), &_File::seek);
+	ClassDB::bind_method(D_METHOD("seek_end", "position"), &_File::seek_end, DEFVAL(0));
+	ClassDB::bind_method(D_METHOD("get_position"), &_File::get_position);
 	ClassDB::bind_method(D_METHOD("get_len"), &_File::get_len);
 	ClassDB::bind_method(D_METHOD("eof_reached"), &_File::eof_reached);
 	ClassDB::bind_method(D_METHOD("get_8"), &_File::get_8);
@@ -2598,5 +2597,78 @@ void _Engine::_bind_methods() {
 _Engine *_Engine::singleton = NULL;
 
 _Engine::_Engine() {
+	singleton = this;
+}
+
+void JSONParseResult::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_error"), &JSONParseResult::get_error);
+	ClassDB::bind_method(D_METHOD("get_error_string"), &JSONParseResult::get_error_string);
+	ClassDB::bind_method(D_METHOD("get_error_line"), &JSONParseResult::get_error_line);
+	ClassDB::bind_method(D_METHOD("get_result"), &JSONParseResult::get_result);
+
+	ClassDB::bind_method(D_METHOD("set_error", "error"), &JSONParseResult::set_error);
+	ClassDB::bind_method(D_METHOD("set_error_string", "error_string"), &JSONParseResult::set_error_string);
+	ClassDB::bind_method(D_METHOD("set_error_line", "error_line"), &JSONParseResult::set_error_line);
+	ClassDB::bind_method(D_METHOD("set_result", "result"), &JSONParseResult::set_result);
+
+	ADD_PROPERTYNZ(PropertyInfo(Variant::OBJECT, "error", PROPERTY_HINT_NONE, "Error", PROPERTY_USAGE_CLASS_IS_ENUM), "set_error", "get_error");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::STRING, "error_string"), "set_error_string", "get_error_string");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::INT, "error_line"), "set_error_line", "get_error_line");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::NIL, "result", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NIL_IS_VARIANT), "set_result", "get_result");
+}
+
+void JSONParseResult::set_error(Error p_error) {
+	error = p_error;
+}
+
+Error JSONParseResult::get_error() const {
+	return error;
+}
+
+void JSONParseResult::set_error_string(const String &p_error_string) {
+	error_string = p_error_string;
+}
+
+String JSONParseResult::get_error_string() const {
+	return error_string;
+}
+
+void JSONParseResult::set_error_line(int p_error_line) {
+	error_line = p_error_line;
+}
+
+int JSONParseResult::get_error_line() const {
+	return error_line;
+}
+
+void JSONParseResult::set_result(const Variant &p_result) {
+	result = p_result;
+}
+
+Variant JSONParseResult::get_result() const {
+	return result;
+}
+
+void _JSON::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("print", "value"), &_JSON::print);
+	ClassDB::bind_method(D_METHOD("parse", "json"), &_JSON::parse);
+}
+
+String _JSON::print(const Variant &p_value) {
+	return JSON::print(p_value);
+}
+
+Ref<JSONParseResult> _JSON::parse(const String &p_json) {
+	Ref<JSONParseResult> result;
+	result.instance();
+
+	result->error = JSON::parse(p_json, result->result, result->error_string, result->error_line);
+
+	return result;
+}
+
+_JSON *_JSON::singleton = NULL;
+
+_JSON::_JSON() {
 	singleton = this;
 }

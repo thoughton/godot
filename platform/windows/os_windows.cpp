@@ -1081,12 +1081,7 @@ void OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int 
 
 	power_manager = memnew(PowerWindows);
 
-	AudioDriverManager::get_driver(p_audio_driver)->set_singleton();
-
-	if (AudioDriverManager::get_driver(p_audio_driver)->init() != OK) {
-
-		ERR_PRINT("Initializing audio failed.");
-	}
+	AudioDriverManager::initialize(p_audio_driver);
 
 	TRACKMOUSEEVENT tme;
 	tme.cbSize = sizeof(TRACKMOUSEEVENT);
@@ -1309,7 +1304,7 @@ OS_Windows::MouseMode OS_Windows::get_mouse_mode() const {
 	return mouse_mode;
 }
 
-void OS_Windows::warp_mouse_pos(const Point2 &p_to) {
+void OS_Windows::warp_mouse_position(const Point2 &p_to) {
 
 	if (mouse_mode == MOUSE_MODE_CAPTURED) {
 

@@ -1088,12 +1088,7 @@ void OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_au
 	visual_server->init();
 	//	visual_server->cursor_set_visible(false, 0);
 
-	AudioDriverManager::get_driver(p_audio_driver)->set_singleton();
-
-	if (AudioDriverManager::get_driver(p_audio_driver)->init() != OK) {
-
-		ERR_PRINT("Initializing audio failed.");
-	}
+	AudioDriverManager::initialize(p_audio_driver);
 
 	//
 	physics_server = memnew(PhysicsServerSW);
@@ -1245,7 +1240,7 @@ bool OS_OSX::is_mouse_grab_enabled() const {
 	return mouse_grab;
 }
 
-void OS_OSX::warp_mouse_pos(const Point2 &p_to) {
+void OS_OSX::warp_mouse_position(const Point2 &p_to) {
 
 	//copied from windows impl with osx native calls
 	if (mouse_mode == MOUSE_MODE_CAPTURED) {
@@ -1736,17 +1731,6 @@ String OS_OSX::get_executable_path() const {
 
 		return path;
 	}
-}
-
-String OS_OSX::get_resource_dir() const {
-	// start with our executable path
-	String path = get_executable_path();
-
-	int pos = path.find_last("/Contents/MacOS/");
-	if (pos < 0)
-		return OS::get_resource_dir();
-
-	return path.substr(0, pos) + "/Contents/Resources/";
 }
 
 // Returns string representation of keys, if they are printable.

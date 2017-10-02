@@ -86,7 +86,7 @@ void FindReplaceBar::_notification(int p_what) {
 		find_prev->set_icon(get_icon("MoveUp", "EditorIcons"));
 		find_next->set_icon(get_icon("MoveDown", "EditorIcons"));
 		hide_button->set_normal_texture(get_icon("Close", "EditorIcons"));
-		hide_button->set_hover_texture(get_icon("CloseHover", "EditorIcons"));
+		hide_button->set_hover_texture(get_icon("Close", "EditorIcons"));
 		hide_button->set_pressed_texture(get_icon("Close", "EditorIcons"));
 
 	} else if (p_what == NOTIFICATION_VISIBILITY_CHANGED) {
@@ -97,7 +97,7 @@ void FindReplaceBar::_notification(int p_what) {
 		find_prev->set_icon(get_icon("MoveUp", "EditorIcons"));
 		find_next->set_icon(get_icon("MoveDown", "EditorIcons"));
 		hide_button->set_normal_texture(get_icon("Close", "EditorIcons"));
-		hide_button->set_hover_texture(get_icon("CloseHover", "EditorIcons"));
+		hide_button->set_hover_texture(get_icon("Close", "EditorIcons"));
 		hide_button->set_pressed_texture(get_icon("Close", "EditorIcons"));
 	}
 }
@@ -367,7 +367,7 @@ void FindReplaceBar::_show_search() {
 
 	if (!get_search_text().empty()) {
 		search_text->select_all();
-		search_text->set_cursor_pos(search_text->get_text().length());
+		search_text->set_cursor_position(search_text->get_text().length());
 		search_current();
 	}
 }
@@ -993,14 +993,14 @@ void CodeTextEditor::_text_editor_gui_input(const Ref<InputEvent> &p_event) {
 }
 
 void CodeTextEditor::_zoom_in() {
-	font_resize_val += 1;
+	font_resize_val += EDSCALE;
 
 	if (font_resize_timer->get_time_left() == 0)
 		font_resize_timer->start();
 }
 
 void CodeTextEditor::_zoom_out() {
-	font_resize_val -= 1;
+	font_resize_val -= EDSCALE;
 
 	if (font_resize_timer->get_time_left() == 0)
 		font_resize_timer->start();
@@ -1010,7 +1010,7 @@ void CodeTextEditor::_reset_zoom() {
 	Ref<DynamicFont> font = text_editor->get_font("font"); // reset source font size to default
 
 	if (font.is_valid()) {
-		EditorSettings::get_singleton()->set("interface/source_font_size", 14);
+		EditorSettings::get_singleton()->set("interface/editor/source_font_size", 14);
 		font->set_size(14);
 	}
 }
@@ -1023,8 +1023,10 @@ void CodeTextEditor::_line_col_changed() {
 
 void CodeTextEditor::_text_changed() {
 
-	code_complete_timer->start();
-	idle->start();
+	if (text_editor->is_insert_text_operation()) {
+		code_complete_timer->start();
+		idle->start();
+	}
 }
 
 void CodeTextEditor::_code_complete_timer_timeout() {
@@ -1062,11 +1064,10 @@ void CodeTextEditor::_font_resize_timeout() {
 	Ref<DynamicFont> font = text_editor->get_font("font");
 
 	if (font.is_valid()) {
-		int size = font->get_size() + font_resize_val;
-
-		if (size >= 8 && size <= 96) {
-			EditorSettings::get_singleton()->set("interface/source_font_size", size);
-			font->set_size(size);
+		int new_size = CLAMP(font->get_size() + font_resize_val, 8 * EDSCALE, 96 * EDSCALE);
+		if (new_size != font->get_size()) {
+			EditorSettings::get_singleton()->set("interface/editor/source_font_size", new_size / EDSCALE);
+			font->set_size(new_size);
 		}
 
 		font_resize_val = 0;

@@ -106,9 +106,9 @@ void ScrollBar::_gui_input(Ref<InputEvent> p_event) {
 			if (ofs < grabber_ofs) {
 
 				if (scrolling) {
-					target_scroll = target_scroll - get_page();
+					target_scroll = CLAMP(target_scroll - get_page(), get_min(), get_max() - get_page());
 				} else {
-					target_scroll = get_value() - get_page();
+					target_scroll = CLAMP(get_value() - get_page(), get_min(), get_max() - get_page());
 				}
 
 				if (smooth_scroll_enabled) {
@@ -130,9 +130,9 @@ void ScrollBar::_gui_input(Ref<InputEvent> p_event) {
 				update();
 			} else {
 				if (scrolling) {
-					target_scroll = target_scroll + get_page();
+					target_scroll = CLAMP(target_scroll + get_page(), get_min(), get_max() - get_page());
 				} else {
-					target_scroll = get_value() + get_page();
+					target_scroll = CLAMP(get_value() + get_page(), get_min(), get_max() - get_page());
 				}
 
 				if (smooth_scroll_enabled) {
@@ -343,7 +343,7 @@ void ScrollBar::_notification(int p_what) {
 				double dist = sqrt(target * target);
 				double vel = ((target / dist) * 500) * get_fixed_process_delta_time();
 
-				if (vel >= dist) {
+				if (Math::abs(vel) >= dist) {
 					set_value(target_scroll);
 				} else {
 					set_value(get_value() + vel);

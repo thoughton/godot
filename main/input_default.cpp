@@ -80,7 +80,7 @@ bool InputDefault::is_key_pressed(int p_scancode) const {
 bool InputDefault::is_mouse_button_pressed(int p_button) const {
 
 	_THREAD_SAFE_METHOD_
-	return (mouse_button_mask & (1 << p_button)) != 0;
+	return (mouse_button_mask & (1 << (p_button - 1))) != 0;
 }
 
 static int _combine_device(int p_value, int p_device) {
@@ -265,10 +265,11 @@ void InputDefault::parse_input_event(const Ref<InputEvent> &p_event) {
 
 	if (mb.is_valid() && !mb->is_doubleclick()) {
 
-		if (mb->is_pressed())
-			mouse_button_mask |= (1 << mb->get_button_index());
-		else
-			mouse_button_mask &= ~(1 << mb->get_button_index());
+		if (mb->is_pressed()) {
+			mouse_button_mask |= (1 << (mb->get_button_index() - 1));
+		} else {
+			mouse_button_mask &= ~(1 << (mb->get_button_index() - 1));
+		}
 
 		if (main_loop && emulate_touch && mb->get_button_index() == 1) {
 			Ref<InputEventScreenTouch> touch_event;
@@ -421,9 +422,9 @@ int InputDefault::get_mouse_button_mask() const {
 	return mouse_button_mask; // do not trust OS implementaiton, should remove it - OS::get_singleton()->get_mouse_button_state();
 }
 
-void InputDefault::warp_mouse_pos(const Vector2 &p_to) {
+void InputDefault::warp_mouse_position(const Vector2 &p_to) {
 
-	OS::get_singleton()->warp_mouse_pos(p_to);
+	OS::get_singleton()->warp_mouse_position(p_to);
 }
 
 Point2i InputDefault::warp_mouse_motion(const Ref<InputEventMouseMotion> &p_motion, const Rect2 &p_rect) {
@@ -446,7 +447,7 @@ Point2i InputDefault::warp_mouse_motion(const Ref<InputEventMouseMotion> &p_moti
 	const Point2i pos_local = p_motion->get_global_position() - p_rect.position;
 	const Point2i pos_warped(Math::fposmod(pos_local.x, p_rect.size.x), Math::fposmod(pos_local.y, p_rect.size.y));
 	if (pos_warped != pos_local) {
-		OS::get_singleton()->warp_mouse_pos(pos_warped + p_rect.position);
+		OS::get_singleton()->warp_mouse_position(pos_warped + p_rect.position);
 	}
 
 	return rel_warped;
