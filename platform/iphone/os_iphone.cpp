@@ -41,6 +41,7 @@
 #include "core/os/dir_access.h"
 #include "core/os/file_access.h"
 #include "core/project_settings.h"
+#include "drivers/unix/syslog_logger.h"
 
 #include "sem_iphone.h"
 
@@ -97,6 +98,13 @@ void OSIPhone::initialize_core() {
 	OS_Unix::initialize_core();
 	SemaphoreIphone::make_default();
 };
+
+void OSIPhone::initialize_logger() {
+	Vector<Logger *> loggers;
+	loggers.push_back(memnew(SyslogLogger));
+	loggers.push_back(memnew(RotatedFileLogger("user://logs/log.txt")));
+	_set_logger(memnew(CompositeLogger(loggers)));
+}
 
 void OSIPhone::initialize(const VideoMode &p_desired, int p_video_driver, int p_audio_driver) {
 
@@ -455,6 +463,14 @@ void OSIPhone::hide_virtual_keyboard() {
 	_hide_keyboard();
 };
 
+void OSIPhone::set_virtual_keyboard_height(int p_height) {
+	virtual_keyboard_height = p_height;
+}
+
+int OSIPhone::get_virtual_keyboard_height() const {
+	return virtual_keyboard_height;
+}
+
 Error OSIPhone::shell_open(String p_uri) {
 	return _shell_open(p_uri);
 };
@@ -568,6 +584,9 @@ OSIPhone::OSIPhone(int width, int height) {
 	vm.resizable = false;
 	set_video_mode(vm);
 	event_count = 0;
+	virtual_keyboard_height = 0;
+
+	_set_logger(memnew(SyslogLogger));
 };
 
 OSIPhone::~OSIPhone() {
