@@ -112,15 +112,16 @@ public:
 	CrashHandler crash_handler;
 
 	float _mouse_scale(float p_scale) {
-		if (display_scale > 1.0)
+		if (_display_scale() > 1.0)
 			return p_scale;
 		else
 			return 1.0;
 	}
 
-	void _update_window();
+	float _display_scale() const;
+	float _display_scale(id screen) const;
 
-	float display_scale;
+	void _update_window();
 
 protected:
 	virtual int get_video_driver_count() const;
@@ -217,6 +218,9 @@ public:
 	virtual int get_power_percent_left();
 
 	virtual bool _check_internal_feature_support(const String &p_feature);
+
+	virtual void set_use_vsync(bool p_enable);
+	virtual bool is_vsync_enabled() const;
 
 	void run();
 

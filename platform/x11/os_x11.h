@@ -94,7 +94,7 @@ class OS_X11 : public OS_Unix {
 
 	int xdnd_version;
 
-#if defined(OPENGL_ENABLED) || defined(LEGACYGL_ENABLED)
+#if defined(OPENGL_ENABLED)
 	ContextGL_X11 *context_gl;
 #endif
 	//Rasterizer *rasterizer;
@@ -274,6 +274,8 @@ public:
 	bool is_disable_crash_handler() const;
 
 	virtual Error move_to_trash(const String &p_path);
+
+	virtual LatinKeyboardVariant get_latin_keyboard_variant() const;
 
 	OS_X11();
 };

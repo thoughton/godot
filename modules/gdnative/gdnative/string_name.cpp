@@ -1,9 +1,9 @@
 /*************************************************************************/
-/*  patch_9_rect.h                                                       */
+/*  string_name.cpp                                                           */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                      https://godotengine.org                          */
+/*                    http://www.godotengine.org                         */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -27,58 +27,65 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef PATCH_9_FRAME_H
-#define PATCH_9_FRAME_H
+#include "gdnative/string_name.h"
 
-#include "scene/gui/control.h"
-/**
-	@author Juan Linietsky <reduzio@gmail.com>
-*/
-class NinePatchRect : public Control {
+#include "core/string_db.h"
+#include "core/ustring.h"
 
-	GDCLASS(NinePatchRect, Control);
+#include <string.h>
 
-public:
-	enum AxisStretchMode {
-		AXIS_STRETCH_MODE_STRETCH,
-		AXIS_STRETCH_MODE_TILE,
-		AXIS_STRETCH_MODE_TILE_FIT,
-	};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-	bool draw_center;
-	int margin[4];
-	Rect2 region_rect;
-	Ref<Texture> texture;
+void _string_name_api_anchor() {
+}
 
-	AxisStretchMode axis_h, axis_v;
+void GDAPI godot_string_name_new(godot_string_name *r_dest, const godot_string *p_name) {
+	StringName *dest = (StringName *)r_dest;
+	const String *name = (const String *)p_name;
+	memnew_placement(dest, StringName(*name));
+}
 
-protected:
-	void _notification(int p_what);
-	virtual Size2 get_minimum_size() const;
-	static void _bind_methods();
+void GDAPI godot_string_name_new_data(godot_string_name *r_dest, const char *p_name) {
+	StringName *dest = (StringName *)r_dest;
+	memnew_placement(dest, StringName(p_name));
+}
 
-public:
-	void set_texture(const Ref<Texture> &p_tex);
-	Ref<Texture> get_texture() const;
+godot_string GDAPI godot_string_name_get_name(const godot_string_name *p_self) {
+	godot_string ret;
+	const StringName *self = (const StringName *)p_self;
+	memnew_placement(&ret, String(*self));
+	return ret;
+}
 
-	void set_patch_margin(Margin p_margin, int p_size);
-	int get_patch_margin(Margin p_margin) const;
+uint32_t GDAPI godot_string_name_get_hash(const godot_string_name *p_self) {
+	const StringName *self = (const StringName *)p_self;
+	return self->hash();
+}
 
-	void set_region_rect(const Rect2 &p_region_rect);
-	Rect2 get_region_rect() const;
+const void GDAPI *godot_string_name_get_data_unique_pointer(const godot_string_name *p_self) {
+	const StringName *self = (const StringName *)p_self;
+	return self->data_unique_pointer();
+}
 
-	void set_draw_center(bool p_enabled);
-	bool is_draw_center_enabled() const;
+godot_bool GDAPI godot_string_name_operator_equal(const godot_string_name *p_self, const godot_string_name *p_other) {
+	const StringName *self = (const StringName *)p_self;
+	const StringName *other = (const StringName *)p_other;
+	return self == other;
+}
 
-	void set_h_axis_stretch_mode(AxisStretchMode p_mode);
-	AxisStretchMode get_h_axis_stretch_mode() const;
+godot_bool GDAPI godot_string_name_operator_less(const godot_string_name *p_self, const godot_string_name *p_other) {
+	const StringName *self = (const StringName *)p_self;
+	const StringName *other = (const StringName *)p_other;
+	return self < other;
+}
 
-	void set_v_axis_stretch_mode(AxisStretchMode p_mode);
-	AxisStretchMode get_v_axis_stretch_mode() const;
+void GDAPI godot_string_name_destroy(godot_string_name *p_self) {
+	StringName *self = (StringName *)p_self;
+	self->~StringName();
+}
 
-	NinePatchRect();
-	~NinePatchRect();
-};
-
-VARIANT_ENUM_CAST(NinePatchRect::AxisStretchMode)
-#endif // PATCH_9_FRAME_H
+#ifdef __cplusplus
+}
+#endif

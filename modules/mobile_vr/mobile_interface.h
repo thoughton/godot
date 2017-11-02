@@ -90,7 +90,7 @@ private:
 
 	///@TODO a few support functions for trackers, most are math related and should likely be moved elsewhere
 	float floor_decimals(float p_value, float p_decimals) {
-		float power_of_10 = pow(10.0, p_decimals);
+		float power_of_10 = pow(10.0f, p_decimals);
 		return floor(p_value * power_of_10) / power_of_10;
 	};
 
@@ -131,10 +131,7 @@ public:
 	real_t get_k2() const;
 
 	virtual StringName get_name() const;
-
-	virtual bool is_installed();
-	virtual bool hmd_is_present();
-	virtual bool supports_hmd();
+	virtual int get_capabilities() const;
 
 	virtual bool is_initialized();
 	virtual bool initialize();
