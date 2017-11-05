@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch (launcher)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/bin/godot.osx.tools.64",
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}/../../GodotProjects",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "Launch (editor)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/bin/godot.osx.tools.64",
+            "args": [
+                "--editor", "../../GodotProjects/test-ffc339d/project.godot"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "lldb"
+        }
+    ]
+}
