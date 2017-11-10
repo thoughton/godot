@@ -81,7 +81,7 @@ void BulletPhysicsServer::_bind_methods() {
 BulletPhysicsServer::BulletPhysicsServer()
 	: PhysicsServer(),
 	  active(true),
-	  activeSpace(NULL) {}
+	  active_spaces_count(0) {}
 
 BulletPhysicsServer::~BulletPhysicsServer() {}
 
@@ -162,27 +162,28 @@ RID BulletPhysicsServer::space_create() {
 }
 
 void BulletPhysicsServer::space_set_active(RID p_space, bool p_active) {
+
+	SpaceBullet *space = space_owner.get(p_space);
+	ERR_FAIL_COND(!space);
+
+	if (space_is_active(p_space) == p_active) {
+		return;
+	}
+
 	if (p_active) {
-		if (activeSpace) {
-			// There is another space and this cannot be activated
-			ERR_PRINT("There is another space, before activate new one deactivate the current space.");
-		} else {
-			SpaceBullet *space = space_owner.get(p_space);
-			if (space) {
-				activeSpace = space;
-			} else {
-				ERR_PRINT("The passed RID is not a valid space. Please provide a RID with SpaceBullet type.");
-			}
-		}
+		++active_spaces_count;
+		active_spaces.push_back(space);
 	} else {
-		if (!space_is_active(p_space)) {
-			activeSpace = NULL;
-		}
+		--active_spaces_count;
+		active_spaces.erase(space);
 	}
 }
 
 bool BulletPhysicsServer::space_is_active(RID p_space) const {
-	return NULL != activeSpace && activeSpace == p_space.get_data();
+	SpaceBullet *space = space_owner.get(p_space);
+	ERR_FAIL_COND_V(!space, false);
+
+	return -1 != active_spaces.find(space);
 }
 
 void BulletPhysicsServer::space_set_param(RID p_space, SpaceParameter p_param, real_t p_value) {
@@ -634,6 +635,28 @@ float BulletPhysicsServer::body_get_param(RID p_body, BodyParameter p_param) con
 	return body->get_param(p_param);
 }
 
+void BulletPhysicsServer::body_set_kinematic_safe_margin(RID p_body, real_t p_margin) {
+	RigidBodyBullet *body = rigid_body_owner.get(p_body);
+	ERR_FAIL_COND(!body);
+
+	if (body->get_kinematic_utilities()) {
+
+		body->get_kinematic_utilities()->setSafeMargin(p_margin);
+	}
+}
+
+real_t BulletPhysicsServer::body_get_kinematic_safe_margin(RID p_body) const {
+	RigidBodyBullet *body = rigid_body_owner.get(p_body);
+	ERR_FAIL_COND_V(!body, 0);
+
+	if (body->get_kinematic_utilities()) {
+
+		return body->get_kinematic_utilities()->safe_margin;
+	}
+
+	return 0;
+}
+
 void BulletPhysicsServer::body_set_state(RID p_body, BodyState p_state, const Variant &p_variant) {
 	RigidBodyBullet *body = rigid_body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -796,12 +819,12 @@ PhysicsDirectBodyState *BulletPhysicsServer::body_get_direct_state(RID p_body) {
 	return BulletPhysicsDirectBodyState::get_singleton(body);
 }
 
-bool BulletPhysicsServer::body_test_motion(RID p_body, const Transform &p_from, const Vector3 &p_motion, float p_margin, MotionResult *r_result) {
+bool BulletPhysicsServer::body_test_motion(RID p_body, const Transform &p_from, const Vector3 &p_motion, MotionResult *r_result) {
 	RigidBodyBullet *body = rigid_body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body, false);
 	ERR_FAIL_COND_V(!body->get_space(), false);
 
-	return body->get_space()->test_body_motion(body, p_from, p_motion, p_margin, r_result);
+	return body->get_space()->test_body_motion(body, p_from, p_motion, r_result);
 }
 
 RID BulletPhysicsServer::soft_body_create(bool p_init_sleeping) {
@@ -1296,8 +1319,10 @@ void BulletPhysicsServer::step(float p_deltaTime) {
 		return;
 
 	BulletPhysicsDirectBodyState::singleton_setDeltaTime(p_deltaTime);
-	if (activeSpace) {
-		activeSpace->step(p_deltaTime);
+
+	for (int i = 0; i < active_spaces_count; ++i) {
+
+		active_spaces[i]->step(p_deltaTime);
 	}
 }
 

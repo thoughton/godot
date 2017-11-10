@@ -31,7 +31,6 @@
 #define OS_JAVASCRIPT_H
 
 #include "audio_driver_javascript.h"
-#include "audio_server_javascript.h"
 #include "drivers/unix/os_unix.h"
 #include "javascript_eval.h"
 #include "main/input_default.h"
@@ -83,8 +82,6 @@ public:
 	// functions used by main to initialize/deintialize the OS
 	virtual int get_video_driver_count() const;
 	virtual const char *get_video_driver_name(int p_driver) const;
-
-	virtual VideoMode get_default_video_mode() const;
 
 	virtual int get_audio_driver_count() const;
 	virtual const char *get_audio_driver_name(int p_driver) const;
