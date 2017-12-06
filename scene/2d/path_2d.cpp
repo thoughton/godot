@@ -107,25 +107,34 @@ void PathFollow2D::_update_transform() {
 	if (!c.is_valid())
 		return;
 
+	if (delta_offset == 0) {
+		return;
+	}
+
 	float o = offset;
 	if (loop)
 		o = Math::fposmod(o, c->get_baked_length());
 
 	Vector2 pos = c->interpolate_baked(o, cubic);
 
+	Vector2 displacement_offset = Vector2(h_offset, v_offset);
+
 	if (rotate) {
 
-		Vector2 n = (c->interpolate_baked(o + lookahead, cubic) - pos).normalized();
-		Vector2 t = -n.tangent();
-		pos += n * h_offset;
-		pos += t * v_offset;
+		Vector2 t_prev = (pos - c->interpolate_baked(o - delta_offset, cubic)).normalized();
+		Vector2 t_next = (c->interpolate_baked(o + delta_offset, cubic) - pos).normalized();
 
-		set_rotation(t.angle());
+		float angle = t_prev.angle_to(t_next);
+
+		set_rotation(get_rotation() + angle);
+
+		Vector2 n = t_next;
+		Vector2 t = -n.tangent();
+		pos += n * h_offset + t * v_offset;
 
 	} else {
 
-		pos.x += h_offset;
-		pos.y += v_offset;
+		pos += displacement_offset;
 	}
 
 	set_position(pos);
@@ -176,8 +185,6 @@ bool PathFollow2D::_set(const StringName &p_name, const Variant &p_value) {
 		set_cubic_interpolation(p_value);
 	} else if (String(p_name) == "loop") {
 		set_loop(p_value);
-	} else if (String(p_name) == "lookahead") {
-		set_lookahead(p_value);
 	} else
 		return false;
 
@@ -200,8 +207,6 @@ bool PathFollow2D::_get(const StringName &p_name, Variant &r_ret) const {
 		r_ret = cubic;
 	} else if (String(p_name) == "loop") {
 		r_ret = loop;
-	} else if (String(p_name) == "lookahead") {
-		r_ret = lookahead;
 	} else
 		return false;
 
@@ -219,7 +224,6 @@ void PathFollow2D::_get_property_list(List<PropertyInfo> *p_list) const {
 	p_list->push_back(PropertyInfo(Variant::BOOL, "rotate"));
 	p_list->push_back(PropertyInfo(Variant::BOOL, "cubic_interp"));
 	p_list->push_back(PropertyInfo(Variant::BOOL, "loop"));
-	p_list->push_back(PropertyInfo(Variant::REAL, "lookahead", PROPERTY_HINT_RANGE, "0.001,1024.0,0.001"));
 }
 
 String PathFollow2D::get_configuration_warning() const {
@@ -259,7 +263,7 @@ void PathFollow2D::_bind_methods() {
 }
 
 void PathFollow2D::set_offset(float p_offset) {
-
+	delta_offset = p_offset - offset;
 	offset = p_offset;
 	if (path)
 		_update_transform();
@@ -310,16 +314,6 @@ float PathFollow2D::get_unit_offset() const {
 		return 0;
 }
 
-void PathFollow2D::set_lookahead(float p_lookahead) {
-
-	lookahead = p_lookahead;
-}
-
-float PathFollow2D::get_lookahead() const {
-
-	return lookahead;
-}
-
 void PathFollow2D::set_rotate(bool p_rotate) {
 
 	rotate = p_rotate;
@@ -344,11 +338,11 @@ bool PathFollow2D::has_loop() const {
 PathFollow2D::PathFollow2D() {
 
 	offset = 0;
+	delta_offset = 0;
 	h_offset = 0;
 	v_offset = 0;
 	path = NULL;
 	rotate = true;
 	cubic = true;
 	loop = true;
-	lookahead = 4;
 }

@@ -36,8 +36,6 @@
 extern "C" {
 #endif
 
-void _basis_api_anchor() {}
-
 void GDAPI godot_basis_new_with_rows(godot_basis *r_dest, const godot_vector3 *p_x_axis, const godot_vector3 *p_y_axis, const godot_vector3 *p_z_axis) {
 	const Vector3 *x_axis = (const Vector3 *)p_x_axis;
 	const Vector3 *y_axis = (const Vector3 *)p_y_axis;
@@ -223,7 +221,7 @@ godot_basis GDAPI godot_basis_operator_add(const godot_basis *p_self, const godo
 	return raw_dest;
 }
 
-godot_basis GDAPI godot_basis_operator_substract(const godot_basis *p_self, const godot_basis *p_b) {
+godot_basis GDAPI godot_basis_operator_subtract(const godot_basis *p_self, const godot_basis *p_b) {
 	godot_basis raw_dest;
 	Basis *dest = (Basis *)&raw_dest;
 	const Basis *self = (const Basis *)p_self;

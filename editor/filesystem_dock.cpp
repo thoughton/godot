@@ -333,7 +333,7 @@ void FileSystemDock::navigate_to_path(const String &p_path) {
 	} else if (dirAccess->dir_exists(p_path)) {
 		path = p_path;
 	} else {
-		ERR_EXPLAIN(TTR("Cannot navigate to '" + p_path + "' as it has not been found in the file system!"));
+		ERR_EXPLAIN(vformat(TTR("Cannot navigate to '%s' as it has not been found in the file system!"), p_path));
 		ERR_FAIL();
 	}
 
@@ -781,6 +781,20 @@ void FileSystemDock::_try_move_item(const FileOrFolder &p_item, const String &p_
 			}
 		}
 
+		// update scene if it is open
+		for (int i = 0; i < changed_paths.size(); ++i) {
+			String new_item_path = p_item.is_file ? new_path : changed_paths[i].replace_first(old_path, new_path);
+			if (ResourceLoader::get_resource_type(new_item_path) == "PackedScene" && editor->is_scene_open(changed_paths[i])) {
+				EditorData *ed = &editor->get_editor_data();
+				for (int j = 0; j < ed->get_edited_scene_count(); j++) {
+					if (ed->get_scene_path(j) == changed_paths[i]) {
+						ed->get_edited_scene_root(j)->set_filename(new_item_path);
+						break;
+					}
+				}
+			}
+		}
+
 		//Only treat as a changed dependency if it was successfully moved
 		for (int i = 0; i < changed_paths.size(); ++i) {
 			p_renames[changed_paths[i]] = changed_paths[i].replace_first(old_path, new_path);
@@ -803,7 +817,10 @@ void FileSystemDock::_update_dependencies_after_move(const Map<String, String> &
 		String file = p_renames.has(remaps[i]) ? p_renames[remaps[i]] : remaps[i];
 		print_line("Remapping dependencies for: " + file);
 		Error err = ResourceLoader::rename_dependencies(file, p_renames);
-		if (err != OK) {
+		if (err == OK) {
+			if (ResourceLoader::get_resource_type(file) == "PackedScene")
+				editor->reload_scene(file);
+		} else {
 			EditorNode::get_singleton()->add_io_error(TTR("Unable to update dependencies:\n") + remaps[i] + "\n");
 		}
 	}
@@ -1417,17 +1434,17 @@ void FileSystemDock::_files_list_rmb_select(int p_item, const Vector2 &p_pos) {
 		if (all_files_scenes) {
 			file_options->add_item(TTR("Instance"), FILE_INSTANCE);
 		}
+		file_options->add_separator();
 
 		if (filenames.size() == 1) {
-			file_options->add_separator();
 			file_options->add_item(TTR("Edit Dependencies.."), FILE_DEPENDENCIES);
 			file_options->add_item(TTR("View Owners.."), FILE_OWNERS);
+			file_options->add_separator();
 		}
 	} else if (all_folders && foldernames.size() > 0) {
 		file_options->add_item(TTR("Open"), FILE_OPEN);
+		file_options->add_separator();
 	}
-
-	file_options->add_separator();
 
 	int num_items = filenames.size() + foldernames.size();
 	if (num_items >= 1) {
@@ -1447,6 +1464,16 @@ void FileSystemDock::_files_list_rmb_select(int p_item, const Vector2 &p_pos) {
 	file_options->popup();
 }
 
+void FileSystemDock::_rmb_pressed(const Vector2 &p_pos) {
+	file_options->clear();
+	file_options->set_size(Size2(1, 1));
+
+	file_options->add_item(TTR("New Folder.."), FILE_NEW_FOLDER);
+	file_options->add_item(TTR("Show In File Manager"), FILE_SHOW_IN_EXPLORER);
+	file_options->set_position(files->get_global_position() + p_pos);
+	file_options->popup();
+}
+
 void FileSystemDock::select_file(const String &p_file) {
 
 	navigate_to_path(p_file);
@@ -1454,10 +1481,20 @@ void FileSystemDock::select_file(const String &p_file) {
 
 void FileSystemDock::_file_multi_selected(int p_index, bool p_selected) {
 
-	_file_selected();
+	import_dock_needs_update = true;
+	call_deferred("_update_import_dock");
 }
 
 void FileSystemDock::_file_selected() {
+
+	import_dock_needs_update = true;
+	_update_import_dock();
+}
+
+void FileSystemDock::_update_import_dock() {
+
+	if (!import_dock_needs_update)
+		return;
 
 	//check import
 	Vector<String> imports;
@@ -1498,6 +1535,8 @@ void FileSystemDock::_file_selected() {
 	} else {
 		EditorNode::get_singleton()->get_import_dock()->set_edit_multiple_paths(imports);
 	}
+
+	import_dock_needs_update = false;
 }
 
 void FileSystemDock::_bind_methods() {
@@ -1534,6 +1573,8 @@ void FileSystemDock::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_preview_invalidated"), &FileSystemDock::_preview_invalidated);
 	ClassDB::bind_method(D_METHOD("_file_selected"), &FileSystemDock::_file_selected);
 	ClassDB::bind_method(D_METHOD("_file_multi_selected"), &FileSystemDock::_file_multi_selected);
+	ClassDB::bind_method(D_METHOD("_update_import_dock"), &FileSystemDock::_update_import_dock);
+	ClassDB::bind_method(D_METHOD("_rmb_pressed"), &FileSystemDock::_rmb_pressed);
 
 	ADD_SIGNAL(MethodInfo("instance", PropertyInfo(Variant::POOL_STRING_ARRAY, "files")));
 	ADD_SIGNAL(MethodInfo("open"));
@@ -1541,6 +1582,7 @@ void FileSystemDock::_bind_methods() {
 
 FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 
+	set_name("FileSystem");
 	editor = p_editor;
 	path = "res://";
 
@@ -1652,6 +1694,7 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	files->connect("item_rmb_selected", this, "_files_list_rmb_select");
 	files->connect("item_selected", this, "_file_selected");
 	files->connect("multi_selected", this, "_file_multi_selected");
+	files->connect("rmb_clicked", this, "_rmb_pressed");
 	files->set_allow_rmb_select(true);
 	file_list_vb->add_child(files);
 
@@ -1670,7 +1713,7 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	deps_editor = memnew(DependencyEditor);
 	add_child(deps_editor);
 
-	owners_editor = memnew(DependencyEditorOwners);
+	owners_editor = memnew(DependencyEditorOwners(editor));
 	add_child(owners_editor);
 
 	remove_dialog = memnew(DependencyRemoveDialog);
@@ -1705,6 +1748,7 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 
 	updating_tree = false;
 	initialized = false;
+	import_dock_needs_update = false;
 
 	history_pos = 0;
 	history_max_size = 20;

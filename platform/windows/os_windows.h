@@ -145,7 +145,6 @@ protected:
 	virtual int get_audio_driver_count() const;
 	virtual const char *get_audio_driver_name(int p_driver) const;
 
-	virtual void initialize_logger();
 	virtual void initialize_core();
 	virtual void initialize(const VideoMode &p_desired, int p_video_driver, int p_audio_driver);
 
@@ -213,7 +212,7 @@ public:
 	virtual void set_borderless_window(int p_borderless);
 	virtual bool get_borderless_window();
 
-	virtual Error open_dynamic_library(const String p_path, void *&p_library_handle);
+	virtual Error open_dynamic_library(const String p_path, void *&p_library_handle,bool p_also_set_library_path=false);
 	virtual Error close_dynamic_library(void *p_library_handle);
 	virtual Error get_dynamic_library_symbol_handle(void *p_library_handle, const String p_name, void *&p_symbol_handle, bool p_optional = false);
 
@@ -253,8 +252,14 @@ public:
 
 	virtual void enable_for_stealing_focus(ProcessID pid);
 	virtual void move_window_to_foreground();
-	virtual String get_data_dir() const;
+
+	virtual String get_config_path() const;
+	virtual String get_data_path() const;
+	virtual String get_cache_path() const;
+	virtual String get_godot_dir_name() const;
+
 	virtual String get_system_dir(SystemDir p_dir) const;
+	virtual String get_user_data_dir() const;
 
 	virtual void release_rendering_thread();
 	virtual void make_rendering_thread();

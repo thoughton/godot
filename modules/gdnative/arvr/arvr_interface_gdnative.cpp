@@ -166,11 +166,11 @@ void ARVRInterfaceGDNative::uninitialize() {
 	interface->uninitialize(data);
 }
 
-Size2 ARVRInterfaceGDNative::get_recommended_render_targetsize() {
+Size2 ARVRInterfaceGDNative::get_render_targetsize() {
 
 	ERR_FAIL_COND_V(interface == NULL, Size2());
 
-	godot_vector2 result = interface->get_recommended_render_targetsize(data);
+	godot_vector2 result = interface->get_render_targetsize(data);
 	Vector2 *vec = (Vector2 *)&result;
 
 	return *vec;
@@ -344,7 +344,7 @@ void GDAPI godot_arvr_set_controller_transform(godot_int p_controller_id, godot_
 			tracker->set_orientation(transform->basis);
 		}
 		if (p_tracks_position) {
-			tracker->set_position(transform->origin);
+			tracker->set_rw_position(transform->origin);
 		}
 	}
 }
