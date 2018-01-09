@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "video_player.h"
 
 #include "os/os.h"
@@ -35,11 +36,6 @@
 int VideoPlayer::sp_get_channel_count() const {
 
 	return playback->get_channels();
-}
-
-void VideoPlayer::sp_set_mix_rate(int p_rate) {
-
-	server_mix_rate = p_rate;
 }
 
 bool VideoPlayer::mix(AudioFrame *p_buffer, int p_frames) {
@@ -240,7 +236,7 @@ void VideoPlayer::set_stream(const Ref<VideoStream> &p_stream) {
 
 		AudioServer::get_singleton()->lock();
 		if (channels > 0)
-			resampler.setup(channels, playback->get_mix_rate(), server_mix_rate, buffering_ms, 0);
+			resampler.setup(channels, playback->get_mix_rate(), AudioServer::get_singleton()->get_mix_rate(), buffering_ms, 0);
 		else
 			resampler.clear();
 		AudioServer::get_singleton()->unlock();
@@ -493,7 +489,6 @@ VideoPlayer::VideoPlayer() {
 	bus_index = 0;
 
 	buffering_ms = 500;
-	server_mix_rate = 44100;
 
 	//	internal_stream.player=this;
 	//	stream_rid=AudioServer::get_singleton()->audio_stream_create(&internal_stream);

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #ifndef RASTERIZERSCENEGLES3_H
 #define RASTERIZERSCENEGLES3_H
 
@@ -662,19 +663,21 @@ public:
 			SORT_KEY_OPAQUE_DEPTH_LAYER_SHIFT = 52,
 			SORT_KEY_OPAQUE_DEPTH_LAYER_MASK = 0xF,
 //64 bits unsupported in MSVC
-#define SORT_KEY_UNSHADED_FLAG (uint64_t(1) << 51)
-#define SORT_KEY_NO_DIRECTIONAL_FLAG (uint64_t(1) << 50)
-#define SORT_KEY_GI_PROBES_FLAG (uint64_t(1) << 49)
-#define SORT_KEY_VERTEX_LIT_FLAG (uint64_t(1) << 48)
-			SORT_KEY_SHADING_SHIFT = 48,
-			SORT_KEY_SHADING_MASK = 15,
-			//48-32 material index
-			SORT_KEY_MATERIAL_INDEX_SHIFT = 32,
-			//32-12 geometry index
-			SORT_KEY_GEOMETRY_INDEX_SHIFT = 12,
-			//bits 12-8 geometry type
-			SORT_KEY_GEOMETRY_TYPE_SHIFT = 8,
-			//bits 0-7 for flags
+#define SORT_KEY_UNSHADED_FLAG (uint64_t(1) << 49)
+#define SORT_KEY_NO_DIRECTIONAL_FLAG (uint64_t(1) << 48)
+#define SORT_KEY_LIGHTMAP_CAPTURE_FLAG (uint64_t(1) << 47)
+#define SORT_KEY_LIGHTMAP_FLAG (uint64_t(1) << 46)
+#define SORT_KEY_GI_PROBES_FLAG (uint64_t(1) << 45)
+#define SORT_KEY_VERTEX_LIT_FLAG (uint64_t(1) << 44)
+			SORT_KEY_SHADING_SHIFT = 44,
+			SORT_KEY_SHADING_MASK = 63,
+			//44-28 material index
+			SORT_KEY_MATERIAL_INDEX_SHIFT = 28,
+			//28-8 geometry index
+			SORT_KEY_GEOMETRY_INDEX_SHIFT = 8,
+			//bits 5-7 geometry type
+			SORT_KEY_GEOMETRY_TYPE_SHIFT = 5,
+			//bits 0-5 for flags
 			SORT_KEY_OPAQUE_PRE_PASS = 8,
 			SORT_KEY_CULL_DISABLED_FLAG = 4,
 			SORT_KEY_SKELETON_FLAG = 2,
@@ -817,7 +820,7 @@ public:
 
 	void _render_list(RenderList::Element **p_elements, int p_element_count, const Transform &p_view_transform, const CameraMatrix &p_projection, GLuint p_base_env, bool p_reverse_cull, bool p_alpha_pass, bool p_shadow, bool p_directional_add, bool p_directional_shadows);
 
-	_FORCE_INLINE_ void _add_geometry(RasterizerStorageGLES3::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES3::GeometryOwner *p_owner, int p_material, bool p_depth_pass,bool p_shadow_pass);
+	_FORCE_INLINE_ void _add_geometry(RasterizerStorageGLES3::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES3::GeometryOwner *p_owner, int p_material, bool p_depth_pass, bool p_shadow_pass);
 
 	_FORCE_INLINE_ void _add_geometry_with_material(RasterizerStorageGLES3::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES3::GeometryOwner *p_owner, RasterizerStorageGLES3::Material *p_material, bool p_depth_pass, bool p_shadow_pass);
 

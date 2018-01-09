@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "gdscript.h"
 
 #include "core/engine.h"
@@ -1795,8 +1796,8 @@ static void _find_type_arguments(GDScriptCompletionContext &context, const GDScr
 			}
 
 		} else {
-//regular method
 
+		//regular method
 #if defined(DEBUG_METHODS_ENABLED) && defined(TOOLS_ENABLED)
 			if (p_argidx < m->get_argument_count()) {
 				PropertyInfo pi = m->get_argument_info(p_argidx);

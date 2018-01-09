@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "dictionary.h"
 
 #include "ordered_hash_map.h"
@@ -204,7 +205,9 @@ const Variant *Dictionary::next(const Variant *p_key) const {
 
 	if (p_key == NULL) {
 		// caller wants to get the first element
-		return &_p->variant_map.front().key();
+		if (_p->variant_map.front())
+			return &_p->variant_map.front().key();
+		return NULL;
 	}
 	OrderedHashMap<Variant, Variant, _DictionaryVariantHash>::Element E = _p->variant_map.find(*p_key);
 
@@ -213,7 +216,7 @@ const Variant *Dictionary::next(const Variant *p_key) const {
 	return NULL;
 }
 
-Dictionary Dictionary::copy() const {
+Dictionary Dictionary::duplicate() const {
 
 	Dictionary n;
 

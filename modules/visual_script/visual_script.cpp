@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "visual_script.h"
 
 #include "os/os.h"
@@ -2047,6 +2048,7 @@ void VisualScriptInstance::create(const Ref<VisualScript> &p_script, Object *p_o
 			function.argument_count = func_node->get_argument_count();
 			function.max_stack += function.argument_count;
 			function.flow_stack_size = func_node->is_stack_less() ? 0 : func_node->get_stack_size();
+			max_input_args = MAX(max_input_args, function.argument_count);
 		}
 
 		//multiple passes are required to set up this complex thing..
@@ -2289,7 +2291,7 @@ void VisualScriptFunctionState::connect_to_signal(Object *p_obj, const String &p
 		binds.push_back(p_binds[i]);
 	}
 	binds.push_back(Ref<VisualScriptFunctionState>(this)); //add myself on the back to avoid dying from unreferencing
-	p_obj->connect(p_signal, this, "_signal_callback", binds);
+	p_obj->connect(p_signal, this, "_signal_callback", binds, CONNECT_ONESHOT);
 }
 
 bool VisualScriptFunctionState::is_valid() const {

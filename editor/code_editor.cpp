@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "code_editor.h"
 
 #include "editor/editor_scale.h"
@@ -1033,7 +1034,7 @@ void CodeTextEditor::_reset_zoom() {
 	Ref<DynamicFont> font = text_editor->get_font("font"); // reset source font size to default
 
 	if (font.is_valid()) {
-		EditorSettings::get_singleton()->set("interface/editor/source_font_size", 14);
+		EditorSettings::get_singleton()->set("interface/editor/code_font_size", 14);
 		font->set_size(14);
 	}
 }
@@ -1097,7 +1098,7 @@ bool CodeTextEditor::_add_font_size(int p_delta) {
 	if (font.is_valid()) {
 		int new_size = CLAMP(font->get_size() + p_delta, 8 * EDSCALE, 96 * EDSCALE);
 		if (new_size != font->get_size()) {
-			EditorSettings::get_singleton()->set("interface/editor/source_font_size", new_size / EDSCALE);
+			EditorSettings::get_singleton()->set("interface/editor/code_font_size", new_size / EDSCALE);
 			font->set_size(new_size);
 		}
 
@@ -1139,20 +1140,7 @@ void CodeTextEditor::set_error(const String &p_error) {
 
 void CodeTextEditor::_update_font() {
 
-	// FONTS
-	String editor_font = EDITOR_DEF("text_editor/theme/font", "");
-	bool font_overridden = false;
-	if (editor_font != "") {
-		Ref<Font> fnt = ResourceLoader::load(editor_font);
-		if (fnt.is_valid()) {
-			text_editor->add_font_override("font", fnt);
-			font_overridden = true;
-		}
-	}
-	if (!font_overridden) {
-
-		text_editor->add_font_override("font", get_font("source", "EditorFonts"));
-	}
+	text_editor->add_font_override("font", get_font("source", "EditorFonts"));
 }
 
 void CodeTextEditor::_on_settings_change() {
@@ -1251,7 +1239,7 @@ CodeTextEditor::CodeTextEditor() {
 
 	error = memnew(Label);
 	status_bar->add_child(error);
-	error->set_clip_text(true); //do not change, or else very long errors can push the whole container to the right
+	error->set_autowrap(true);
 	error->set_valign(Label::VALIGN_CENTER);
 	error->add_color_override("font_color", EditorNode::get_singleton()->get_gui_base()->get_color("error_color", "Editor"));
 	error->add_font_override("font", EditorNode::get_singleton()->get_gui_base()->get_font("status_source", "EditorFonts"));

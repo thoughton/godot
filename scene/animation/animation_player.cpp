@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "animation_player.h"
 
 #include "engine.h"
@@ -233,7 +234,6 @@ void AnimationPlayer::_notification(int p_what) {
 		} break;
 		case NOTIFICATION_EXIT_TREE: {
 
-			//stop_all();
 			clear_caches();
 		} break;
 	}
@@ -363,6 +363,9 @@ void AnimationPlayer::_animation_process_animation(AnimationData *p_anim, float 
 
 		if (!nc) // no node cache for this track, skip it
 			continue;
+
+		if (!a->track_is_enabled(i))
+			continue; // do nothing if the track is disabled
 
 		if (a->track_get_key_count(i) == 0)
 			continue; // do nothing if track is empty
@@ -545,12 +548,14 @@ void AnimationPlayer::_animation_process_data(PlaybackData &cd, float p_delta, f
 
 			if (!backwards && cd.pos <= len && next_pos == len /*&& playback.blend.empty()*/) {
 				//playback finished
-				end_notify = true;
+				end_reached = true;
+				end_notify = cd.pos < len; // Notify only if not already at the end
 			}
 
 			if (backwards && cd.pos >= 0 && next_pos == 0 /*&& playback.blend.empty()*/) {
 				//playback finished
-				end_notify = true;
+				end_reached = true;
+				end_notify = cd.pos > 0; // Notify only if not already at the beginning
 			}
 		}
 
@@ -677,24 +682,26 @@ void AnimationPlayer::_animation_process(float p_delta) {
 
 	if (playback.current.from) {
 
+		end_reached = false;
 		end_notify = false;
 		_animation_process2(p_delta);
 		_animation_update_transforms();
-		if (end_notify) {
+		if (end_reached) {
 			if (queued.size()) {
 				String old = playback.assigned;
 				play(queued.front()->get());
 				String new_name = playback.assigned;
 				queued.pop_front();
-				end_notify = false;
-				emit_signal(SceneStringNames::get_singleton()->animation_changed, old, new_name);
+				if (end_notify)
+					emit_signal(SceneStringNames::get_singleton()->animation_changed, old, new_name);
 			} else {
 				//stop();
 				playing = false;
 				_set_process(false);
-				end_notify = false;
-				emit_signal(SceneStringNames::get_singleton()->animation_finished, playback.assigned);
+				if (end_notify)
+					emit_signal(SceneStringNames::get_singleton()->animation_finished, playback.assigned);
 			}
+			end_reached = false;
 		}
 
 	} else {
@@ -735,7 +742,7 @@ void AnimationPlayer::remove_animation(const StringName &p_name) {
 
 	ERR_FAIL_COND(!animation_set.has(p_name));
 
-	stop_all();
+	stop();
 	_unref_anim(animation_set[p_name].animation);
 	animation_set.erase(p_name);
 
@@ -772,9 +779,7 @@ void AnimationPlayer::rename_animation(const StringName &p_name, const StringNam
 	ERR_FAIL_COND(String(p_new_name).find("/") != -1 || String(p_new_name).find(":") != -1);
 	ERR_FAIL_COND(animation_set.has(p_new_name));
 
-	//print_line("Rename anim: "+String(p_name)+" name: "+String(p_new_name));
-
-	stop_all();
+	stop();
 	AnimationData ad = animation_set[p_name];
 	ad.name = p_new_name;
 	animation_set.erase(p_name);
@@ -954,7 +959,7 @@ void AnimationPlayer::play(const StringName &p_name, float p_custom_blend, float
 	c.current.speed_scale = p_custom_scale;
 	c.assigned = p_name;
 
-	if (!end_notify)
+	if (!end_reached)
 		queued.clear();
 	_set_process(true); // always process when starting an animation
 	playing = true;
@@ -1014,13 +1019,6 @@ void AnimationPlayer::stop(bool p_reset) {
 	_set_process(false);
 	queued.clear();
 	playing = false;
-}
-
-void AnimationPlayer::stop_all() {
-
-	stop();
-
-	_set_process(false); // always process when starting an animation
 }
 
 void AnimationPlayer::set_speed_scale(float p_speed) {
@@ -1304,8 +1302,8 @@ void AnimationPlayer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("play", "name", "custom_blend", "custom_speed", "from_end"), &AnimationPlayer::play, DEFVAL(""), DEFVAL(-1), DEFVAL(1.0), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("play_backwards", "name", "custom_blend"), &AnimationPlayer::play_backwards, DEFVAL(""), DEFVAL(-1));
 	ClassDB::bind_method(D_METHOD("stop", "reset"), &AnimationPlayer::stop, DEFVAL(true));
-	ClassDB::bind_method(D_METHOD("stop_all"), &AnimationPlayer::stop_all);
 	ClassDB::bind_method(D_METHOD("is_playing"), &AnimationPlayer::is_playing);
+
 	ClassDB::bind_method(D_METHOD("set_current_animation", "anim"), &AnimationPlayer::set_current_animation);
 	ClassDB::bind_method(D_METHOD("get_current_animation"), &AnimationPlayer::get_current_animation);
 	ClassDB::bind_method(D_METHOD("queue", "name"), &AnimationPlayer::queue);
@@ -1323,9 +1321,6 @@ void AnimationPlayer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_root", "path"), &AnimationPlayer::set_root);
 	ClassDB::bind_method(D_METHOD("get_root"), &AnimationPlayer::get_root);
 
-	ClassDB::bind_method(D_METHOD("seek", "seconds", "update"), &AnimationPlayer::seek, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_position"), &AnimationPlayer::get_current_animation_position);
-
 	ClassDB::bind_method(D_METHOD("find_animation", "animation"), &AnimationPlayer::find_animation);
 
 	ClassDB::bind_method(D_METHOD("clear_caches"), &AnimationPlayer::clear_caches);
@@ -1336,6 +1331,7 @@ void AnimationPlayer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_current_animation_position"), &AnimationPlayer::get_current_animation_position);
 	ClassDB::bind_method(D_METHOD("get_current_animation_length"), &AnimationPlayer::get_current_animation_length);
 
+	ClassDB::bind_method(D_METHOD("seek", "seconds", "update"), &AnimationPlayer::seek, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("advance", "delta"), &AnimationPlayer::advance);
 
 	ADD_GROUP("Playback Options", "playback_");
@@ -1357,6 +1353,7 @@ AnimationPlayer::AnimationPlayer() {
 	cache_update_size = 0;
 	cache_update_prop_size = 0;
 	speed_scale = 1;
+	end_reached = false;
 	end_notify = false;
 	animation_process_mode = ANIMATION_PROCESS_IDLE;
 	processing = false;

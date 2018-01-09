@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "os_android.h"
 
 #include "core/io/file_access_buffered_fa.h"
@@ -120,7 +121,7 @@ void OS_Android::set_opengl_extensions(const char *p_gl_extensions) {
 	gl_extensions = p_gl_extensions;
 }
 
-void OS_Android::initialize(const VideoMode &p_desired, int p_video_driver, int p_audio_driver) {
+Error OS_Android::initialize(const VideoMode &p_desired, int p_video_driver, int p_audio_driver) {
 
 	use_gl2 = p_video_driver != 1;
 
@@ -146,6 +147,8 @@ void OS_Android::initialize(const VideoMode &p_desired, int p_video_driver, int 
 	input->set_fallback_mapping("Default Android Gamepad");
 
 	//power_manager = memnew(power_android);
+
+	return OK;
 }
 
 void OS_Android::set_main_loop(MainLoop *p_main_loop) {
@@ -246,6 +249,9 @@ bool OS_Android::can_draw() const {
 void OS_Android::set_cursor_shape(CursorShape p_shape) {
 
 	//android really really really has no mouse.. how amazing..
+}
+
+void OS_Android::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, const Vector2 &p_hotspot) {
 }
 
 void OS_Android::main_loop_begin() {
@@ -438,25 +444,27 @@ void OS_Android::process_touch(int p_what, int p_pointer, const Vector<TouchPos>
 				}
 				touch.clear();
 			}
-
 		} break;
-		case 3: { // add tuchi
+		case 3: { // add touch
 
-			ERR_FAIL_INDEX(p_pointer, p_points.size());
+			for (int i = 0; i < p_points.size(); i++) {
+				if (p_points[i].id == p_pointer) {
+					TouchPos tp = p_points[i];
+					touch.push_back(tp);
 
-			TouchPos tp = p_points[p_pointer];
-			touch.push_back(tp);
+					Ref<InputEventScreenTouch> ev;
+					ev.instance();
 
-			Ref<InputEventScreenTouch> ev;
-			ev.instance();
+					ev->set_index(tp.id);
+					ev->set_pressed(true);
+					ev->set_position(tp.pos);
+					input->parse_input_event(ev);
 
-			ev->set_index(tp.id);
-			ev->set_pressed(true);
-			ev->set_position(tp.pos);
-			input->parse_input_event(ev);
-
+					break;
+				}
+			}
 		} break;
-		case 4: {
+		case 4: { // remove touch
 
 			for (int i = 0; i < touch.size(); i++) {
 				if (touch[i].id == p_pointer) {
@@ -468,10 +476,10 @@ void OS_Android::process_touch(int p_what, int p_pointer, const Vector<TouchPos>
 					ev->set_position(touch[i].pos);
 					input->parse_input_event(ev);
 					touch.remove(i);
-					i--;
+
+					break;
 				}
 			}
-
 		} break;
 	}
 }

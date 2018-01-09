@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,15 +27,21 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "tree.h"
 #include <limits.h>
 
+#include "math_funcs.h"
 #include "os/input.h"
 #include "os/keyboard.h"
 #include "os/os.h"
 #include "print_string.h"
 #include "project_settings.h"
 #include "scene/main/viewport.h"
+
+#ifdef TOOLS_ENABLED
+#include "editor/editor_node.h"
+#endif
 
 void TreeItem::move_to_top() {
 
@@ -910,6 +916,7 @@ int Tree::compute_item_height(TreeItem *p_item) const {
 	if (p_item == root && hide_root)
 		return 0;
 
+	ERR_FAIL_COND_V(cache.font.is_null(), 0);
 	int height = cache.font->get_height();
 
 	for (int i = 0; i < columns.size(); i++) {
@@ -983,6 +990,8 @@ int Tree::get_item_height(TreeItem *p_item) const {
 
 void Tree::draw_item_rect(const TreeItem::Cell &p_cell, const Rect2i &p_rect, const Color &p_color, const Color &p_icon_color) {
 
+	ERR_FAIL_COND(cache.font.is_null());
+
 	Rect2i rect = p_rect;
 	Ref<Font> font = cache.font;
 	String text = p_cell.text;
@@ -1004,10 +1013,10 @@ void Tree::draw_item_rect(const TreeItem::Cell &p_cell, const Rect2i &p_rect, co
 		case TreeItem::ALIGN_LEFT:
 			break; //do none
 		case TreeItem::ALIGN_CENTER:
-			rect.position.x = MAX(0, (rect.size.width - w) / 2);
+			rect.position.x += MAX(0, (rect.size.width - w) / 2);
 			break; //do none
 		case TreeItem::ALIGN_RIGHT:
-			rect.position.x = MAX(0, (rect.size.width - w));
+			rect.position.x += MAX(0, (rect.size.width - w));
 			break; //do none
 	}
 
@@ -1052,6 +1061,7 @@ int Tree::draw_item(const Point2i &p_pos, const Point2 &p_draw_ofs, const Size2 
 		//draw separation.
 		//if (p_item->get_parent()!=root || !hide_root)
 
+		ERR_FAIL_COND_V(cache.font.is_null(), -1);
 		Ref<Font> font = cache.font;
 
 		int font_ascent = font->get_ascent();
@@ -1412,18 +1422,39 @@ int Tree::draw_item(const Point2i &p_pos, const Point2 &p_draw_ofs, const Size2 
 				if (c->get_children() != NULL)
 					root_pos -= Point2i(cache.arrow->get_width(), 0);
 
+				float line_width = 1.0;
+#ifdef TOOLS_ENABLED
+				line_width *= EDSCALE;
+#endif
+
 				Point2i parent_pos = Point2i(parent_ofs - cache.arrow->get_width() / 2, p_pos.y + label_h / 2 + cache.arrow->get_height() / 2) - cache.offset + p_draw_ofs;
-				VisualServer::get_singleton()->canvas_item_add_line(ci, root_pos, Point2i(parent_pos.x, root_pos.y), cache.relationship_line_color);
-				VisualServer::get_singleton()->canvas_item_add_line(ci, Point2i(parent_pos.x, root_pos.y), parent_pos, cache.relationship_line_color);
+
+				if (root_pos.y + line_width >= 0) {
+					VisualServer::get_singleton()->canvas_item_add_line(ci, root_pos, Point2i(parent_pos.x - Math::floor(line_width / 2), root_pos.y), cache.relationship_line_color, line_width);
+					VisualServer::get_singleton()->canvas_item_add_line(ci, Point2i(parent_pos.x, root_pos.y), parent_pos, cache.relationship_line_color, line_width);
+				}
+
+				if (htotal < 0) {
+					return -1;
+				}
 			}
 
-			int child_h = draw_item(children_pos, p_draw_ofs, p_draw_size, c);
+			if (htotal >= 0) {
+				int child_h = draw_item(children_pos, p_draw_ofs, p_draw_size, c);
 
-			if (child_h < 0 && cache.draw_relationship_lines == 0)
-				return -1; // break, stop drawing, no need to anymore
+				if (child_h < 0) {
+					if (cache.draw_relationship_lines == 0) {
+						return -1; // break, stop drawing, no need to anymore
+					} else {
+						htotal = -1;
+						children_pos.y = cache.offset.y + p_draw_size.height;
+					}
+				} else {
+					htotal += child_h;
+					children_pos.y += child_h;
+				}
+			}
 
-			htotal += child_h;
-			children_pos.y += child_h;
 			c = c->next;
 		}
 	}
@@ -1765,7 +1796,7 @@ int Tree::propagate_mouse_event(const Point2i &p_pos, int x_ofs, int y_ofs, bool
 			case TreeItem::CELL_MODE_STRING: {
 				//nothing in particular
 
-				if (select_mode == SELECT_MULTI && (get_tree()->get_last_event_id() == focus_in_id || !already_cursor)) {
+				if (select_mode == SELECT_MULTI && (get_tree()->get_event_count() == focus_in_id || !already_cursor)) {
 					bring_up_editor = false;
 				}
 
@@ -1853,7 +1884,7 @@ int Tree::propagate_mouse_event(const Point2i &p_pos, int x_ofs, int y_ofs, bool
 					} else {
 
 						editor_text = String::num(p_item->cells[col].val, Math::step_decimals(p_item->cells[col].step));
-						if (select_mode == SELECT_MULTI && get_tree()->get_last_event_id() == focus_in_id)
+						if (select_mode == SELECT_MULTI && get_tree()->get_event_count() == focus_in_id)
 							bring_up_editor = false;
 					}
 				}
@@ -2342,8 +2373,6 @@ void Tree::_gui_input(Ref<InputEvent> p_event) {
 						last_keypress = 0;
 				}
 			} break;
-
-				last_keypress = 0;
 		}
 	}
 
@@ -2769,6 +2798,7 @@ void Tree::update_scrollbars() {
 
 int Tree::_get_title_button_height() const {
 
+	ERR_FAIL_COND_V(cache.font.is_null() || cache.title_button.is_null(), 0);
 	return show_column_titles ? cache.font->get_height() + cache.title_button->get_minimum_size().height : 0;
 }
 
@@ -2776,7 +2806,7 @@ void Tree::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_FOCUS_ENTER) {
 
-		focus_in_id = get_tree()->get_last_event_id();
+		focus_in_id = get_tree()->get_event_count();
 	}
 	if (p_what == NOTIFICATION_MOUSE_EXIT) {
 
@@ -2940,43 +2970,51 @@ Size2 Tree::get_minimum_size() const {
 	return Size2(1, 1);
 }
 
-TreeItem *Tree::create_item(TreeItem *p_parent) {
+TreeItem *Tree::create_item(TreeItem *p_parent, int p_idx) {
 
 	ERR_FAIL_COND_V(blocked > 0, NULL);
 
-	TreeItem *ti = memnew(TreeItem(this));
-
-	ERR_FAIL_COND_V(!ti, NULL);
-	ti->cells.resize(columns.size());
+	TreeItem *ti = NULL;
 
 	if (p_parent) {
 
-		/* Always append at the end */
+		// Append or insert a new item to the given parent.
+		ti = memnew(TreeItem(this));
+		ERR_FAIL_COND_V(!ti, NULL);
+		ti->cells.resize(columns.size());
 
-		TreeItem *last = 0;
+		TreeItem *prev = NULL;
 		TreeItem *c = p_parent->childs;
+		int idx = 0;
 
 		while (c) {
-
-			last = c;
+			if (idx++ == p_idx) {
+				ti->next = c;
+				break;
+			}
+			prev = c;
 			c = c->next;
 		}
 
-		if (last) {
-
-			last->next = ti;
-		} else {
-
+		if (prev)
+			prev->next = ti;
+		else
 			p_parent->childs = ti;
-		}
 		ti->parent = p_parent;
 
 	} else {
 
-		if (root)
-			ti->childs = root;
+		if (!root) {
+			// No root exists, make the given item the new root.
+			ti = memnew(TreeItem(this));
+			ERR_FAIL_COND_V(!ti, NULL);
+			ti->cells.resize(columns.size());
 
-		root = ti;
+			root = ti;
+		} else {
+			// Root exists, append or insert to root.
+			ti = create_item(root, p_idx);
+		}
 	}
 
 	return ti;
@@ -3713,7 +3751,7 @@ void Tree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_scroll_moved"), &Tree::_scroll_moved);
 
 	ClassDB::bind_method(D_METHOD("clear"), &Tree::clear);
-	ClassDB::bind_method(D_METHOD("create_item", "parent"), &Tree::_create_item, DEFVAL(Variant()));
+	ClassDB::bind_method(D_METHOD("create_item", "parent", "idx"), &Tree::_create_item, DEFVAL(Variant()), DEFVAL(-1));
 
 	ClassDB::bind_method(D_METHOD("get_root"), &Tree::get_root);
 	ClassDB::bind_method(D_METHOD("set_column_min_width", "column", "min_width"), &Tree::set_column_min_width);

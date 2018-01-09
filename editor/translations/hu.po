@@ -1,6 +1,6 @@
 # Hungarian translation of the Godot Engine editor
-# Copyright (C) 2007-2017 Juan Linietsky, Ariel Manzur
-# Copyright (C) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)
+# Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.
+# Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)
 # This file is distributed under the same license as the Godot source code.
 #
 # Nagy Lajos <neutron9707@gmail.com>, 2017.
@@ -10,8 +10,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
-"PO-Revision-Date: 2017-11-29 08:12+0000\n"
-"Last-Translator: Nagy Lajos <neutron9707@gmail.com>\n"
+"PO-Revision-Date: 2017-12-01 05:47+0000\n"
+"Last-Translator: Sandor Domokos <sandor.domokos@gmail.com>\n"
 "Language-Team: Hungarian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/hu/>\n"
 "Language: hu\n"
@@ -29,8 +29,9 @@ msgid "All Selection"
 msgstr "Mind kiválaszt"
 
 #: editor/animation_editor.cpp
-msgid "Move Add Key"
-msgstr "Hozzáadás kulcs mozgatása"
+#, fuzzy
+msgid "Anim Change Keyframe Time"
+msgstr "Animáció érték váltás"
 
 #: editor/animation_editor.cpp
 msgid "Anim Change Transition"
@@ -41,7 +42,8 @@ msgid "Anim Change Transform"
 msgstr "Animáció átalakító váltás"
 
 #: editor/animation_editor.cpp
-msgid "Anim Change Value"
+#, fuzzy
+msgid "Anim Change Keyframe Value"
 msgstr "Animáció érték váltás"
 
 #: editor/animation_editor.cpp
@@ -139,7 +141,7 @@ msgstr "Kiválasztás átméretezése"
 
 #: editor/animation_editor.cpp
 msgid "Scale From Cursor"
-msgstr ""
+msgstr "Kijelölés a kurzortól"
 
 #: editor/animation_editor.cpp
 msgid "Goto Next Step"
@@ -188,18 +190,17 @@ msgstr "Animáció megtisztítása"
 
 #: editor/animation_editor.cpp
 msgid "Create NEW track for %s and insert key?"
-msgstr ""
+msgstr "ÚJ útvonal létrehozása %s -hez és kulcs beillesztése?"
 
 #: editor/animation_editor.cpp
 msgid "Create %d NEW tracks and insert keys?"
-msgstr ""
+msgstr "Létrehoz %d ÚJ útvonalat és beilleszti a kulcsokat?"
 
 #: editor/animation_editor.cpp editor/create_dialog.cpp
 #: editor/editor_audio_buses.cpp editor/plugins/abstract_polygon_2d_editor.cpp
 #: editor/plugins/light_occluder_2d_editor_plugin.cpp
 #: editor/plugins/mesh_instance_editor_plugin.cpp
-#: editor/plugins/particles_editor_plugin.cpp editor/project_manager.cpp
-#: editor/script_create_dialog.cpp
+#: editor/plugins/particles_editor_plugin.cpp editor/script_create_dialog.cpp
 msgid "Create"
 msgstr "Létrehozás"
 
@@ -209,19 +210,19 @@ msgstr "Animáció létrehozása és beillesztése"
 
 #: editor/animation_editor.cpp
 msgid "Anim Insert Track & Key"
-msgstr ""
+msgstr "Animáció útvonal & kulcs beillesztése"
 
 #: editor/animation_editor.cpp
 msgid "Anim Insert Key"
-msgstr ""
+msgstr "Animáció kulcs beillesztése"
 
 #: editor/animation_editor.cpp
 msgid "Change Anim Len"
-msgstr ""
+msgstr "Csak animáció változtatása"
 
 #: editor/animation_editor.cpp
 msgid "Change Anim Loop"
-msgstr ""
+msgstr "Animáció hurok változtatása"
 
 #: editor/animation_editor.cpp
 msgid "Anim Create Typed Value Key"
@@ -534,7 +535,7 @@ msgid "Connecting Signal:"
 msgstr ""
 
 #: editor/connections_dialog.cpp
-msgid "Create Subscription"
+msgid "Disconnect '%s' from '%s'"
 msgstr ""
 
 #: editor/connections_dialog.cpp
@@ -551,7 +552,18 @@ msgid "Signals"
 msgstr "Jelzések"
 
 #: editor/create_dialog.cpp
-msgid "Create New"
+#, fuzzy
+msgid "Change %s Type"
+msgstr "Tömb értéktípusának megváltoztatása"
+
+#: editor/create_dialog.cpp editor/project_settings_editor.cpp
+#: modules/visual_script/visual_script_editor.cpp
+msgid "Change"
+msgstr ""
+
+#: editor/create_dialog.cpp
+#, fuzzy
+msgid "Create New %s"
 msgstr "Új létrehozása"
 
 #: editor/create_dialog.cpp editor/editor_file_dialog.cpp
@@ -566,7 +578,7 @@ msgstr "Legutóbbi:"
 #: editor/create_dialog.cpp editor/editor_node.cpp
 #: editor/plugins/asset_library_editor_plugin.cpp
 #: editor/plugins/script_editor_plugin.cpp editor/property_selector.cpp
-#: editor/quick_open.cpp editor/settings_config_dialog.cpp
+#: editor/quick_open.cpp
 msgid "Search:"
 msgstr "Keresés:"
 
@@ -603,6 +615,7 @@ msgid ""
 msgstr ""
 
 #: editor/dependency_editor.cpp
+#: modules/gdnative/gdnative_library_editor_plugin.cpp
 msgid "Dependencies"
 msgstr "Függőségek"
 
@@ -655,7 +668,8 @@ msgid ""
 msgstr ""
 
 #: editor/dependency_editor.cpp
-msgid "Cannot remove:\n"
+#, fuzzy
+msgid "Cannot remove:"
 msgstr "Nem eltávolítható:\n"
 
 #: editor/dependency_editor.cpp
@@ -703,9 +717,10 @@ msgid "Delete selected files?"
 msgstr "Törli a kiválasztott fájlokat?"
 
 #: editor/dependency_editor.cpp editor/editor_audio_buses.cpp
-#: editor/editor_node.cpp editor/filesystem_dock.cpp
-#: editor/plugins/item_list_editor_plugin.cpp editor/project_export.cpp
-#: editor/project_settings_editor.cpp editor/scene_tree_dock.cpp
+#: editor/editor_file_dialog.cpp editor/editor_node.cpp
+#: editor/filesystem_dock.cpp editor/plugins/item_list_editor_plugin.cpp
+#: editor/project_export.cpp editor/project_settings_editor.cpp
+#: editor/scene_tree_dock.cpp
 msgid "Delete"
 msgstr "Töröl"
 
@@ -737,8 +752,8 @@ msgstr ""
 msgid "Lead Developer"
 msgstr ""
 
-#: editor/editor_about.cpp editor/project_manager.cpp
-msgid "Project Manager"
+#: editor/editor_about.cpp
+msgid "Project Manager "
 msgstr ""
 
 #: editor/editor_about.cpp
@@ -827,7 +842,7 @@ msgid "Success!"
 msgstr ""
 
 #: editor/editor_asset_installer.cpp
-#: editor/plugins/asset_library_editor_plugin.cpp editor/project_manager.cpp
+#: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Install"
 msgstr ""
 
@@ -846,6 +861,11 @@ msgstr ""
 #: editor/editor_audio_buses.cpp
 msgid "Rename Audio Bus"
 msgstr ""
+
+#: editor/editor_audio_buses.cpp
+#, fuzzy
+msgid "Change Audio Bus Volume"
+msgstr "Tömb értékének megváltoztatása"
 
 #: editor/editor_audio_buses.cpp
 msgid "Toggle Audio Bus Solo"
@@ -895,8 +915,8 @@ msgstr ""
 msgid "Bus options"
 msgstr ""
 
-#: editor/editor_audio_buses.cpp editor/plugins/tile_map_editor_plugin.cpp
-#: editor/scene_tree_dock.cpp
+#: editor/editor_audio_buses.cpp editor/filesystem_dock.cpp
+#: editor/plugins/tile_map_editor_plugin.cpp editor/scene_tree_dock.cpp
 msgid "Duplicate"
 msgstr ""
 
@@ -906,6 +926,10 @@ msgstr ""
 
 #: editor/editor_audio_buses.cpp
 msgid "Delete Effect"
+msgstr ""
+
+#: editor/editor_audio_buses.cpp
+msgid "Audio"
 msgstr ""
 
 #: editor/editor_audio_buses.cpp
@@ -1059,16 +1083,13 @@ msgstr ""
 msgid "Node Name:"
 msgstr ""
 
-#: editor/editor_autoload_settings.cpp editor/project_manager.cpp
+#: editor/editor_autoload_settings.cpp editor/editor_profiler.cpp
+#: editor/project_manager.cpp editor/settings_config_dialog.cpp
 msgid "Name"
 msgstr ""
 
 #: editor/editor_autoload_settings.cpp
 msgid "Singleton"
-msgstr ""
-
-#: editor/editor_autoload_settings.cpp
-msgid "List:"
 msgstr ""
 
 #: editor/editor_data.cpp
@@ -1081,6 +1102,14 @@ msgstr ""
 
 #: editor/editor_data.cpp
 msgid "Updating scene.."
+msgstr ""
+
+#: editor/editor_data.cpp
+msgid "[empty]"
+msgstr ""
+
+#: editor/editor_data.cpp
+msgid "[unsaved]"
 msgstr ""
 
 #: editor/editor_dir_dialog.cpp
@@ -1121,7 +1150,7 @@ msgid "Packing"
 msgstr ""
 
 #: editor/editor_export.cpp platform/javascript/export/export.cpp
-msgid "Template file not found:\n"
+msgid "Template file not found:"
 msgstr ""
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
@@ -1130,6 +1159,22 @@ msgstr ""
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "Select Current Folder"
+msgstr ""
+
+#: editor/editor_file_dialog.cpp editor/filesystem_dock.cpp
+msgid "Copy Path"
+msgstr "Útvonal másolása"
+
+#: editor/editor_file_dialog.cpp editor/filesystem_dock.cpp
+msgid "Show In File Manager"
+msgstr ""
+
+#: editor/editor_file_dialog.cpp editor/filesystem_dock.cpp
+msgid "New Folder.."
+msgstr ""
+
+#: editor/editor_file_dialog.cpp
+msgid "Refresh"
 msgstr ""
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
@@ -1176,10 +1221,6 @@ msgstr ""
 
 #: editor/editor_file_dialog.cpp
 msgid "Go Up"
-msgstr ""
-
-#: editor/editor_file_dialog.cpp
-msgid "Refresh"
 msgstr ""
 
 #: editor/editor_file_dialog.cpp
@@ -1358,8 +1399,13 @@ msgstr ""
 
 #: editor/editor_log.cpp editor/plugins/animation_tree_editor_plugin.cpp
 #: editor/property_editor.cpp editor/script_editor_debugger.cpp
-#: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
+#: modules/gdnative/gdnative_library_editor_plugin.cpp scene/gui/line_edit.cpp
+#: scene/gui/text_edit.cpp
 msgid "Clear"
+msgstr ""
+
+#: editor/editor_log.cpp
+msgid "Clear Output"
 msgstr ""
 
 #: editor/editor_node.cpp editor/plugins/animation_player_editor_plugin.cpp
@@ -1425,7 +1471,8 @@ msgstr ""
 
 #: editor/editor_node.cpp
 msgid ""
-"Couldn't save scene. Likely dependencies (instances) couldn't be satisfied."
+"Couldn't save scene. Likely dependencies (instances or inheritance) couldn't "
+"be satisfied."
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2248,6 +2295,14 @@ msgstr ""
 msgid "Frame #:"
 msgstr ""
 
+#: editor/editor_profiler.cpp
+msgid "Time"
+msgstr ""
+
+#: editor/editor_profiler.cpp
+msgid "Calls"
+msgstr ""
+
 #: editor/editor_run_native.cpp
 msgid "Select device from the list"
 msgstr ""
@@ -2349,7 +2404,7 @@ msgid "No version.txt found inside templates."
 msgstr ""
 
 #: editor/export_template_manager.cpp
-msgid "Error creating path for templates:\n"
+msgid "Error creating path for templates:"
 msgstr ""
 
 #: editor/export_template_manager.cpp
@@ -2383,7 +2438,7 @@ msgstr ""
 
 #: editor/export_template_manager.cpp
 #: editor/plugins/asset_library_editor_plugin.cpp
-msgid "Req. Failed."
+msgid "Request Failed."
 msgstr ""
 
 #: editor/export_template_manager.cpp
@@ -2430,8 +2485,9 @@ msgid "Connecting.."
 msgstr ""
 
 #: editor/export_template_manager.cpp
-msgid "Can't Conect"
-msgstr ""
+#, fuzzy
+msgid "Can't Connect"
+msgstr "Kapcsolódás..."
 
 #: editor/export_template_manager.cpp
 msgid "Connected"
@@ -2503,9 +2559,7 @@ msgid "View items as a list"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-msgid ""
-"\n"
-"Status: Import of file failed. Please fix file and reimport manually."
+msgid "Status: Import of file failed. Please fix file and reimport manually."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
@@ -2513,16 +2567,23 @@ msgid "Cannot move/rename resources root."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-msgid "Cannot move a folder into itself.\n"
+msgid "Cannot move a folder into itself."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-msgid "Error moving:\n"
-msgstr ""
+#, fuzzy
+msgid "Error moving:"
+msgstr "Hiba betöltéskor:"
 
 #: editor/filesystem_dock.cpp
-msgid "Unable to update dependencies:\n"
-msgstr ""
+#, fuzzy
+msgid "Error duplicating:"
+msgstr "Hiba betöltéskor:"
+
+#: editor/filesystem_dock.cpp
+#, fuzzy
+msgid "Unable to update dependencies:"
+msgstr "A Scene-t nem sikerült betölteni a hiányzó függőségek miatt:"
 
 #: editor/filesystem_dock.cpp
 msgid "No name provided"
@@ -2553,16 +2614,21 @@ msgid "Renaming folder:"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
+#, fuzzy
+msgid "Duplicating file:"
+msgstr "Kiválasztás megkettőzése"
+
+#: editor/filesystem_dock.cpp
+msgid "Duplicating folder:"
+msgstr ""
+
+#: editor/filesystem_dock.cpp
 msgid "Expand all"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
 msgid "Collapse all"
 msgstr ""
-
-#: editor/filesystem_dock.cpp
-msgid "Copy Path"
-msgstr "Útvonal másaolása"
 
 #: editor/filesystem_dock.cpp
 msgid "Rename.."
@@ -2573,11 +2639,7 @@ msgid "Move To.."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-msgid "New Folder.."
-msgstr ""
-
-#: editor/filesystem_dock.cpp
-msgid "Show In File Manager"
+msgid "Open Scene(s)"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
@@ -2591,6 +2653,11 @@ msgstr ""
 #: editor/filesystem_dock.cpp
 msgid "View Owners.."
 msgstr ""
+
+#: editor/filesystem_dock.cpp
+#, fuzzy
+msgid "Duplicate.."
+msgstr "Animáció kulcs megkettőzése"
 
 #: editor/filesystem_dock.cpp
 msgid "Previous Directory"
@@ -2682,6 +2749,14 @@ msgstr ""
 
 #: editor/import/resource_importer_scene.cpp
 msgid "Importing Scene.."
+msgstr ""
+
+#: editor/import/resource_importer_scene.cpp
+msgid "Generating Lightmaps"
+msgstr ""
+
+#: editor/import/resource_importer_scene.cpp
+msgid "Generating for Mesh: "
 msgstr ""
 
 #: editor/import/resource_importer_scene.cpp
@@ -2933,9 +3008,8 @@ msgid "Enable Onion Skinning"
 msgstr ""
 
 #: editor/plugins/animation_player_editor_plugin.cpp
-#, fuzzy
 msgid "Directions"
-msgstr "Leírás:"
+msgstr "Irányok"
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "Past"
@@ -3147,6 +3221,11 @@ msgstr ""
 msgid "Filters.."
 msgstr ""
 
+#: editor/plugins/animation_tree_editor_plugin.cpp
+#, fuzzy
+msgid "AnimationTree"
+msgstr "Animáció másolása"
+
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Free"
 msgstr ""
@@ -3248,6 +3327,7 @@ msgid "last"
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
+#: modules/gdnative/gdnative_library_editor_plugin.cpp
 msgid "All"
 msgstr ""
 
@@ -3289,7 +3369,29 @@ msgstr ""
 msgid "Assets ZIP File"
 msgstr ""
 
+#: editor/plugins/baked_lightmap_editor_plugin.cpp
+msgid ""
+"Can't determine a save path for lightmap images.\n"
+"Save your scene (for images to be saved in the same dir), or pick a save "
+"path from the BakedLightmap properties."
+msgstr ""
+
+#: editor/plugins/baked_lightmap_editor_plugin.cpp
+msgid ""
+"No meshes to bake. Make sure they contain an UV2 channel and that the 'Bake "
+"Light' flag is on."
+msgstr ""
+
+#: editor/plugins/baked_lightmap_editor_plugin.cpp
+msgid "Failed creating lightmap images, make sure path is writable."
+msgstr ""
+
+#: editor/plugins/baked_lightmap_editor_plugin.cpp
+msgid "Bake Lightmaps"
+msgstr ""
+
 #: editor/plugins/camera_editor_plugin.cpp
+#: editor/plugins/spatial_editor_plugin.cpp
 msgid "Preview"
 msgstr ""
 
@@ -3423,7 +3525,6 @@ msgid "Toggles snapping"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#: editor/plugins/spatial_editor_plugin.cpp
 msgid "Use Snap"
 msgstr ""
 
@@ -3599,16 +3700,6 @@ msgstr ""
 #: editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/spatial_editor_plugin.cpp editor/scene_tree_dock.cpp
 msgid "Error instancing scene from %s"
-msgstr ""
-
-#: editor/plugins/canvas_item_editor_plugin.cpp
-#: editor/plugins/spatial_editor_plugin.cpp editor/scene_tree_dock.cpp
-msgid "OK :("
-msgstr ""
-
-#: editor/plugins/canvas_item_editor_plugin.cpp
-#: editor/plugins/spatial_editor_plugin.cpp editor/scene_tree_dock.cpp
-msgid "No parent to instance a child at."
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
@@ -3804,6 +3895,22 @@ msgid "Create Navigation Mesh"
 msgstr ""
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
+msgid "Contained Mesh is not of type ArrayMesh."
+msgstr ""
+
+#: editor/plugins/mesh_instance_editor_plugin.cpp
+msgid "UV Unwrap failed, mesh may not be manifold?"
+msgstr ""
+
+#: editor/plugins/mesh_instance_editor_plugin.cpp
+msgid "No mesh to debug."
+msgstr ""
+
+#: editor/plugins/mesh_instance_editor_plugin.cpp
+msgid "Model has no UV in this layer"
+msgstr ""
+
+#: editor/plugins/mesh_instance_editor_plugin.cpp
 msgid "MeshInstance lacks a Mesh!"
 msgstr ""
 
@@ -3841,6 +3948,18 @@ msgstr ""
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 msgid "Create Outline Mesh.."
+msgstr ""
+
+#: editor/plugins/mesh_instance_editor_plugin.cpp
+msgid "View UV1"
+msgstr ""
+
+#: editor/plugins/mesh_instance_editor_plugin.cpp
+msgid "View UV2"
+msgstr ""
+
+#: editor/plugins/mesh_instance_editor_plugin.cpp
+msgid "Unwrap UV2 for Lightmap/AO"
 msgstr ""
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
@@ -3956,7 +4075,7 @@ msgid "Bake!"
 msgstr ""
 
 #: editor/plugins/navigation_mesh_editor_plugin.cpp
-msgid "Bake the navigation mesh.\n"
+msgid "Bake the navigation mesh."
 msgstr ""
 
 #: editor/plugins/navigation_mesh_editor_plugin.cpp
@@ -4020,10 +4139,6 @@ msgid "Create Navigation Polygon"
 msgstr ""
 
 #: editor/plugins/particles_2d_editor_plugin.cpp
-msgid "Clear Emission Mask"
-msgstr ""
-
-#: editor/plugins/particles_2d_editor_plugin.cpp
 #: editor/plugins/particles_editor_plugin.cpp
 msgid "Generating AABB"
 msgstr ""
@@ -4041,15 +4156,15 @@ msgid "No pixels with transparency > 128 in image.."
 msgstr ""
 
 #: editor/plugins/particles_2d_editor_plugin.cpp
-msgid "Set Emission Mask"
-msgstr ""
-
-#: editor/plugins/particles_2d_editor_plugin.cpp
 msgid "Generate Visibility Rect"
 msgstr ""
 
 #: editor/plugins/particles_2d_editor_plugin.cpp
 msgid "Load Emission Mask"
+msgstr ""
+
+#: editor/plugins/particles_2d_editor_plugin.cpp
+msgid "Clear Emission Mask"
 msgstr ""
 
 #: editor/plugins/particles_2d_editor_plugin.cpp
@@ -4108,10 +4223,6 @@ msgstr ""
 
 #: editor/plugins/particles_editor_plugin.cpp
 msgid "Create Emission Points From Node"
-msgstr ""
-
-#: editor/plugins/particles_editor_plugin.cpp
-msgid "Clear Emitter"
 msgstr ""
 
 #: editor/plugins/particles_editor_plugin.cpp
@@ -4353,14 +4464,16 @@ msgstr ""
 msgid "Paste"
 msgstr ""
 
+#: editor/plugins/resource_preloader_editor_plugin.cpp
+msgid "ResourcePreloader"
+msgstr ""
+
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Clear Recent Files"
 msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
-msgid ""
-"Close and save changes?\n"
-"\""
+msgid "Close and save changes?"
 msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
@@ -4397,11 +4510,13 @@ msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
 #: editor/plugins/script_text_editor.cpp editor/scene_tree_dock.cpp
+#: modules/gdnative/gdnative_library_editor_plugin.cpp
 msgid "Move Up"
 msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
 #: editor/plugins/script_text_editor.cpp editor/scene_tree_dock.cpp
+#: modules/gdnative/gdnative_library_editor_plugin.cpp
 msgid "Move Down"
 msgstr ""
 
@@ -4417,7 +4532,7 @@ msgstr ""
 msgid "File"
 msgstr ""
 
-#: editor/plugins/script_editor_plugin.cpp editor/property_editor.cpp
+#: editor/plugins/script_editor_plugin.cpp
 msgid "New"
 msgstr ""
 
@@ -4427,6 +4542,15 @@ msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Soft Reload Script"
+msgstr ""
+
+#: editor/plugins/script_editor_plugin.cpp
+#, fuzzy
+msgid "Copy Script Path"
+msgstr "Útvonal másolása"
+
+#: editor/plugins/script_editor_plugin.cpp
+msgid "Show In File System"
 msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
@@ -4616,11 +4740,7 @@ msgid "Clone Down"
 msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
-msgid "Fold Line"
-msgstr ""
-
-#: editor/plugins/script_text_editor.cpp
-msgid "Unfold Line"
+msgid "Fold/Unfold Line"
 msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
@@ -4865,50 +4985,6 @@ msgid "Rotating %s degrees."
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
-msgid "Bottom View."
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
-msgid "Bottom"
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
-msgid "Top View."
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
-msgid "Rear View."
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
-msgid "Rear"
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
-msgid "Front View."
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
-msgid "Front"
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
-msgid "Left View."
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
-msgid "Left"
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
-msgid "Right View."
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
-msgid "Right"
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
 msgid "Keying is disabled (no key inserted)."
 msgstr ""
 
@@ -4945,7 +5021,59 @@ msgid "FPS"
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
+msgid "Top View."
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Bottom View."
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Bottom"
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Left View."
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Left"
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Right View."
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Right"
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Front View."
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Front"
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Rear View."
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Rear"
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
 msgid "Align with view"
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp editor/scene_tree_dock.cpp
+msgid "OK :("
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp editor/scene_tree_dock.cpp
+msgid "No parent to instance a child at."
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
@@ -5021,15 +5149,11 @@ msgid "Freelook Speed Modifier"
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
-msgid "preview"
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
 msgid "XForm Dialog"
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
-msgid "Select Mode (Q)\n"
+msgid "Select Mode (Q)"
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
@@ -5049,6 +5173,18 @@ msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Scale Mode (R)"
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Local Coords"
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Local Space Mode (%s)"
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Snap Mode (%s)"
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
@@ -5124,10 +5260,6 @@ msgid "Configure Snap.."
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
-msgid "Local Coords"
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
 msgid "Transform Dialog.."
 msgstr ""
 
@@ -5166,6 +5298,10 @@ msgstr ""
 #: editor/plugins/spatial_editor_plugin.cpp
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Settings"
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Skeleton Gizmo visibility"
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
@@ -5292,8 +5428,16 @@ msgstr ""
 msgid "Move (After)"
 msgstr ""
 
+#: editor/plugins/sprite_frames_editor_plugin.cpp
+msgid "SpriteFrames"
+msgstr ""
+
 #: editor/plugins/style_box_editor_plugin.cpp
 msgid "StyleBox Preview:"
+msgstr ""
+
+#: editor/plugins/style_box_editor_plugin.cpp
+msgid "StyleBox"
 msgstr ""
 
 #: editor/plugins/texture_region_editor_plugin.cpp
@@ -5321,14 +5465,17 @@ msgid "Auto Slice"
 msgstr ""
 
 #: editor/plugins/texture_region_editor_plugin.cpp
+#: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Offset:"
 msgstr ""
 
 #: editor/plugins/texture_region_editor_plugin.cpp
+#: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Step:"
 msgstr ""
 
 #: editor/plugins/texture_region_editor_plugin.cpp
+#: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Separation:"
 msgstr ""
 
@@ -5466,6 +5613,10 @@ msgstr ""
 msgid "Color"
 msgstr ""
 
+#: editor/plugins/theme_editor_plugin.cpp
+msgid "Theme"
+msgstr ""
+
 #: editor/plugins/tile_map_editor_plugin.cpp
 msgid "Erase Selection"
 msgstr ""
@@ -5551,6 +5702,10 @@ msgid "Merge from scene?"
 msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Tile Set"
+msgstr ""
+
+#: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Create from Scene"
 msgstr ""
 
@@ -5561,6 +5716,34 @@ msgstr ""
 #: editor/plugins/tile_set_editor_plugin.cpp editor/script_editor_debugger.cpp
 msgid "Error"
 msgstr ""
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Autotiles"
+msgstr ""
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+msgid ""
+"Select sub-tile to use as icon, this will be also used on invalid autotile "
+"bindings."
+msgstr ""
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+msgid ""
+"LMB: set bit on.\n"
+"RMB: set bit off."
+msgstr ""
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Select current edited sub-tile."
+msgstr ""
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Select sub-tile to change it's priority."
+msgstr ""
+
+#: editor/progress_dialog.cpp scene/gui/dialogs.cpp
+msgid "Cancel"
+msgstr "Mégse"
 
 #: editor/project_export.cpp
 msgid "Runnable"
@@ -5675,11 +5858,19 @@ msgid "Please choose a folder that does not contain a 'project.godot' file."
 msgstr ""
 
 #: editor/project_manager.cpp
+msgid "That's a BINGO!"
+msgstr ""
+
+#: editor/project_manager.cpp
 msgid "Imported Project"
 msgstr ""
 
 #: editor/project_manager.cpp
-msgid " "
+msgid "Couldn't create folder."
+msgstr ""
+
+#: editor/project_manager.cpp
+msgid "There is already a folder in this path with the specified name."
 msgstr ""
 
 #: editor/project_manager.cpp
@@ -5723,11 +5914,24 @@ msgid "Import Existing Project"
 msgstr ""
 
 #: editor/project_manager.cpp
+msgid "Import & Edit"
+msgstr ""
+
+#: editor/project_manager.cpp
 msgid "Create New Project"
 msgstr ""
 
 #: editor/project_manager.cpp
+#, fuzzy
+msgid "Create & Edit"
+msgstr "Létrehozás"
+
+#: editor/project_manager.cpp
 msgid "Install Project:"
+msgstr ""
+
+#: editor/project_manager.cpp
+msgid "Install & Edit"
 msgstr ""
 
 #: editor/project_manager.cpp
@@ -5744,10 +5948,6 @@ msgstr ""
 
 #: editor/project_manager.cpp
 msgid "Browse"
-msgstr ""
-
-#: editor/project_manager.cpp
-msgid "That's a BINGO!"
 msgstr ""
 
 #: editor/project_manager.cpp
@@ -5793,6 +5993,10 @@ msgstr ""
 msgid ""
 "You are about the scan %s folders for existing Godot projects. Do you "
 "confirm?"
+msgstr ""
+
+#: editor/project_manager.cpp
+msgid "Project Manager"
 msgstr ""
 
 #: editor/project_manager.cpp
@@ -5922,11 +6126,6 @@ msgid "Button 9"
 msgstr ""
 
 #: editor/project_settings_editor.cpp
-#: modules/visual_script/visual_script_editor.cpp
-msgid "Change"
-msgstr ""
-
-#: editor/project_settings_editor.cpp
 msgid "Joypad Axis Index:"
 msgstr ""
 
@@ -5939,7 +6138,7 @@ msgid "Joypad Button Index:"
 msgstr ""
 
 #: editor/project_settings_editor.cpp
-msgid "Add Input Action"
+msgid "Erase Input Action"
 msgstr ""
 
 #: editor/project_settings_editor.cpp
@@ -6004,6 +6203,10 @@ msgstr ""
 
 #: editor/project_settings_editor.cpp
 msgid "Already existing"
+msgstr ""
+
+#: editor/project_settings_editor.cpp
+msgid "Add Input Action"
 msgstr ""
 
 #: editor/project_settings_editor.cpp
@@ -6183,6 +6386,10 @@ msgid "New Script"
 msgstr ""
 
 #: editor/property_editor.cpp
+msgid "New %s"
+msgstr ""
+
+#: editor/property_editor.cpp
 msgid "Make Unique"
 msgstr ""
 
@@ -6214,16 +6421,16 @@ msgstr ""
 msgid "On"
 msgstr ""
 
+#: editor/property_editor.cpp
+msgid "[Empty]"
+msgstr ""
+
 #: editor/property_editor.cpp modules/visual_script/visual_script_editor.cpp
 msgid "Set"
 msgstr ""
 
 #: editor/property_editor.cpp
 msgid "Properties:"
-msgstr ""
-
-#: editor/property_editor.cpp
-msgid "Sections:"
 msgstr ""
 
 #: editor/property_selector.cpp
@@ -6384,8 +6591,9 @@ msgid "Error duplicating scene to save it."
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-msgid "Sub-Resources:"
-msgstr ""
+#, fuzzy
+msgid "Sub-Resources"
+msgstr "Forrás másolása"
 
 #: editor/scene_tree_dock.cpp
 msgid "Clear Inheritance"
@@ -6675,13 +6883,18 @@ msgstr ""
 msgid "Pick one or more items from the list to display the graph."
 msgstr ""
 
-#: editor/script_editor_debugger.cpp
+#: editor/script_editor_debugger.cpp modules/mono/editor/mono_bottom_panel.cpp
 msgid "Errors"
 msgstr ""
 
 #: editor/script_editor_debugger.cpp
 msgid "Child Process Connected"
 msgstr ""
+
+#: editor/script_editor_debugger.cpp
+#, fuzzy
+msgid "Copy Error"
+msgstr "Póz másolása"
 
 #: editor/script_editor_debugger.cpp
 msgid "Inspect Previous Instance"
@@ -6775,6 +6988,10 @@ msgstr ""
 msgid "Shortcuts"
 msgstr ""
 
+#: editor/settings_config_dialog.cpp
+msgid "Binding"
+msgstr ""
+
 #: editor/spatial_editor_gizmos.cpp
 msgid "Change Light Radius"
 msgstr ""
@@ -6823,15 +7040,52 @@ msgstr ""
 msgid "Change Probe Extents"
 msgstr ""
 
-#: modules/gdnative/gd_native_library_editor.cpp
+#: modules/gdnative/gdnative_library_editor_plugin.cpp
+msgid "Select the dynamic library for this entry"
+msgstr ""
+
+#: modules/gdnative/gdnative_library_editor_plugin.cpp
+msgid "Select dependencies of the library for this entry"
+msgstr ""
+
+#: modules/gdnative/gdnative_library_editor_plugin.cpp
+#, fuzzy
+msgid "Remove current entry"
+msgstr "Jelenlegi nyomvonal felfelé mozgatása."
+
+#: modules/gdnative/gdnative_library_editor_plugin.cpp
+msgid "Double click to create a new entry"
+msgstr ""
+
+#: modules/gdnative/gdnative_library_editor_plugin.cpp
+msgid "Platform:"
+msgstr ""
+
+#: modules/gdnative/gdnative_library_editor_plugin.cpp
+msgid "Platform"
+msgstr ""
+
+#: modules/gdnative/gdnative_library_editor_plugin.cpp
+msgid "Dynamic Library"
+msgstr ""
+
+#: modules/gdnative/gdnative_library_editor_plugin.cpp
+msgid "Add an architecture entry"
+msgstr ""
+
+#: modules/gdnative/gdnative_library_editor_plugin.cpp
+msgid "GDNativeLibrary"
+msgstr ""
+
+#: modules/gdnative/gdnative_library_singleton_editor.cpp
 msgid "Library"
 msgstr ""
 
-#: modules/gdnative/gd_native_library_editor.cpp
+#: modules/gdnative/gdnative_library_singleton_editor.cpp
 msgid "Status"
 msgstr ""
 
-#: modules/gdnative/gd_native_library_editor.cpp
+#: modules/gdnative/gdnative_library_singleton_editor.cpp
 msgid "Libraries: "
 msgstr ""
 
@@ -6989,8 +7243,48 @@ msgstr ""
 msgid "Pick Distance:"
 msgstr ""
 
+#: modules/mono/editor/godotsharp_editor.cpp
+msgid "Generating solution..."
+msgstr ""
+
+#: modules/mono/editor/godotsharp_editor.cpp
+msgid "Generating C# project..."
+msgstr ""
+
+#: modules/mono/editor/godotsharp_editor.cpp
+msgid "Failed to create solution."
+msgstr ""
+
+#: modules/mono/editor/godotsharp_editor.cpp
+msgid "Failed to save solution."
+msgstr ""
+
+#: modules/mono/editor/godotsharp_editor.cpp
+msgid "Done"
+msgstr ""
+
+#: modules/mono/editor/godotsharp_editor.cpp
+msgid "Failed to create C# project."
+msgstr ""
+
+#: modules/mono/editor/godotsharp_editor.cpp
+msgid "Mono"
+msgstr ""
+
+#: modules/mono/editor/godotsharp_editor.cpp
+msgid "Create C# solution"
+msgstr ""
+
 #: modules/mono/editor/mono_bottom_panel.cpp
 msgid "Builds"
+msgstr ""
+
+#: modules/mono/editor/mono_bottom_panel.cpp
+msgid "Build Project"
+msgstr ""
+
+#: modules/mono/editor/mono_bottom_panel.cpp
+msgid "Warnings"
 msgstr ""
 
 #: modules/visual_script/visual_script.cpp
@@ -7338,23 +7632,27 @@ msgid "Run exported HTML in the system's default browser."
 msgstr ""
 
 #: platform/javascript/export/export.cpp
-msgid "Could not write file:\n"
+msgid "Could not write file:"
 msgstr ""
 
 #: platform/javascript/export/export.cpp
-msgid "Could not open template for export:\n"
+msgid "Could not open template for export:"
 msgstr ""
 
 #: platform/javascript/export/export.cpp
-msgid "Invalid export template:\n"
+msgid "Invalid export template:"
 msgstr ""
 
 #: platform/javascript/export/export.cpp
-msgid "Could not read custom HTML shell:\n"
+msgid "Could not read custom HTML shell:"
 msgstr ""
 
 #: platform/javascript/export/export.cpp
-msgid "Could not read boot splash image file:\n"
+msgid "Could not read boot splash image file:"
+msgstr ""
+
+#: platform/javascript/export/export.cpp
+msgid "Using default boot splash image."
 msgstr ""
 
 #: scene/2d/animated_sprite.cpp
@@ -7480,6 +7778,22 @@ msgstr ""
 msgid "ARVROrigin requires an ARVRCamera child node"
 msgstr ""
 
+#: scene/3d/baked_lightmap.cpp
+msgid "Plotting Meshes: "
+msgstr ""
+
+#: scene/3d/baked_lightmap.cpp
+msgid "Plotting Lights:"
+msgstr ""
+
+#: scene/3d/baked_lightmap.cpp scene/3d/gi_probe.cpp
+msgid "Finishing Plot"
+msgstr ""
+
+#: scene/3d/baked_lightmap.cpp
+msgid "Lighting Meshes: "
+msgstr ""
+
 #: scene/3d/collision_polygon.cpp
 msgid ""
 "CollisionPolygon only serves to provide a collision shape to a "
@@ -7506,10 +7820,6 @@ msgstr ""
 
 #: scene/3d/gi_probe.cpp
 msgid "Plotting Meshes"
-msgstr ""
-
-#: scene/3d/gi_probe.cpp
-msgid "Finishing Plot"
 msgstr ""
 
 #: scene/3d/navigation_mesh.cpp
@@ -7564,10 +7874,6 @@ msgid "Add current color as a preset"
 msgstr ""
 
 #: scene/gui/dialogs.cpp
-msgid "Cancel"
-msgstr "Mégse"
-
-#: scene/gui/dialogs.cpp
 msgid "Alert!"
 msgstr "Figyelem!"
 
@@ -7595,12 +7901,12 @@ msgstr ""
 
 #: scene/gui/tree.cpp
 msgid "(Other)"
-msgstr "(Másik)"
+msgstr "(Más)"
 
 #: scene/main/scene_tree.cpp
 msgid ""
-"Default Environment as specified in Project Setings (Rendering -> Viewport -"
-"> Default Environment) could not be loaded."
+"Default Environment as specified in Project Setings (Rendering -> "
+"Environment -> Default Environment) could not be loaded."
 msgstr ""
 
 #: scene/main/viewport.cpp
@@ -7631,3 +7937,6 @@ msgstr "Hiba a betűtípus betöltésekor."
 #: scene/resources/dynamic_font.cpp
 msgid "Invalid font size."
 msgstr "Érvénytelen betűtípus méret."
+
+#~ msgid "Move Add Key"
+#~ msgstr "Hozzáadás kulcs mozgatása"

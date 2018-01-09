@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,7 +27,9 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "tile_map.h"
+
 #include "io/marshalls.h"
 #include "method_bind_ext.gen.inc"
 #include "os/os.h"
@@ -169,10 +171,12 @@ void TileMap::set_cell_size(Size2 p_size) {
 	_recreate_quadrants();
 	emit_signal("settings_changed");
 }
+
 Size2 TileMap::get_cell_size() const {
 
 	return cell_size;
 }
+
 void TileMap::set_quadrant_size(int p_size) {
 
 	ERR_FAIL_COND(p_size < 1);
@@ -182,30 +186,10 @@ void TileMap::set_quadrant_size(int p_size) {
 	_recreate_quadrants();
 	emit_signal("settings_changed");
 }
+
 int TileMap::get_quadrant_size() const {
 
 	return quadrant_size;
-}
-
-void TileMap::set_center_x(bool p_enable) {
-
-	center_x = p_enable;
-	_recreate_quadrants();
-	emit_signal("settings_changed");
-}
-bool TileMap::get_center_x() const {
-
-	return center_x;
-}
-void TileMap::set_center_y(bool p_enable) {
-
-	center_y = p_enable;
-	_recreate_quadrants();
-	emit_signal("settings_changed");
-}
-bool TileMap::get_center_y() const {
-
-	return center_y;
 }
 
 void TileMap::_fix_cell_transform(Transform2D &xform, const Cell &p_cell, const Vector2 &p_offset, const Size2 &p_sc) {
@@ -353,7 +337,7 @@ void TileMap::_update_dirty_quadrants() {
 					debug_canvas_item = vs->canvas_item_create();
 					vs->canvas_item_set_parent(debug_canvas_item, canvas_item);
 					vs->canvas_item_set_z_as_relative_to_parent(debug_canvas_item, false);
-					vs->canvas_item_set_z(debug_canvas_item, VS::CANVAS_ITEM_Z_MAX - 1);
+					vs->canvas_item_set_z_index(debug_canvas_item, VS::CANVAS_ITEM_Z_MAX - 1);
 					q.canvas_items.push_back(debug_canvas_item);
 					prev_debug_canvas_item = debug_canvas_item;
 				}
@@ -503,7 +487,7 @@ void TileMap::_update_dirty_quadrants() {
 					xform.set_origin(offset.floor() + q.pos);
 					_fix_cell_transform(xform, c, npoly_ofs + center_ofs, s);
 
-					int pid = navigation->navpoly_create(navpoly, nav_rel * xform);
+					int pid = navigation->navpoly_add(navpoly, nav_rel * xform);
 
 					Quadrant::NavPoly np;
 					np.id = pid;
@@ -513,16 +497,13 @@ void TileMap::_update_dirty_quadrants() {
 			}
 
 			Ref<OccluderPolygon2D> occluder;
-			Vector2 occluder_ofs;
 			if (tile_set->tile_get_is_autotile(c.id)) {
 				occluder = tile_set->autotile_get_light_occluder(c.id, Vector2(c.autotile_coord_x, c.autotile_coord_y));
-				occluder_ofs = tile_set->tile_get_occluder_offset(c.id);
 			} else {
 				occluder = tile_set->tile_get_light_occluder(c.id);
-				occluder_ofs = Vector2();
 			}
 			if (occluder.is_valid()) {
-
+				Vector2 occluder_ofs = tile_set->tile_get_occluder_offset(c.id);
 				Transform2D xform;
 				xform.set_origin(offset.floor() + q.pos);
 				_fix_cell_transform(xform, c, occluder_ofs + center_ofs, s);
@@ -759,6 +740,26 @@ void TileMap::update_bitmask_area(const Vector2 &p_pos) {
 	}
 }
 
+void TileMap::update_bitmask_region(const Vector2 &p_start, const Vector2 &p_end) {
+
+	if ((p_end.x < p_start.x || p_end.y < p_start.y) || (p_end.x == p_start.x && p_end.y == p_start.y)) {
+		int i;
+		Array a = get_used_cells();
+		for (i = 0; i < a.size(); i++) {
+			// update_bitmask_area() in order to update cells adjacent to the
+			// current cell, since ordering in array may not be reliable
+			Vector2 vector = (Vector2)a[i];
+			update_bitmask_area(Vector2(vector.x, vector.y));
+		}
+		return;
+	}
+	for (int x = p_start.x - 1; x <= p_end.x + 1; x++) {
+		for (int y = p_start.y - 1; y <= p_end.y + 1; y++) {
+			update_cell_bitmask(x, y);
+		}
+	}
+}
+
 void TileMap::update_cell_bitmask(int p_x, int p_y) {
 
 	PosKey p(p_x, p_y);
@@ -968,14 +969,14 @@ void TileMap::_set_tile_data(const PoolVector<int> &p_data) {
 	int c = p_data.size();
 	PoolVector<int>::Read r = p_data.read();
 
-	int offset = (format == FORMAT_2_1_5) ? 3 : 2;
+	int offset = (format == FORMAT_2) ? 3 : 2;
 
 	clear();
 	for (int i = 0; i < c; i += offset) {
 
 		const uint8_t *ptr = (const uint8_t *)&r[i];
 		uint8_t local[12];
-		for (int j = 0; j < ((format == FORMAT_2_1_5) ? 12 : 8); j++)
+		for (int j = 0; j < ((format == FORMAT_2) ? 12 : 8); j++)
 			local[j] = ptr[j];
 
 #ifdef BIG_ENDIAN_ENABLED
@@ -985,7 +986,7 @@ void TileMap::_set_tile_data(const PoolVector<int> &p_data) {
 		SWAP(local[4], local[7]);
 		SWAP(local[5], local[6]);
 		//TODO: ask someone to check this...
-		if (FORMAT == FORMAT_2_1_5) {
+		if (FORMAT == FORMAT_2) {
 			SWAP(local[8], local[11]);
 			SWAP(local[9], local[10]);
 		}
@@ -1000,7 +1001,7 @@ void TileMap::_set_tile_data(const PoolVector<int> &p_data) {
 		v &= (1 << 29) - 1;
 		int16_t coord_x;
 		int16_t coord_y;
-		if (format == FORMAT_2_1_5) {
+		if (format == FORMAT_2) {
 			coord_x = decode_uint16(&local[8]);
 			coord_y = decode_uint16(&local[10]);
 		}
@@ -1017,6 +1018,8 @@ PoolVector<int> TileMap::_get_tile_data() const {
 	PoolVector<int> data;
 	data.resize(tile_map.size() * 3);
 	PoolVector<int>::Write w = data.write();
+
+	format = FORMAT_2;
 
 	int idx = 0;
 	for (const Map<PosKey, Cell>::Element *E = tile_map.front(); E; E = E->next()) {
@@ -1298,7 +1301,7 @@ bool TileMap::_set(const StringName &p_name, const Variant &p_value) {
 bool TileMap::_get(const StringName &p_name, Variant &r_ret) const {
 
 	if (p_name == "format") {
-		r_ret = FORMAT_2_1_5;
+		r_ret = FORMAT_2;
 		return true;
 	} else if (p_name == "tile_data") {
 		r_ret = _get_tile_data();
@@ -1474,12 +1477,6 @@ void TileMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_tile_origin", "origin"), &TileMap::set_tile_origin);
 	ClassDB::bind_method(D_METHOD("get_tile_origin"), &TileMap::get_tile_origin);
 
-	ClassDB::bind_method(D_METHOD("set_center_x", "enable"), &TileMap::set_center_x);
-	ClassDB::bind_method(D_METHOD("get_center_x"), &TileMap::get_center_x);
-
-	ClassDB::bind_method(D_METHOD("set_center_y", "enable"), &TileMap::set_center_y);
-	ClassDB::bind_method(D_METHOD("get_center_y"), &TileMap::get_center_y);
-
 	ClassDB::bind_method(D_METHOD("set_clip_uv", "enable"), &TileMap::set_clip_uv);
 	ClassDB::bind_method(D_METHOD("get_clip_uv"), &TileMap::get_clip_uv);
 
@@ -1531,6 +1528,9 @@ void TileMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_recreate_quadrants"), &TileMap::_recreate_quadrants);
 	ClassDB::bind_method(D_METHOD("_update_dirty_quadrants"), &TileMap::_update_dirty_quadrants);
 
+	ClassDB::bind_method(D_METHOD("update_bitmask_area", "position"), &TileMap::update_bitmask_area);
+	ClassDB::bind_method(D_METHOD("update_bitmask_region", "start", "end"), &TileMap::update_bitmask_region, DEFVAL(Vector2()), DEFVAL(Vector2()));
+
 	ClassDB::bind_method(D_METHOD("_set_tile_data"), &TileMap::_set_tile_data);
 	ClassDB::bind_method(D_METHOD("_get_tile_data"), &TileMap::_get_tile_data);
 
@@ -1581,8 +1581,6 @@ TileMap::TileMap() {
 	quadrant_order_dirty = false;
 	quadrant_size = 16;
 	cell_size = Size2(64, 64);
-	center_x = false;
-	center_y = false;
 	collision_layer = 1;
 	collision_mask = 1;
 	friction = 1;
@@ -1594,7 +1592,7 @@ TileMap::TileMap() {
 	y_sort_mode = false;
 	occluder_light_mask = 1;
 	clip_uv = false;
-	format = FORMAT_2_1_4; //Always initialize with the lowest format
+	format = FORMAT_1; //Always initialize with the lowest format
 
 	fp_adjust = 0.00001;
 	tile_origin = TILE_ORIGIN_TOP_LEFT;

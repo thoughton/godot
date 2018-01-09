@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #ifndef PATH_2D_H
 #define PATH_2D_H
 
@@ -46,6 +47,9 @@ protected:
 	static void _bind_methods();
 
 public:
+	virtual Rect2 _edit_get_rect() const;
+	virtual bool _edit_is_selected_on_click(const Point2 &p_point, double p_tolerance) const;
+
 	void set_curve(const Ref<Curve2D> &p_curve);
 	Ref<Curve2D> get_curve() const;
 
@@ -60,9 +64,9 @@ public:
 private:
 	Path2D *path;
 	real_t offset;
-	real_t delta_offset; // change in offset since last _update_transform
 	real_t h_offset;
 	real_t v_offset;
+	real_t lookahead;
 	bool cubic;
 	bool loop;
 	bool rotate;
@@ -89,6 +93,9 @@ public:
 
 	void set_unit_offset(float p_unit_offset);
 	float get_unit_offset() const;
+
+	void set_lookahead(float p_lookahead);
+	float get_lookahead() const;
 
 	void set_loop(bool p_loop);
 	bool has_loop() const;

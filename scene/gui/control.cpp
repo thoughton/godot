@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "control.h"
 #include "project_settings.h"
 #include "scene/main/canvas_layer.h"
@@ -860,6 +861,8 @@ Ref<StyleBox> Control::get_stylebox(const StringName &p_name, const StringName &
 			class_name = ClassDB::get_parent_class_nocheck(class_name);
 		}
 
+		class_name = type;
+
 		Control *parent = Object::cast_to<Control>(theme_owner->get_parent());
 
 		if (parent)
@@ -867,8 +870,6 @@ Ref<StyleBox> Control::get_stylebox(const StringName &p_name, const StringName &
 		else
 			theme_owner = NULL;
 	}
-
-	class_name = type;
 
 	while (class_name != StringName()) {
 		if (Theme::get_default()->has_stylebox(p_name, class_name))
@@ -2154,6 +2155,7 @@ void Control::set_theme(const Ref<Theme> &p_theme) {
 	data.theme = p_theme;
 	if (!p_theme.is_null()) {
 
+		data.theme_owner = this;
 		_propagate_theme_changed(this, this);
 	} else {
 
@@ -2468,6 +2470,16 @@ void Control::set_mouse_filter(MouseFilter p_filter) {
 Control::MouseFilter Control::get_mouse_filter() const {
 
 	return data.mouse_filter;
+}
+
+void Control::set_pass_on_modal_close_click(bool p_pass_on) {
+
+	data.pass_on_modal_close_click = p_pass_on;
+}
+
+bool Control::pass_on_modal_close_click() const {
+
+	return data.pass_on_modal_close_click;
 }
 
 Control *Control::get_focus_owner() const {
@@ -2825,7 +2837,7 @@ void Control::_bind_methods() {
 	ADD_PROPERTYNZ(PropertyInfo(Variant::REAL, "rect_rotation", PROPERTY_HINT_RANGE, "-1080,1080,0.01"), "set_rotation_degrees", "get_rotation_degrees");
 	ADD_PROPERTYNO(PropertyInfo(Variant::VECTOR2, "rect_scale"), "set_scale", "get_scale");
 	ADD_PROPERTYNO(PropertyInfo(Variant::VECTOR2, "rect_pivot_offset"), "set_pivot_offset", "get_pivot_offset");
-	ADD_PROPERTYNO(PropertyInfo(Variant::BOOL, "rect_clip_content"), "set_clip_contents", "is_clipping_contents");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "rect_clip_content"), "set_clip_contents", "is_clipping_contents");
 
 	ADD_GROUP("Hint", "hint_");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::STRING, "hint_tooltip", PROPERTY_HINT_MULTILINE_TEXT), "set_tooltip", "_get_tooltip");
@@ -2934,6 +2946,7 @@ Control::Control() {
 	data.parent = NULL;
 
 	data.mouse_filter = MOUSE_FILTER_STOP;
+	data.pass_on_modal_close_click = true;
 
 	data.SI = NULL;
 	data.MI = NULL;

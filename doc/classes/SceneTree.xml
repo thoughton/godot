@@ -165,6 +165,12 @@
 			<description>
 			</description>
 		</method>
+		<method name="is_using_font_oversampling" qualifiers="const">
+			<return type="bool">
+			</return>
+			<description>
+			</description>
+		</method>
 		<method name="notify_group">
 			<return type="void">
 			</return>
@@ -296,6 +302,14 @@
 			<description>
 			</description>
 		</method>
+		<method name="set_quit_on_go_back">
+			<return type="void">
+			</return>
+			<argument index="0" name="enabled" type="bool">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="set_refuse_new_network_connections">
 			<return type="void">
 			</return>
@@ -314,6 +328,14 @@
 			<argument index="2" name="minsize" type="Vector2">
 			</argument>
 			<argument index="3" name="shrink" type="float" default="1">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="set_use_font_oversampling">
+			<return type="void">
+			</return>
+			<argument index="0" name="enable" type="bool">
 			</argument>
 			<description>
 			</description>
@@ -388,13 +410,13 @@
 		</signal>
 	</signals>
 	<constants>
-		<constant name="GROUP_CALL_DEFAULT" value="0" enum="CallGroupFlags">
+		<constant name="GROUP_CALL_DEFAULT" value="0" enum="GroupCallFlags">
 		</constant>
-		<constant name="GROUP_CALL_REVERSE" value="1" enum="CallGroupFlags">
+		<constant name="GROUP_CALL_REVERSE" value="1" enum="GroupCallFlags">
 		</constant>
-		<constant name="GROUP_CALL_REALTIME" value="2" enum="CallGroupFlags">
+		<constant name="GROUP_CALL_REALTIME" value="2" enum="GroupCallFlags">
 		</constant>
-		<constant name="GROUP_CALL_UNIQUE" value="4" enum="CallGroupFlags">
+		<constant name="GROUP_CALL_UNIQUE" value="4" enum="GroupCallFlags">
 		</constant>
 		<constant name="STRETCH_MODE_DISABLED" value="0" enum="StretchMode">
 		</constant>

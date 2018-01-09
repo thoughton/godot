@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "physics_server.h"
 #include "core/project_settings.h"
 #include "print_string.h"
@@ -472,8 +473,8 @@ void PhysicsServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("body_apply_torque_impulse", "body", "impulse"), &PhysicsServer::body_apply_torque_impulse);
 	ClassDB::bind_method(D_METHOD("body_set_axis_velocity", "body", "axis_velocity"), &PhysicsServer::body_set_axis_velocity);
 
-	ClassDB::bind_method(D_METHOD("body_set_axis_lock", "body", "axis"), &PhysicsServer::body_set_axis_lock);
-	ClassDB::bind_method(D_METHOD("body_get_axis_lock", "body"), &PhysicsServer::body_get_axis_lock);
+	ClassDB::bind_method(D_METHOD("body_set_axis_lock", "body", "axis", "lock"), &PhysicsServer::body_set_axis_lock);
+	ClassDB::bind_method(D_METHOD("body_is_axis_locked", "body", "axis"), &PhysicsServer::body_is_axis_locked);
 
 	ClassDB::bind_method(D_METHOD("body_add_collision_exception", "body", "excepted_body"), &PhysicsServer::body_add_collision_exception);
 	ClassDB::bind_method(D_METHOD("body_remove_collision_exception", "body", "excepted_body"), &PhysicsServer::body_remove_collision_exception);
@@ -702,11 +703,12 @@ void PhysicsServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(SPACE_PARAM_BODY_TIME_TO_SLEEP);
 	BIND_ENUM_CONSTANT(SPACE_PARAM_BODY_ANGULAR_VELOCITY_DAMP_RATIO);
 	BIND_ENUM_CONSTANT(SPACE_PARAM_CONSTRAINT_DEFAULT_BIAS);
-
-	BIND_ENUM_CONSTANT(BODY_AXIS_LOCK_DISABLED);
-	BIND_ENUM_CONSTANT(BODY_AXIS_LOCK_X);
-	BIND_ENUM_CONSTANT(BODY_AXIS_LOCK_Y);
-	BIND_ENUM_CONSTANT(BODY_AXIS_LOCK_Z);
+	BIND_ENUM_CONSTANT(BODY_AXIS_LINEAR_X);
+	BIND_ENUM_CONSTANT(BODY_AXIS_LINEAR_Y);
+	BIND_ENUM_CONSTANT(BODY_AXIS_LINEAR_Z);
+	BIND_ENUM_CONSTANT(BODY_AXIS_ANGULAR_X);
+	BIND_ENUM_CONSTANT(BODY_AXIS_ANGULAR_Y);
+	BIND_ENUM_CONSTANT(BODY_AXIS_ANGULAR_Z);
 }
 
 PhysicsServer::PhysicsServer() {

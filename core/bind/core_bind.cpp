@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "core_bind.h"
 
 #include "core/project_settings.h"
@@ -70,7 +71,13 @@ Ref<ResourceInteractiveLoader> _ResourceLoader::load_interactive(const String &p
 
 RES _ResourceLoader::load(const String &p_path, const String &p_type_hint, bool p_no_cache) {
 
-	RES ret = ResourceLoader::load(p_path, p_type_hint, p_no_cache);
+	Error err = OK;
+	RES ret = ResourceLoader::load(p_path, p_type_hint, p_no_cache, &err);
+
+	if (err != OK) {
+		ERR_EXPLAIN("Error loading resource: '" + p_path + "'");
+		ERR_FAIL_COND_V(err != OK, ret);
+	}
 	return ret;
 }
 
@@ -2459,7 +2466,13 @@ Array _ClassDB::get_method_list(StringName p_class, bool p_no_inheritance) const
 	Array ret;
 
 	for (List<MethodInfo>::Element *E = methods.front(); E; E = E->next()) {
+#ifdef DEBUG_METHODS_ENABLED
 		ret.push_back(E->get().operator Dictionary());
+#else
+		Dictionary dict;
+		dict["name"] = E->get().name;
+		ret.push_back(dict);
+#endif
 	}
 
 	return ret;
@@ -2694,12 +2707,12 @@ Variant JSONParseResult::get_result() const {
 }
 
 void _JSON::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("print", "value"), &_JSON::print);
+	ClassDB::bind_method(D_METHOD("print", "value", "indent", "sort_keys"), &_JSON::print, DEFVAL(String()), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("parse", "json"), &_JSON::parse);
 }
 
-String _JSON::print(const Variant &p_value) {
-	return JSON::print(p_value);
+String _JSON::print(const Variant &p_value, const String &p_indent, bool p_sort_keys) {
+	return JSON::print(p_value, p_indent, p_sort_keys);
 }
 
 Ref<JSONParseResult> _JSON::parse(const String &p_json) {

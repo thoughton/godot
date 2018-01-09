@@ -55,6 +55,7 @@ def get_opts():
         BoolVariable('pulseaudio', 'Detect & use pulseaudio', True),
         BoolVariable('udev', 'Use udev for gamepad connection callbacks', False),
         EnumVariable('debug_symbols', 'Add debug symbols to release version', 'yes', ('yes', 'no', 'full')),
+        BoolVariable('touch', 'Enable touch events', True),
     ]
 
 
@@ -108,7 +109,7 @@ def configure(env):
         if ('clang++' not in env['CXX']):
             env["CC"] = "clang"
             env["CXX"] = "clang++"
-            env["LD"] = "clang++"
+            env["LINK"] = "clang++"
         env.Append(CPPFLAGS=['-DTYPED_METHOD_BIND'])
         env.extra_suffix = ".llvm" + env.extra_suffix
 
@@ -141,6 +142,14 @@ def configure(env):
     env.ParseConfig('pkg-config xinerama --cflags --libs')
     env.ParseConfig('pkg-config xrandr --cflags --libs')
 
+    if (env['touch']):
+        x11_error = os.system("pkg-config xi --modversion > /dev/null ")
+        if (x11_error):
+            print("xi not found.. cannot build with touch. Aborting.")
+            sys.exit(255)
+        env.ParseConfig('pkg-config xi --cflags --libs')
+        env.Append(CPPFLAGS=['-DTOUCH_ENABLED'])
+
     # FIXME: Check for existence of the libs before parsing their flags with pkg-config
 
     if not env['builtin_openssl']:
@@ -148,6 +157,7 @@ def configure(env):
 
     if not env['builtin_libwebp']:
         env.ParseConfig('pkg-config libwebp --cflags --libs')
+
 
     # freetype depends on libpng and zlib, so bundling one of them while keeping others
     # as shared libraries leads to weird issues
@@ -253,6 +263,7 @@ def configure(env):
     elif (not is64 and env["bits"] == "64"):
         env.Append(CPPFLAGS=['-m64'])
         env.Append(LINKFLAGS=['-m64', '-L/usr/lib/i686-linux-gnu'])
+
 
     if env['use_static_cpp']:
         env.Append(LINKFLAGS=['-static-libstdc++'])

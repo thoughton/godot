@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "node.h"
 
 #include "core/core_string_names.h"
@@ -177,8 +178,8 @@ void Node::_propagate_ready() {
 	}
 	data.blocked--;
 	if (data.ready_first) {
-		notification(NOTIFICATION_READY);
 		data.ready_first = false;
+		notification(NOTIFICATION_READY);
 	}
 }
 
@@ -340,7 +341,8 @@ void Node::move_child(Node *p_child, int p_pos) {
 		data.children[i]->notification(NOTIFICATION_MOVED_IN_PARENT);
 	}
 	for (const Map<StringName, GroupData>::Element *E = p_child->data.grouped.front(); E; E = E->next()) {
-		E->get().group->changed = true;
+		if (E->get().group)
+			E->get().group->changed = true;
 	}
 
 	data.blocked--;
@@ -2110,6 +2112,7 @@ Node *Node::_duplicate(int p_flags, Map<const Node *, Node *> *r_duplimap) const
 
 	StringName script_property_name = CoreStringNames::get_singleton()->_script;
 
+	List<const Node *> hidden_roots;
 	List<const Node *> node_tree;
 	node_tree.push_front(this);
 
@@ -2120,11 +2123,16 @@ Node *Node::_duplicate(int p_flags, Map<const Node *, Node *> *r_duplimap) const
 		for (List<const Node *>::Element *N = node_tree.front(); N; N = N->next()) {
 			for (int i = 0; i < N->get()->get_child_count(); ++i) {
 
+				Node *descendant = N->get()->get_child(i);
 				// Skip nodes not really belonging to the instanced hierarchy; they'll be processed normally later
-				if (N->get()->get_child(i)->data.owner != this)
+				// but remember non-instanced nodes that are hidden below instanced ones
+				if (descendant->data.owner != this) {
+					if (descendant->get_parent() && descendant->get_parent() != this && descendant->get_parent()->data.owner == this)
+						hidden_roots.push_back(descendant);
 					continue;
+				}
 
-				node_tree.push_back(N->get()->get_child(i));
+				node_tree.push_back(descendant);
 			}
 		}
 	}
@@ -2156,7 +2164,7 @@ Node *Node::_duplicate(int p_flags, Map<const Node *, Node *> *r_duplimap) const
 			Variant value = N->get()->get(name);
 			// Duplicate dictionaries and arrays, mainly needed for __meta__
 			if (value.get_type() == Variant::DICTIONARY) {
-				value = Dictionary(value).copy();
+				value = Dictionary(value).duplicate();
 			} else if (value.get_type() == Variant::ARRAY) {
 				value = Array(value).duplicate();
 			}
@@ -2201,6 +2209,34 @@ Node *Node::_duplicate(int p_flags, Map<const Node *, Node *> *r_duplimap) const
 		}
 
 		node->add_child(dup);
+		if (i < node->get_child_count() - 1) {
+			node->move_child(dup, i);
+		}
+	}
+
+	for (List<const Node *>::Element *E = hidden_roots.front(); E; E = E->next()) {
+
+		Node *parent = node->get_node(get_path_to(E->get()->data.parent));
+		if (!parent) {
+
+			memdelete(node);
+			return NULL;
+		}
+
+		Node *dup = E->get()->_duplicate(p_flags, r_duplimap);
+		if (!dup) {
+
+			memdelete(node);
+			return NULL;
+		}
+
+		parent->add_child(dup);
+		int pos = E->get()->get_position_in_parent();
+
+		if (pos < parent->get_child_count() - 1) {
+
+			parent->move_child(dup, pos);
+		}
 	}
 
 	return node;
@@ -2269,7 +2305,7 @@ void Node::_duplicate_and_reown(Node *p_new_parent, const Map<Node *, Node *> &p
 		Variant value = get(name);
 		// Duplicate dictionaries and arrays, mainly needed for __meta__
 		if (value.get_type() == Variant::DICTIONARY) {
-			value = Dictionary(value).copy();
+			value = Dictionary(value).duplicate();
 		} else if (value.get_type() == Variant::ARRAY) {
 			value = Array(value).duplicate();
 		}

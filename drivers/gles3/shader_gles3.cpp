@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "shader_gles3.h"
 
 #include "print_string.h"
@@ -279,21 +280,6 @@ ShaderGLES3::Version *ShaderGLES3::get_current_version() {
 	strings.push_back("precision highp sampler2DArray;\n");
 #endif
 
-#if 0
-	if (cc) {
-
-		String _code_string = "#define VERTEX_SHADER_CODE "+cc->vertex+"\n";
-		String _code_globals = "#define VERTEX_SHADER_GLOBALS "+cc->vertex_globals+"\n";
-
-		code_string=_code_string.ascii();
-		code_globals=_code_globals.ascii();
-		DEBUG_PRINT( code_globals.get_data() );
-		DEBUG_PRINT( code_string.get_data() );
-		strings.push_back(code_globals);
-		strings.push_back(code_string);
-	}
-#endif
-
 	strings.push_back(vertex_code0.get_data());
 
 	if (cc) {
@@ -380,21 +366,6 @@ ShaderGLES3::Version *ShaderGLES3::get_current_version() {
 	strings.push_back("precision highp sampler2D;\n");
 	strings.push_back("precision highp samplerCube;\n");
 	strings.push_back("precision highp sampler2DArray;\n");
-#endif
-
-#if 0
-	if (cc) {
-
-		String _code_string = "#define FRAGMENT_SHADER_CODE "+cc->fragment+"\n";
-		String _code_globals = "#define FRAGMENT_SHADER_GLOBALS "+cc->fragment_globals+"\n";
-
-		code_string=_code_string.ascii();
-		code_globals=_code_globals.ascii();
-		DEBUG_PRINT( code_globals.get_data() );
-		DEBUG_PRINT( code_string.get_data() );
-		strings.push_back(code_globals);
-		strings.push_back(code_string);
-	}
 #endif
 
 	strings.push_back(fragment_code0.get_data());
@@ -495,7 +466,6 @@ ShaderGLES3::Version *ShaderGLES3::get_current_version() {
 
 			if (feedbacks[i].conditional == -1 || (1 << feedbacks[i].conditional) & conditional_version.version) {
 				//conditional for this feedback is enabled
-				print_line("tf varying: " + itos(feedback.size()) + " " + String(feedbacks[i].name));
 				feedback.push_back(feedbacks[i].name);
 			}
 		}

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,10 +27,12 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #ifndef EDITOR_PLUGIN_H
 #define EDITOR_PLUGIN_H
 
 #include "editor/import/editor_import_plugin.h"
+#include "editor/import/resource_importer_scene.h"
 #include "io/config_file.h"
 #include "scene/gui/tool_button.h"
 #include "scene/main/node.h"
@@ -74,6 +76,9 @@ public:
 	Node *get_edited_scene_root();
 	Array get_open_scenes() const;
 	ScriptEditor *get_script_editor();
+
+	void select_file(const String &p_file);
+	String get_selected_path() const;
 
 	void inspect_object(Object *p_obj, const String &p_for_property = String());
 
@@ -165,6 +170,7 @@ public:
 	virtual void forward_force_draw_over_viewport(Control *p_overlay);
 	virtual bool forward_spatial_gui_input(Camera *p_camera, const Ref<InputEvent> &p_event);
 	virtual String get_name() const;
+	virtual const Ref<Texture> get_icon() const;
 	virtual bool has_main_screen() const;
 	virtual void make_visible(bool p_visible);
 	virtual void selected_notify() {} //notify that it was raised by the user, not the editor
@@ -198,6 +204,9 @@ public:
 
 	void add_export_plugin(const Ref<EditorExportPlugin> &p_exporter);
 	void remove_export_plugin(const Ref<EditorExportPlugin> &p_exporter);
+
+	void add_scene_import_plugin(const Ref<EditorSceneImporter> &p_importer);
+	void remove_scene_import_plugin(const Ref<EditorSceneImporter> &p_importer);
 
 	EditorPlugin();
 	virtual ~EditorPlugin();

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "export_template_manager.h"
 
 #include "editor_node.h"
@@ -176,7 +177,7 @@ void ExportTemplateManager::_uninstall_template_confirm() {
 	_update_template_list();
 }
 
-void ExportTemplateManager::_install_from_file(const String &p_file) {
+void ExportTemplateManager::_install_from_file(const String &p_file, bool p_use_progress) {
 
 	FileAccess *fa = NULL;
 	zlib_filefunc_def io = zipio_create_io_from_file(&fa);
@@ -250,7 +251,7 @@ void ExportTemplateManager::_install_from_file(const String &p_file) {
 	DirAccess *d = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 	Error err = d->make_dir_recursive(template_path);
 	if (err != OK) {
-		EditorNode::get_singleton()->show_warning(TTR("Error creating path for templates:\n") + template_path);
+		EditorNode::get_singleton()->show_warning(TTR("Error creating path for templates:") + "\n" + template_path);
 		unzClose(pkg);
 		return;
 	}
@@ -259,7 +260,10 @@ void ExportTemplateManager::_install_from_file(const String &p_file) {
 
 	ret = unzGoToFirstFile(pkg);
 
-	EditorProgress p("ltask", TTR("Extracting Export Templates"), fc);
+	EditorProgress *p = NULL;
+	if (p_use_progress) {
+		p = memnew(EditorProgress("ltask", TTR("Extracting Export Templates"), fc));
+	}
 
 	fc = 0;
 
@@ -270,7 +274,7 @@ void ExportTemplateManager::_install_from_file(const String &p_file) {
 		char fname[16384];
 		unzGetCurrentFileInfo(pkg, &info, fname, 16384, NULL, 0, NULL, 0);
 
-		String file = fname;
+		String file = String(fname).get_file();
 
 		Vector<uint8_t> data;
 		data.resize(info.uncompressed_size);
@@ -280,26 +284,28 @@ void ExportTemplateManager::_install_from_file(const String &p_file) {
 		unzReadCurrentFile(pkg, data.ptrw(), data.size());
 		unzCloseCurrentFile(pkg);
 
-		print_line(fname);
-		/*
-		for(int i=0;i<512;i++) {
-			print_line(itos(data[i]));
+		if (p) {
+			p->step(TTR("Importing:") + " " + file, fc);
 		}
-		*/
-
-		file = file.get_file();
-
-		p.step(TTR("Importing:") + " " + file, fc);
 
 		FileAccess *f = FileAccess::open(template_path.plus_file(file), FileAccess::WRITE);
 
-		ERR_CONTINUE(!f);
+		if (!f) {
+			ret = unzGoToNextFile(pkg);
+			fc++;
+			ERR_CONTINUE(!f);
+		}
+
 		f->store_buffer(data.ptr(), data.size());
 
 		memdelete(f);
 
 		ret = unzGoToNextFile(pkg);
 		fc++;
+	}
+
+	if (p) {
+		memdelete(p);
 	}
 
 	unzClose(pkg);
@@ -385,7 +391,7 @@ void ExportTemplateManager::_http_download_templates_completed(int p_status, int
 			template_list_state->set_text(TTR("No response."));
 		} break;
 		case HTTPRequest::RESULT_REQUEST_FAILED: {
-			template_list_state->set_text(TTR("Req. Failed."));
+			template_list_state->set_text(TTR("Request Failed."));
 		} break;
 		case HTTPRequest::RESULT_REDIRECT_LIMIT_REACHED: {
 			template_list_state->set_text(TTR("Redirect Loop."));
@@ -405,7 +411,7 @@ void ExportTemplateManager::_http_download_templates_completed(int p_status, int
 					memdelete(f);
 					template_list_state->set_text(TTR("Download Complete."));
 					template_downloader->hide();
-					_install_from_file(path);
+					_install_from_file(path, false);
 				}
 			}
 		} break;
@@ -465,7 +471,7 @@ void ExportTemplateManager::_notification(int p_what) {
 				break;
 			case HTTPClient::STATUS_CONNECTING: status = TTR("Connecting.."); break;
 			case HTTPClient::STATUS_CANT_CONNECT:
-				status = TTR("Can't Conect");
+				status = TTR("Can't Connect");
 				errored = true;
 				break;
 			case HTTPClient::STATUS_CONNECTED: status = TTR("Connected"); break;
@@ -547,7 +553,7 @@ ExportTemplateManager::ExportTemplateManager() {
 	template_open->add_filter("*.tpz ; Godot Export Templates");
 	template_open->set_access(FileDialog::ACCESS_FILESYSTEM);
 	template_open->set_mode(FileDialog::MODE_OPEN_FILE);
-	template_open->connect("file_selected", this, "_install_from_file");
+	template_open->connect("file_selected", this, "_install_from_file", varray(true));
 	add_child(template_open);
 
 	set_title(TTR("Export Template Manager"));

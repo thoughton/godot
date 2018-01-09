@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "navigation_mesh.h"
 #include "mesh_instance.h"
 #include "navigation.h"
@@ -471,7 +472,7 @@ void NavigationMeshInstance::set_enabled(bool p_enabled) {
 
 			if (navmesh.is_valid()) {
 
-				nav_id = navigation->navmesh_create(navmesh, get_relative_transform(navigation), this);
+				nav_id = navigation->navmesh_add(navmesh, get_relative_transform(navigation), this);
 			}
 		}
 	}
@@ -508,7 +509,7 @@ void NavigationMeshInstance::_notification(int p_what) {
 
 					if (enabled && navmesh.is_valid()) {
 
-						nav_id = navigation->navmesh_create(navmesh, get_relative_transform(navigation), this);
+						nav_id = navigation->navmesh_add(navmesh, get_relative_transform(navigation), this);
 					}
 					break;
 				}
@@ -568,7 +569,7 @@ void NavigationMeshInstance::set_navigation_mesh(const Ref<NavigationMesh> &p_na
 	navmesh = p_navmesh;
 
 	if (navigation && navmesh.is_valid() && enabled) {
-		nav_id = navigation->navmesh_create(navmesh, get_relative_transform(navigation), this);
+		nav_id = navigation->navmesh_add(navmesh, get_relative_transform(navigation), this);
 	}
 
 	if (debug_view && navmesh.is_valid()) {

@@ -21,6 +21,26 @@
 				Clear all cells.
 			</description>
 		</method>
+		<method name="clear_baked_meshes">
+			<return type="void">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="get_bake_mesh_instance">
+			<return type="RID">
+			</return>
+			<argument index="0" name="idx" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="get_bake_meshes">
+			<return type="Array">
+			</return>
+			<description>
+			</description>
+		</method>
 		<method name="get_cell_item" qualifiers="const">
 			<return type="int">
 			</return>
@@ -75,6 +95,22 @@
 				Returns whether or not grid items are centered on the Z axis.
 			</description>
 		</method>
+		<method name="get_collision_layer_bit" qualifiers="const">
+			<return type="bool">
+			</return>
+			<argument index="0" name="bit" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="get_collision_mask_bit" qualifiers="const">
+			<return type="bool">
+			</return>
+			<argument index="0" name="bit" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="get_meshes">
 			<return type="Array">
 			</return>
@@ -101,6 +137,16 @@
 			</return>
 			<description>
 				Array of [Vector3] with the non empty cell coordinates in the grid map.
+			</description>
+		</method>
+		<method name="make_baked_meshes">
+			<return type="void">
+			</return>
+			<argument index="0" name="gen_lightmap_uv" type="bool" default="false">
+			</argument>
+			<argument index="1" name="lightmap_uv_texel_size" type="float" default="0.1">
+			</argument>
+			<description>
 			</description>
 		</method>
 		<method name="map_to_world" qualifiers="const">
@@ -192,6 +238,26 @@
 			<description>
 			</description>
 		</method>
+		<method name="set_collision_layer_bit">
+			<return type="void">
+			</return>
+			<argument index="0" name="bit" type="int">
+			</argument>
+			<argument index="1" name="value" type="bool">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="set_collision_mask_bit">
+			<return type="void">
+			</return>
+			<argument index="0" name="bit" type="int">
+			</argument>
+			<argument index="1" name="value" type="bool">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="set_octant_size">
 			<return type="void">
 			</return>
@@ -219,6 +285,12 @@
 			</description>
 		</method>
 	</methods>
+	<members>
+		<member name="collision_layer" type="int" setter="set_collision_layer" getter="get_collision_layer">
+		</member>
+		<member name="collision_mask" type="int" setter="set_collision_mask" getter="get_collision_mask">
+		</member>
+	</members>
 	<constants>
 		<constant name="INVALID_CELL_ITEM" value="-1">
 			Invalid cell item that can be used in [method set_cell_item] to clear cells (or represent an empty cell in [method get_cell_item]).

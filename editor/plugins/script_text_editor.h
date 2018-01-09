@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #ifndef SCRIPT_TEXT_EDITOR_H
 #define SCRIPT_TEXT_EDITOR_H
 
@@ -91,8 +92,7 @@ class ScriptTextEditor : public ScriptEditorBase {
 		EDIT_TO_UPPERCASE,
 		EDIT_TO_LOWERCASE,
 		EDIT_CAPITALIZE,
-		EDIT_FOLD_LINE,
-		EDIT_UNFOLD_LINE,
+		EDIT_TOGGLE_FOLD_LINE,
 		EDIT_FOLD_ALL_LINES,
 		EDIT_UNFOLD_ALL_LINES,
 		SEARCH_FIND,
