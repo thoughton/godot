@@ -55,6 +55,9 @@ struct Color {
 	uint32_t to_rgba32() const;
 	uint32_t to_argb32() const;
 	uint32_t to_abgr32() const;
+	uint64_t to_rgba64() const;
+	uint64_t to_argb64() const;
+	uint64_t to_abgr64() const;
 	float gray() const;
 	float get_h() const;
 	float get_s() const;
@@ -105,18 +108,18 @@ struct Color {
 	_FORCE_INLINE_ Color darkened(float p_amount) const {
 
 		Color res = *this;
-		res.r = CLAMP(res.r * (1.0f - p_amount), 0.0, 1.0);
-		res.g = CLAMP(res.g * (1.0f - p_amount), 0.0, 1.0);
-		res.b = CLAMP(res.b * (1.0f - p_amount), 0.0, 1.0);
+		res.r = res.r * (1.0f - p_amount);
+		res.g = res.g * (1.0f - p_amount);
+		res.b = res.b * (1.0f - p_amount);
 		return res;
 	}
 
 	_FORCE_INLINE_ Color lightened(float p_amount) const {
 
 		Color res = *this;
-		res.r = CLAMP(res.r + (1.0f - res.r) * p_amount, 0.0, 1.0);
-		res.g = CLAMP(res.g + (1.0f - res.g) * p_amount, 0.0, 1.0);
-		res.b = CLAMP(res.b + (1.0f - res.b) * p_amount, 0.0, 1.0);
+		res.r = res.r + (1.0f - res.r) * p_amount;
+		res.g = res.g + (1.0f - res.g) * p_amount;
+		res.b = res.b + (1.0f - res.b) * p_amount;
 		return res;
 	}
 
@@ -186,10 +189,12 @@ struct Color {
 	}
 
 	static Color hex(uint32_t p_hex);
+	static Color hex64(uint64_t p_hex);
 	static Color html(const String &p_color);
 	static bool html_is_valid(const String &p_color);
 	static Color named(const String &p_name);
 	String to_html(bool p_alpha = true) const;
+	Color from_hsv(float p_h, float p_s, float p_v, float p_a);
 
 	_FORCE_INLINE_ bool operator<(const Color &p_color) const; //used in set keys
 	operator String() const;

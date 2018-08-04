@@ -76,12 +76,14 @@ class GridMapEditor : public VBoxContainer {
 	Panel *panel;
 	MenuButton *options;
 	SpinBox *floor;
+	double accumulated_floor_delta;
 	ToolButton *mode_thumbnail;
 	ToolButton *mode_list;
 	HBoxContainer *spatial_editor_hb;
 	ConfirmationDialog *settings_dialog;
 	VBoxContainer *settings_vbc;
 	SpinBox *settings_pick_distance;
+	Label *spin_box_label;
 
 	struct SetItem {
 
@@ -166,6 +168,7 @@ class GridMapEditor : public VBoxContainer {
 		MENU_OPTION_SELECTION_MAKE_EXTERIOR_CONNECTOR,
 		MENU_OPTION_SELECTION_DUPLICATE,
 		MENU_OPTION_SELECTION_CLEAR,
+		MENU_OPTION_SELECTION_FILL,
 		MENU_OPTION_REMOVE_AREA,
 		MENU_OPTION_GRIDMAP_SETTINGS
 
@@ -198,6 +201,7 @@ class GridMapEditor : public VBoxContainer {
 	void _floor_changed(float p_value);
 
 	void _delete_selection();
+	void _fill_selection();
 
 	EditorNode *editor;
 	bool do_input_action(Camera *p_camera, const Point2 &p_point, bool p_click);

@@ -99,6 +99,20 @@ void GridMapEditor::_menu_option(int p_option) {
 				int idx = options->get_popup()->get_item_index(MENU_OPTION_X_AXIS + i);
 				options->get_popup()->set_item_checked(idx, i == new_axis);
 			}
+
+			if (edit_axis != new_axis) {
+				int item1 = options->get_popup()->get_item_index(MENU_OPTION_NEXT_LEVEL);
+				int item2 = options->get_popup()->get_item_index(MENU_OPTION_PREV_LEVEL);
+				if (edit_axis == Vector3::AXIS_Y) {
+					options->get_popup()->set_item_text(item1, TTR("Next Plane"));
+					options->get_popup()->set_item_text(item2, TTR("Previous Plane"));
+					spin_box_label->set_text(TTR("Plane:"));
+				} else if (new_axis == Vector3::AXIS_Y) {
+					options->get_popup()->set_item_text(item1, TTR("Next Floor"));
+					options->get_popup()->set_item_text(item2, TTR("Previous Floor"));
+					spin_box_label->set_text(TTR("Floor:"));
+				}
+			}
 			edit_axis = Vector3::Axis(new_axis);
 			update_grid();
 			_update_clip();
@@ -215,6 +229,13 @@ void GridMapEditor::_menu_option(int p_option) {
 				return;
 
 			_delete_selection();
+
+		} break;
+		case MENU_OPTION_SELECTION_FILL: {
+			if (!selection.active)
+				return;
+
+			_fill_selection();
 
 		} break;
 		case MENU_OPTION_GRIDMAP_SETTINGS: {
@@ -441,6 +462,29 @@ void GridMapEditor::_delete_selection() {
 	_validate_selection();
 }
 
+void GridMapEditor::_fill_selection() {
+
+	if (!selection.active)
+		return;
+
+	undo_redo->create_action(TTR("GridMap Fill Selection"));
+	for (int i = selection.begin.x; i <= selection.end.x; i++) {
+
+		for (int j = selection.begin.y; j <= selection.end.y; j++) {
+
+			for (int k = selection.begin.z; k <= selection.end.z; k++) {
+
+				undo_redo->add_do_method(node, "set_cell_item", i, j, k, selected_pallete, cursor_rot);
+				undo_redo->add_undo_method(node, "set_cell_item", i, j, k, node->get_cell_item(i, j, k), node->get_cell_item_orientation(i, j, k));
+			}
+		}
+	}
+	undo_redo->commit_action();
+
+	selection.active = false;
+	_validate_selection();
+}
+
 void GridMapEditor::_update_duplicate_indicator() {
 
 	if (!selection.active || input_action != INPUT_DUPLICATE) {
@@ -627,12 +671,21 @@ bool GridMapEditor::forward_spatial_input_event(Camera *p_camera, const Ref<Inpu
 	Ref<InputEventPanGesture> pan_gesture = p_event;
 	if (pan_gesture.is_valid()) {
 
-		if (pan_gesture->get_command() || pan_gesture->get_shift()) {
-			const real_t delta = pan_gesture->get_delta().y;
-			floor->set_value(floor->get_value() + SGN(delta));
+		if (pan_gesture->get_alt() && (pan_gesture->get_command() || pan_gesture->get_shift())) {
+			const real_t delta = pan_gesture->get_delta().y * 0.5;
+			accumulated_floor_delta += delta;
+			int step = 0;
+			if (ABS(accumulated_floor_delta) > 1.0) {
+				step = SGN(accumulated_floor_delta);
+				accumulated_floor_delta -= step;
+			}
+			if (step) {
+				floor->set_value(floor->get_value() + step);
+			}
 			return true;
 		}
 	}
+	accumulated_floor_delta = 0.0;
 
 	return false;
 }
@@ -756,7 +809,7 @@ void GridMapEditor::edit(GridMap *p_gridmap) {
 
 	set_process(true);
 
-	Vector3 edited_floor = p_gridmap->get_meta("_editor_floor_");
+	Vector3 edited_floor = p_gridmap->has_meta("_editor_floor_") ? p_gridmap->get_meta("_editor_floor_") : Variant();
 	clip_mode = p_gridmap->has_meta("_editor_clip_") ? ClipMode(p_gridmap->get_meta("_editor_clip_").operator int()) : CLIP_DISABLED;
 
 	for (int i = 0; i < 3; i++) {
@@ -998,9 +1051,9 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 	spatial_editor_hb->set_alignment(BoxContainer::ALIGN_END);
 	SpatialEditor::get_singleton()->add_control_to_menu_panel(spatial_editor_hb);
 
-	Label *fl = memnew(Label);
-	fl->set_text(TTR("Floor:"));
-	spatial_editor_hb->add_child(fl);
+	spin_box_label = memnew(Label);
+	spin_box_label->set_text(TTR("Floor:"));
+	spatial_editor_hb->add_child(spin_box_label);
 
 	floor = memnew(SpinBox);
 	floor->set_min(-32767);
@@ -1023,14 +1076,14 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 	options->get_popup()->add_item(TTR("Previous Floor"), MENU_OPTION_PREV_LEVEL, KEY_Q);
 	options->get_popup()->add_item(TTR("Next Floor"), MENU_OPTION_NEXT_LEVEL, KEY_E);
 	options->get_popup()->add_separator();
-	options->get_popup()->add_check_item(TTR("Clip Disabled"), MENU_OPTION_CLIP_DISABLED);
+	options->get_popup()->add_radio_check_item(TTR("Clip Disabled"), MENU_OPTION_CLIP_DISABLED);
 	options->get_popup()->set_item_checked(options->get_popup()->get_item_index(MENU_OPTION_CLIP_DISABLED), true);
-	options->get_popup()->add_check_item(TTR("Clip Above"), MENU_OPTION_CLIP_ABOVE);
-	options->get_popup()->add_check_item(TTR("Clip Below"), MENU_OPTION_CLIP_BELOW);
+	options->get_popup()->add_radio_check_item(TTR("Clip Above"), MENU_OPTION_CLIP_ABOVE);
+	options->get_popup()->add_radio_check_item(TTR("Clip Below"), MENU_OPTION_CLIP_BELOW);
 	options->get_popup()->add_separator();
-	options->get_popup()->add_check_item(TTR("Edit X Axis"), MENU_OPTION_X_AXIS, KEY_Z);
-	options->get_popup()->add_check_item(TTR("Edit Y Axis"), MENU_OPTION_Y_AXIS, KEY_X);
-	options->get_popup()->add_check_item(TTR("Edit Z Axis"), MENU_OPTION_Z_AXIS, KEY_C);
+	options->get_popup()->add_radio_check_item(TTR("Edit X Axis"), MENU_OPTION_X_AXIS, KEY_Z);
+	options->get_popup()->add_radio_check_item(TTR("Edit Y Axis"), MENU_OPTION_Y_AXIS, KEY_X);
+	options->get_popup()->add_radio_check_item(TTR("Edit Z Axis"), MENU_OPTION_Z_AXIS, KEY_C);
 	options->get_popup()->set_item_checked(options->get_popup()->get_item_index(MENU_OPTION_Y_AXIS), true);
 	options->get_popup()->add_separator();
 	options->get_popup()->add_item(TTR("Cursor Rotate X"), MENU_OPTION_CURSOR_ROTATE_X, KEY_A);
@@ -1049,6 +1102,7 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 	options->get_popup()->add_separator();
 	options->get_popup()->add_item(TTR("Duplicate Selection"), MENU_OPTION_SELECTION_DUPLICATE, KEY_MASK_SHIFT + KEY_C);
 	options->get_popup()->add_item(TTR("Clear Selection"), MENU_OPTION_SELECTION_CLEAR, KEY_MASK_SHIFT + KEY_X);
+	options->get_popup()->add_item(TTR("Fill Selection"), MENU_OPTION_SELECTION_FILL, KEY_MASK_SHIFT + KEY_F);
 
 	options->get_popup()->add_separator();
 	options->get_popup()->add_item(TTR("Settings"), MENU_OPTION_GRIDMAP_SETTINGS);
@@ -1131,9 +1185,9 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 				for (int k = 0; k < 3; k++) {
 
 					if (i < 3)
-						face_points[j][(i + k) % 3] = v[k] * (i >= 3 ? -1 : 1);
+						face_points[j][(i + k) % 3] = v[k];
 					else
-						face_points[3 - j][(i + k) % 3] = v[k] * (i >= 3 ? -1 : 1);
+						face_points[3 - j][(i + k) % 3] = -v[k];
 				}
 			}
 
@@ -1233,6 +1287,7 @@ GridMapEditor::GridMapEditor(EditorNode *p_editor) {
 
 	selection.active = false;
 	updating = false;
+	accumulated_floor_delta = 0.0;
 }
 
 GridMapEditor::~GridMapEditor() {
@@ -1245,9 +1300,10 @@ GridMapEditor::~GridMapEditor() {
 			VisualServer::get_singleton()->free(grid_instance[i]);
 		if (cursor_instance.is_valid())
 			VisualServer::get_singleton()->free(cursor_instance);
-		if (selection_level_instance[i].is_valid()) {
+		if (selection_level_instance[i].is_valid())
 			VisualServer::get_singleton()->free(selection_level_instance[i]);
-		}
+		if (selection_level_mesh[i].is_valid())
+			VisualServer::get_singleton()->free(selection_level_mesh[i]);
 	}
 
 	VisualServer::get_singleton()->free(selection_mesh);

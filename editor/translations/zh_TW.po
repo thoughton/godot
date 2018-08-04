@@ -2,26 +2,27 @@
 # Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.
 # Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)
 # This file is distributed under the same license as the Godot source code.
-#
 # Allen H <w84miracle@gmail.com>, 2017.
+# Billy SU <g4691821@gmail.com>, 2018.
 # Chao Yu <casd82@gmail.com>, 2017.
 # Cliffs Dover <bottle@dancingbottle.com>, 2017.
+# Kisaragi Hiu <mail@kisaragi-hiu.com>, 2018.
 # Matt <chchwy@gmail.com>, 2017.
 # popcade <popcade@gmail.com>, 2016.
+# Qing <icinriiq@gmail.com>, 2018.
 # Sam Pan <sampan66@gmail.com>, 2016.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
-"PO-Revision-Date: 2017-11-24 10:45+0000\n"
-"Last-Translator: Matt <chchwy@gmail.com>\n"
+"PO-Revision-Date: 2018-07-15 16:35+0000\n"
+"Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
 "godot-engine/godot/zh_Hant/>\n"
 "Language: zh_TW\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8-bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2.18-dev\n"
+"X-Generator: Weblate 3.1-dev\n"
 
 #: editor/animation_editor.cpp
 msgid "Disabled"
@@ -32,26 +33,24 @@ msgid "All Selection"
 msgstr "所有的選擇"
 
 #: editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim Change Keyframe Time"
-msgstr "動畫更改座標"
+msgstr "動畫更改關鍵幀時間"
 
 #: editor/animation_editor.cpp
 msgid "Anim Change Transition"
-msgstr ""
+msgstr "動畫更改轉場效果"
 
 #: editor/animation_editor.cpp
 msgid "Anim Change Transform"
 msgstr "動畫更改座標"
 
 #: editor/animation_editor.cpp
-#, fuzzy
 msgid "Anim Change Keyframe Value"
-msgstr "動畫更改座標"
+msgstr "動畫更改關鍵幀數值"
 
 #: editor/animation_editor.cpp
 msgid "Anim Change Call"
-msgstr ""
+msgstr "動畫更改呼叫"
 
 #: editor/animation_editor.cpp
 msgid "Anim Add Track"
@@ -90,8 +89,9 @@ msgid "Anim Track Change Value Mode"
 msgstr "動畫軌改變模式"
 
 #: editor/animation_editor.cpp
+#, fuzzy
 msgid "Anim Track Change Wrap Mode"
-msgstr ""
+msgstr "動畫軌道更改環繞模式"
 
 #: editor/animation_editor.cpp
 msgid "Edit Node Curve"
@@ -112,7 +112,7 @@ msgstr "複製所選"
 
 #: editor/animation_editor.cpp
 msgid "Duplicate Transposed"
-msgstr ""
+msgstr "重複轉置"
 
 #: editor/animation_editor.cpp
 msgid "Remove Selection"
@@ -177,7 +177,7 @@ msgstr "進出"
 
 #: editor/animation_editor.cpp
 msgid "Out-In"
-msgstr ""
+msgstr "外-內"
 
 #: editor/animation_editor.cpp
 msgid "Transitions"
@@ -212,28 +212,30 @@ msgid "Anim Create & Insert"
 msgstr "動畫建立與插入"
 
 #: editor/animation_editor.cpp
+#, fuzzy
 msgid "Anim Insert Track & Key"
-msgstr ""
+msgstr "動畫新增軌跡與按鍵"
 
 #: editor/animation_editor.cpp
 msgid "Anim Insert Key"
-msgstr ""
+msgstr "動畫新增按鍵"
 
 #: editor/animation_editor.cpp
 msgid "Change Anim Len"
-msgstr ""
+msgstr "變更動畫長度"
 
 #: editor/animation_editor.cpp
 msgid "Change Anim Loop"
-msgstr ""
+msgstr "變更動畫迴圈"
 
 #: editor/animation_editor.cpp
+#, fuzzy
 msgid "Anim Create Typed Value Key"
-msgstr ""
+msgstr "動畫新增具類別之鍵值"
 
 #: editor/animation_editor.cpp
 msgid "Anim Insert"
-msgstr ""
+msgstr "插入動畫"
 
 #: editor/animation_editor.cpp
 msgid "Anim Scale Keys"
@@ -241,19 +243,19 @@ msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "Anim Add Call Track"
-msgstr ""
+msgstr "動畫新增呼叫軌跡"
 
 #: editor/animation_editor.cpp
 msgid "Animation zoom."
-msgstr ""
+msgstr "動畫空間。"
 
 #: editor/animation_editor.cpp
 msgid "Length (s):"
-msgstr ""
+msgstr "長度(s):"
 
 #: editor/animation_editor.cpp
 msgid "Animation length (in seconds)."
-msgstr "動畫長度 (秒)"
+msgstr "動畫長度 (秒)。"
 
 #: editor/animation_editor.cpp
 msgid "Step (s):"
@@ -265,103 +267,105 @@ msgstr ""
 
 #: editor/animation_editor.cpp
 msgid "Enable/Disable looping in animation."
-msgstr ""
+msgstr "啟用/停用 動畫迴圈。"
 
 #: editor/animation_editor.cpp
 msgid "Add new tracks."
-msgstr ""
+msgstr "新增動畫軌。"
 
 #: editor/animation_editor.cpp
 msgid "Move current track up."
-msgstr ""
+msgstr "上移當前動畫軌。"
 
 #: editor/animation_editor.cpp
 msgid "Move current track down."
-msgstr ""
+msgstr "下移當前動畫軌。"
 
 #: editor/animation_editor.cpp
 msgid "Remove selected track."
-msgstr ""
+msgstr "移除選擇的動畫軌。"
 
 #: editor/animation_editor.cpp
 msgid "Track tools"
-msgstr ""
+msgstr "軌跡工具"
 
 #: editor/animation_editor.cpp
 msgid "Enable editing of individual keys by clicking them."
-msgstr ""
+msgstr "啟用可使用點擊來更改各個鍵。"
 
 #: editor/animation_editor.cpp
+#, fuzzy
 msgid "Anim. Optimizer"
-msgstr ""
+msgstr "動畫. 最佳化"
 
 #: editor/animation_editor.cpp
 msgid "Max. Linear Error:"
-msgstr ""
+msgstr "最大線性錯誤:"
 
 #: editor/animation_editor.cpp
 msgid "Max. Angular Error:"
-msgstr ""
+msgstr "最大角度錯誤:"
 
 #: editor/animation_editor.cpp
 msgid "Max Optimizable Angle:"
-msgstr ""
+msgstr "最大可優化角度:"
 
 #: editor/animation_editor.cpp
 msgid "Optimize"
-msgstr ""
+msgstr "最佳化"
 
 #: editor/animation_editor.cpp
+#, fuzzy
 msgid "Select an AnimationPlayer from the Scene Tree to edit animations."
-msgstr ""
+msgstr "從場景樹中選擇一個 AnimationPlayer 來編輯動畫。"
 
 #: editor/animation_editor.cpp
 msgid "Key"
-msgstr ""
+msgstr "鍵"
 
 #: editor/animation_editor.cpp
 msgid "Transition"
-msgstr ""
+msgstr "轉場"
 
 #: editor/animation_editor.cpp
 msgid "Scale Ratio:"
-msgstr ""
+msgstr "縮放比例:"
 
 #: editor/animation_editor.cpp
 msgid "Call Functions in Which Node?"
-msgstr ""
+msgstr "呼叫哪個節點裡的函式?"
 
 #: editor/animation_editor.cpp
 msgid "Remove invalid keys"
-msgstr ""
+msgstr "移除無效按鍵"
 
 #: editor/animation_editor.cpp
 msgid "Remove unresolved and empty tracks"
-msgstr ""
+msgstr "刪除未解決或是空的軌道"
 
 #: editor/animation_editor.cpp
 msgid "Clean-up all animations"
-msgstr ""
+msgstr "清除所有動畫"
 
 #: editor/animation_editor.cpp
 msgid "Clean-Up Animation(s) (NO UNDO!)"
-msgstr ""
+msgstr "清除動畫 (無法復原!)"
 
 #: editor/animation_editor.cpp
 msgid "Clean-Up"
-msgstr ""
+msgstr "清除"
 
 #: editor/array_property_edit.cpp
 msgid "Resize Array"
-msgstr ""
+msgstr "調整陣列大小"
 
 #: editor/array_property_edit.cpp
 msgid "Change Array Value Type"
-msgstr ""
+msgstr "調整陣列資料型態"
 
 #: editor/array_property_edit.cpp
 msgid "Change Array Value"
-msgstr ""
+msgstr "調整陣列資料"
 
 #: editor/code_editor.cpp
 msgid "Go to Line"
@@ -380,6 +384,14 @@ msgid "Replaced %d occurrence(s)."
 msgstr "取代了 %d 個"
 
 #: editor/code_editor.cpp
+msgid "Match Case"
+msgstr "符合大小寫"
+
+#: editor/code_editor.cpp
+msgid "Whole Words"
+msgstr "整個字"
+
+#: editor/code_editor.cpp
 msgid "Replace"
 msgstr "取代"
 
@@ -388,56 +400,8 @@ msgid "Replace All"
 msgstr "取代全部"
 
 #: editor/code_editor.cpp
-msgid "Match Case"
-msgstr "符合大小寫"
-
-#: editor/code_editor.cpp
-msgid "Whole Words"
-msgstr ""
-
-#: editor/code_editor.cpp
 msgid "Selection Only"
 msgstr "僅選擇區域"
-
-#: editor/code_editor.cpp editor/editor_node.cpp
-#: editor/plugins/asset_library_editor_plugin.cpp
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/script_text_editor.cpp
-#: editor/plugins/shader_editor_plugin.cpp editor/project_settings_editor.cpp
-msgid "Search"
-msgstr "搜尋"
-
-#: editor/code_editor.cpp editor/editor_help.cpp
-msgid "Find"
-msgstr "尋找"
-
-#: editor/code_editor.cpp
-msgid "Next"
-msgstr "下一個"
-
-#: editor/code_editor.cpp
-msgid "Not found!"
-msgstr "找不到!"
-
-#: editor/code_editor.cpp
-msgid "Replace By"
-msgstr "用...取代"
-
-#: editor/code_editor.cpp
-msgid "Case Sensitive"
-msgstr "區分大小寫"
-
-#: editor/code_editor.cpp
-msgid "Backwards"
-msgstr ""
-
-#: editor/code_editor.cpp
-msgid "Prompt On Replace"
-msgstr "每次取代都要先詢問我"
-
-#: editor/code_editor.cpp
-msgid "Skip"
-msgstr "跳過"
 
 #: editor/code_editor.cpp
 msgid "Zoom In"
@@ -461,17 +425,17 @@ msgstr "列:"
 
 #: editor/connections_dialog.cpp
 msgid "Method in target Node must be specified!"
-msgstr ""
+msgstr "需指定在目標節點上的方法!"
 
 #: editor/connections_dialog.cpp
 msgid ""
 "Target method not found! Specify a valid method or attach a script to target "
 "Node."
-msgstr ""
+msgstr "找不到目標方法! 指定一個對的方法或附加一個腳本到目標的節點上。"
 
 #: editor/connections_dialog.cpp
 msgid "Connect To Node:"
-msgstr ""
+msgstr "連接到節點:"
 
 #: editor/connections_dialog.cpp editor/editor_autoload_settings.cpp
 #: editor/groups_editor.cpp editor/plugins/item_list_editor_plugin.cpp
@@ -488,15 +452,15 @@ msgstr "移除"
 
 #: editor/connections_dialog.cpp
 msgid "Add Extra Call Argument:"
-msgstr ""
+msgstr "新增額外呼叫參數:"
 
 #: editor/connections_dialog.cpp
 msgid "Extra Call Arguments:"
-msgstr ""
+msgstr "額外呼叫參數:"
 
 #: editor/connections_dialog.cpp
 msgid "Path to Node:"
-msgstr ""
+msgstr "節點路徑:"
 
 #: editor/connections_dialog.cpp
 msgid "Make Function"
@@ -509,7 +473,7 @@ msgstr "延遲"
 
 #: editor/connections_dialog.cpp
 msgid "Oneshot"
-msgstr ""
+msgstr "一次性"
 
 #: editor/connections_dialog.cpp editor/dependency_editor.cpp
 #: editor/export_template_manager.cpp
@@ -523,26 +487,26 @@ msgstr ""
 #: editor/run_settings_dialog.cpp editor/settings_config_dialog.cpp
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Close"
-msgstr ""
+msgstr "關閉"
 
 #: editor/connections_dialog.cpp
 msgid "Connect"
-msgstr ""
+msgstr "連接"
 
 #: editor/connections_dialog.cpp
 msgid "Connect '%s' to '%s'"
-msgstr ""
+msgstr "連接 '%s' 到 '%s'"
 
 #: editor/connections_dialog.cpp
 msgid "Connecting Signal:"
-msgstr ""
+msgstr "連結訊號:"
 
 #: editor/connections_dialog.cpp
 msgid "Disconnect '%s' from '%s'"
-msgstr ""
+msgstr "將 '%s' 從 '%s' 中斷連接"
 
 #: editor/connections_dialog.cpp
-msgid "Connect.."
+msgid "Connect..."
 msgstr "連接..."
 
 #: editor/connections_dialog.cpp
@@ -552,22 +516,20 @@ msgstr "斷線"
 
 #: editor/connections_dialog.cpp editor/editor_help.cpp editor/node_dock.cpp
 msgid "Signals"
-msgstr ""
+msgstr "信號"
 
 #: editor/create_dialog.cpp
-#, fuzzy
 msgid "Change %s Type"
-msgstr "變更鏡頭尺寸"
+msgstr "變更 %s 尺寸"
 
 #: editor/create_dialog.cpp editor/project_settings_editor.cpp
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Change"
-msgstr ""
+msgstr "更換"
 
 #: editor/create_dialog.cpp
-#, fuzzy
 msgid "Create New %s"
-msgstr "新增"
+msgstr "新增 %s"
 
 #: editor/create_dialog.cpp editor/editor_file_dialog.cpp
 #: editor/filesystem_dock.cpp
@@ -599,11 +561,11 @@ msgstr "描述:"
 
 #: editor/dependency_editor.cpp
 msgid "Search Replacement For:"
-msgstr ""
+msgstr "尋找取代目標:"
 
 #: editor/dependency_editor.cpp
 msgid "Dependencies For:"
-msgstr ""
+msgstr "相依於:"
 
 #: editor/dependency_editor.cpp
 msgid ""
@@ -618,15 +580,17 @@ msgid ""
 "Resource '%s' is in use.\n"
 "Changes will take effect when reloaded."
 msgstr ""
+"'%s' 資源正在使用中。\n"
+"變更會在重新載入時套用。"
 
 #: editor/dependency_editor.cpp
 #: modules/gdnative/gdnative_library_editor_plugin.cpp
 msgid "Dependencies"
-msgstr ""
+msgstr "相依"
 
 #: editor/dependency_editor.cpp
 msgid "Resource"
-msgstr ""
+msgstr "資源"
 
 #: editor/dependency_editor.cpp editor/editor_autoload_settings.cpp
 #: editor/project_manager.cpp editor/project_settings_editor.cpp
@@ -636,19 +600,19 @@ msgstr "路徑"
 
 #: editor/dependency_editor.cpp
 msgid "Dependencies:"
-msgstr ""
+msgstr "相依:"
 
 #: editor/dependency_editor.cpp
 msgid "Fix Broken"
-msgstr ""
+msgstr "修復損壞的"
 
 #: editor/dependency_editor.cpp
 msgid "Dependency Editor"
-msgstr ""
+msgstr "相依性編輯器"
 
 #: editor/dependency_editor.cpp
 msgid "Search Replacement Resource:"
-msgstr ""
+msgstr "搜尋替代資源："
 
 #: editor/dependency_editor.cpp editor/editor_file_dialog.cpp
 #: editor/editor_help.cpp editor/editor_node.cpp editor/filesystem_dock.cpp
@@ -659,7 +623,7 @@ msgstr "開啟"
 
 #: editor/dependency_editor.cpp
 msgid "Owners Of:"
-msgstr ""
+msgstr "擁有者:"
 
 #: editor/dependency_editor.cpp
 msgid "Remove selected files from the project? (no undo)"
@@ -676,7 +640,7 @@ msgstr ""
 
 #: editor/dependency_editor.cpp
 msgid "Cannot remove:"
-msgstr ""
+msgstr "無法移除:"
 
 #: editor/dependency_editor.cpp
 msgid "Error loading:"
@@ -696,11 +660,11 @@ msgstr "該執行什麼操作呢?"
 
 #: editor/dependency_editor.cpp
 msgid "Fix Dependencies"
-msgstr ""
+msgstr "修復相依性"
 
 #: editor/dependency_editor.cpp
 msgid "Errors loading!"
-msgstr ""
+msgstr "載入錯誤!"
 
 #: editor/dependency_editor.cpp
 msgid "Permanently delete %d item(s)? (No undo!)"
@@ -712,7 +676,7 @@ msgstr "擁有"
 
 #: editor/dependency_editor.cpp
 msgid "Resources Without Explicit Ownership:"
-msgstr ""
+msgstr "沒有明定擁有者的資源："
 
 #: editor/dependency_editor.cpp editor/editor_node.cpp
 msgid "Orphan Resource Explorer"
@@ -731,24 +695,27 @@ msgid "Delete"
 msgstr "刪除"
 
 #: editor/dictionary_property_edit.cpp
+#, fuzzy
 msgid "Change Dictionary Key"
-msgstr ""
+msgstr "改變字典 key"
 
 #: editor/dictionary_property_edit.cpp
+#, fuzzy
 msgid "Change Dictionary Value"
-msgstr ""
+msgstr "改變字典 value"
 
 #: editor/editor_about.cpp
+#, fuzzy
 msgid "Thanks from the Godot community!"
-msgstr ""
+msgstr "Godot 社群感謝你!"
 
 #: editor/editor_about.cpp
 msgid "Thanks!"
-msgstr ""
+msgstr "謝謝!"
 
 #: editor/editor_about.cpp
 msgid "Godot Engine contributors"
-msgstr ""
+msgstr "Godot Engine 貢獻者"
 
 #: editor/editor_about.cpp
 msgid "Project Founders"
@@ -756,56 +723,58 @@ msgstr "專案創始人"
 
 #: editor/editor_about.cpp
 msgid "Lead Developer"
-msgstr ""
+msgstr "主開發者"
 
 #: editor/editor_about.cpp
-#, fuzzy
 msgid "Project Manager "
-msgstr "專案創始人"
+msgstr "專案管理人 "
 
 #: editor/editor_about.cpp
 msgid "Developers"
-msgstr ""
+msgstr "開發者"
 
 #: editor/editor_about.cpp
 msgid "Authors"
-msgstr ""
+msgstr "作者"
 
 #: editor/editor_about.cpp
 msgid "Platinum Sponsors"
-msgstr ""
+msgstr "白金贊助"
 
 #: editor/editor_about.cpp
 msgid "Gold Sponsors"
-msgstr ""
+msgstr "黃金贊助"
 
 #: editor/editor_about.cpp
+#, fuzzy
 msgid "Mini Sponsors"
-msgstr ""
+msgstr "迷你贊助"
 
 #: editor/editor_about.cpp
 msgid "Gold Donors"
-msgstr ""
+msgstr "黃金捐贈者"
 
 #: editor/editor_about.cpp
+#, fuzzy
 msgid "Silver Donors"
-msgstr ""
+msgstr "白銀捐贈者"
 
 #: editor/editor_about.cpp
+#, fuzzy
 msgid "Bronze Donors"
-msgstr ""
+msgstr "紅銅捐贈者"
 
 #: editor/editor_about.cpp
 msgid "Donors"
-msgstr ""
+msgstr "捐贈者"
 
 #: editor/editor_about.cpp
 msgid "License"
-msgstr ""
+msgstr "授權"
 
 #: editor/editor_about.cpp
 msgid "Thirdparty License"
-msgstr ""
+msgstr "第三方授權條款"
 
 #: editor/editor_about.cpp
 msgid ""
@@ -814,184 +783,186 @@ msgid ""
 "is an exhaustive list of all such thirdparty components with their "
 "respective copyright statements and license terms."
 msgstr ""
+"Godot Engine 依賴著許多與 MIT 授權條款相容、自由開源的第三方函式庫。以下是這"
+"些第三方元件的完整列表，附有它們各自的著作權宣示與授權條款。"
 
 #: editor/editor_about.cpp
 msgid "All Components"
-msgstr ""
+msgstr "所有元件"
 
 #: editor/editor_about.cpp
 msgid "Components"
-msgstr ""
+msgstr "元件"
 
 #: editor/editor_about.cpp
 msgid "Licenses"
-msgstr ""
+msgstr "授權"
 
 #: editor/editor_asset_installer.cpp editor/project_manager.cpp
 msgid "Error opening package file, not in zip format."
-msgstr ""
+msgstr "開啟套件檔案出錯，非 zip 格式。"
 
 #: editor/editor_asset_installer.cpp
-#, fuzzy
 msgid "Uncompressing Assets"
-msgstr "(重新)載入素材"
+msgstr "正在解壓縮素材"
 
 #: editor/editor_asset_installer.cpp editor/project_manager.cpp
 msgid "Package Installed Successfully!"
-msgstr ""
+msgstr "套件安裝成功!"
 
 #: editor/editor_asset_installer.cpp
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Success!"
-msgstr ""
+msgstr "成功!"
 
 #: editor/editor_asset_installer.cpp
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Install"
-msgstr ""
+msgstr "安裝"
 
 #: editor/editor_asset_installer.cpp
+#, fuzzy
 msgid "Package Installer"
-msgstr ""
+msgstr "套件安裝"
 
 #: editor/editor_audio_buses.cpp
 msgid "Speakers"
-msgstr ""
+msgstr "喇叭"
 
 #: editor/editor_audio_buses.cpp
 msgid "Add Effect"
-msgstr ""
+msgstr "新增效果"
 
 #: editor/editor_audio_buses.cpp
 msgid "Rename Audio Bus"
-msgstr ""
+msgstr "重新命名 Audio Bus"
+
+#: editor/editor_audio_buses.cpp
+msgid "Change Audio Bus Volume"
+msgstr "變更 Audio Bus 音量"
 
 #: editor/editor_audio_buses.cpp
 #, fuzzy
-msgid "Change Audio Bus Volume"
-msgstr "重設縮放大小"
-
-#: editor/editor_audio_buses.cpp
 msgid "Toggle Audio Bus Solo"
-msgstr ""
+msgstr "切換 Audio Bus 的 Solo"
 
 #: editor/editor_audio_buses.cpp
+#, fuzzy
 msgid "Toggle Audio Bus Mute"
-msgstr ""
+msgstr "切換 Audio Bus 的 Mute"
 
 #: editor/editor_audio_buses.cpp
+#, fuzzy
 msgid "Toggle Audio Bus Bypass Effects"
-msgstr ""
+msgstr "切換 Audio Bus 忽略效果"
 
 #: editor/editor_audio_buses.cpp
 msgid "Select Audio Bus Send"
-msgstr ""
+msgstr "選擇 Audio Bus 輸出地點"
 
 #: editor/editor_audio_buses.cpp
 msgid "Add Audio Bus Effect"
-msgstr ""
+msgstr "新增 Audio Bus 效果"
 
 #: editor/editor_audio_buses.cpp
 msgid "Move Bus Effect"
-msgstr ""
+msgstr "移動 Bus 效果"
 
 #: editor/editor_audio_buses.cpp
 msgid "Delete Bus Effect"
-msgstr ""
+msgstr "刪除 Bus 效果"
 
 #: editor/editor_audio_buses.cpp
 msgid "Audio Bus, Drag and Drop to rearrange."
-msgstr ""
-
-#: editor/editor_audio_buses.cpp
-msgid "Solo"
-msgstr ""
-
-#: editor/editor_audio_buses.cpp
-msgid "Mute"
-msgstr ""
-
-#: editor/editor_audio_buses.cpp
-msgid "Bypass"
-msgstr ""
+msgstr "Audio Bus。拖放以重新排列。"
 
 #: editor/editor_audio_buses.cpp
 #, fuzzy
+msgid "Solo"
+msgstr "Solo"
+
+#: editor/editor_audio_buses.cpp
+msgid "Mute"
+msgstr "靜音"
+
+#: editor/editor_audio_buses.cpp
+#, fuzzy
+msgid "Bypass"
+msgstr "忽略效果 (Bypass)"
+
+#: editor/editor_audio_buses.cpp
 msgid "Bus options"
-msgstr "除錯選項"
+msgstr "Bus 選項"
 
 #: editor/editor_audio_buses.cpp editor/filesystem_dock.cpp
 #: editor/plugins/tile_map_editor_plugin.cpp editor/scene_tree_dock.cpp
 msgid "Duplicate"
-msgstr ""
+msgstr "製作複本"
 
 #: editor/editor_audio_buses.cpp
-#, fuzzy
 msgid "Reset Volume"
-msgstr "重設縮放大小"
+msgstr "重設音量"
 
 #: editor/editor_audio_buses.cpp
-#, fuzzy
 msgid "Delete Effect"
-msgstr "刪除"
+msgstr "刪除效果"
 
 #: editor/editor_audio_buses.cpp
 msgid "Audio"
-msgstr ""
+msgstr "聲音"
 
 #: editor/editor_audio_buses.cpp
 msgid "Add Audio Bus"
-msgstr ""
+msgstr "新增 Audio Bus"
 
 #: editor/editor_audio_buses.cpp
 msgid "Master bus can't be deleted!"
-msgstr ""
+msgstr "Master Bus 不能被刪除!"
 
 #: editor/editor_audio_buses.cpp
 msgid "Delete Audio Bus"
-msgstr ""
+msgstr "刪除 Audio Bus"
 
 #: editor/editor_audio_buses.cpp
-#, fuzzy
 msgid "Duplicate Audio Bus"
-msgstr "複製所選"
+msgstr "製作 Audio Bus 的複本"
 
 #: editor/editor_audio_buses.cpp
-#, fuzzy
 msgid "Reset Bus Volume"
-msgstr "重設縮放大小"
+msgstr "重設 Bus 音量"
 
 #: editor/editor_audio_buses.cpp
 msgid "Move Audio Bus"
-msgstr ""
+msgstr "移動 Audio Bus"
 
 #: editor/editor_audio_buses.cpp
-msgid "Save Audio Bus Layout As.."
-msgstr ""
+msgid "Save Audio Bus Layout As..."
+msgstr "另存 Audio Bus 配置為..."
 
 #: editor/editor_audio_buses.cpp
-msgid "Location for New Layout.."
-msgstr ""
+#, fuzzy
+msgid "Location for New Layout..."
+msgstr "新配置的位置..."
 
 #: editor/editor_audio_buses.cpp
 msgid "Open Audio Bus Layout"
-msgstr ""
+msgstr "開啟 Audio Bus 配置"
 
 #: editor/editor_audio_buses.cpp
 msgid "There is no 'res://default_bus_layout.tres' file."
-msgstr ""
+msgstr "「res://default_bus_layout.tres」檔案不存在。"
 
 #: editor/editor_audio_buses.cpp
 msgid "Invalid file, not an audio bus layout."
-msgstr ""
+msgstr "檔案格式不正確，不是 Audio Bus 配置檔。"
 
 #: editor/editor_audio_buses.cpp
 msgid "Add Bus"
-msgstr ""
+msgstr "新增 Bus"
 
 #: editor/editor_audio_buses.cpp
 msgid "Create a new Bus Layout."
-msgstr ""
+msgstr "建立新的 Bus 配置。"
 
 #: editor/editor_audio_buses.cpp editor/property_editor.cpp
 #: editor/script_create_dialog.cpp
@@ -1000,7 +971,7 @@ msgstr "載入"
 
 #: editor/editor_audio_buses.cpp
 msgid "Load an existing Bus Layout."
-msgstr ""
+msgstr "讀取現存的 Bus 配置。"
 
 #: editor/editor_audio_buses.cpp
 #: editor/plugins/animation_player_editor_plugin.cpp
@@ -1009,7 +980,7 @@ msgstr "另存新檔"
 
 #: editor/editor_audio_buses.cpp
 msgid "Save this Bus Layout to a file."
-msgstr ""
+msgstr "儲存目前的 Bus 配置到檔案裡。"
 
 #: editor/editor_audio_buses.cpp editor/import_dock.cpp
 msgid "Load Default"
@@ -1017,19 +988,19 @@ msgstr "載入預設值"
 
 #: editor/editor_audio_buses.cpp
 msgid "Load the default Bus Layout."
-msgstr ""
+msgstr "載入預設的 Bus 配置。"
 
 #: editor/editor_autoload_settings.cpp
 msgid "Invalid name."
-msgstr ""
+msgstr "不能使用的名稱。"
 
 #: editor/editor_autoload_settings.cpp
 msgid "Valid characters:"
-msgstr ""
+msgstr "合法字元:"
 
 #: editor/editor_autoload_settings.cpp
 msgid "Invalid name. Must not collide with an existing engine class name."
-msgstr ""
+msgstr "不正確的名字。名字不能與現有的 engine class 名衝突。"
 
 #: editor/editor_autoload_settings.cpp
 msgid "Invalid name. Must not collide with an existing buit-in type name."
@@ -1052,16 +1023,19 @@ msgid "Not in resource path."
 msgstr "在資源路徑中找不到"
 
 #: editor/editor_autoload_settings.cpp
+#, fuzzy
 msgid "Add AutoLoad"
-msgstr ""
+msgstr "新增 AutoLoad"
 
 #: editor/editor_autoload_settings.cpp
+#, fuzzy
 msgid "Autoload '%s' already exists!"
-msgstr ""
+msgstr "Autoload「%s」已經存在!"
 
 #: editor/editor_autoload_settings.cpp
+#, fuzzy
 msgid "Rename Autoload"
-msgstr ""
+msgstr "重新命名 Autoload"
 
 #: editor/editor_autoload_settings.cpp
 msgid "Toggle AutoLoad Globals"
@@ -1069,19 +1043,21 @@ msgstr ""
 
 #: editor/editor_autoload_settings.cpp
 msgid "Move Autoload"
-msgstr ""
+msgstr "移動 Autoload"
 
 #: editor/editor_autoload_settings.cpp
+#, fuzzy
 msgid "Remove Autoload"
-msgstr ""
+msgstr "刪除 Autoload"
 
 #: editor/editor_autoload_settings.cpp
 msgid "Enable"
 msgstr "啟用"
 
 #: editor/editor_autoload_settings.cpp
+#, fuzzy
 msgid "Rearrange Autoloads"
-msgstr ""
+msgstr "重新排列 Autoload"
 
 #: editor/editor_autoload_settings.cpp editor/editor_file_dialog.cpp
 #: scene/gui/file_dialog.cpp
@@ -1099,31 +1075,33 @@ msgstr "名稱"
 
 #: editor/editor_autoload_settings.cpp
 msgid "Singleton"
-msgstr ""
+msgstr "單例"
 
 #: editor/editor_data.cpp
 msgid "Updating Scene"
 msgstr "更新場景"
 
 #: editor/editor_data.cpp
-msgid "Storing local changes.."
-msgstr "正在儲存變更.."
+msgid "Storing local changes..."
+msgstr "正在儲存變更..."
 
 #: editor/editor_data.cpp
-msgid "Updating scene.."
-msgstr "更新場景中.."
+msgid "Updating scene..."
+msgstr "更新場景中..."
 
 #: editor/editor_data.cpp
+#, fuzzy
 msgid "[empty]"
-msgstr ""
+msgstr "（空）"
 
 #: editor/editor_data.cpp
 msgid "[unsaved]"
-msgstr ""
+msgstr "（未儲存）"
 
 #: editor/editor_dir_dialog.cpp
+#, fuzzy
 msgid "Please select a base directory first"
-msgstr ""
+msgstr "請先選擇一個基底的資料夾"
 
 #: editor/editor_dir_dialog.cpp
 msgid "Choose a Directory"
@@ -1152,7 +1130,7 @@ msgstr "選擇"
 
 #: editor/editor_export.cpp
 msgid "Storing File:"
-msgstr ""
+msgstr "儲存檔案:"
 
 #: editor/editor_export.cpp
 msgid "Packing"
@@ -1167,22 +1145,20 @@ msgid "File Exists, Overwrite?"
 msgstr "檔案已經存在, 要覆寫嗎?"
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
-#, fuzzy
 msgid "Select Current Folder"
-msgstr "新增資料夾"
+msgstr "選擇目前的資料夾"
 
 #: editor/editor_file_dialog.cpp editor/filesystem_dock.cpp
 msgid "Copy Path"
-msgstr ""
+msgstr "複製路徑"
 
 #: editor/editor_file_dialog.cpp editor/filesystem_dock.cpp
 msgid "Show In File Manager"
-msgstr ""
+msgstr "在檔案管理員內顯示"
 
 #: editor/editor_file_dialog.cpp editor/filesystem_dock.cpp
-#, fuzzy
-msgid "New Folder.."
-msgstr "新增資料夾"
+msgid "New Folder..."
+msgstr "新增資料夾..."
 
 #: editor/editor_file_dialog.cpp
 msgid "Refresh"
@@ -1190,7 +1166,7 @@ msgstr "重新整理"
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "All Recognized"
-msgstr ""
+msgstr "可認得全部"
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "All Files (*)"
@@ -1198,7 +1174,7 @@ msgstr "所有類型檔案"
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "Open a File"
-msgstr ""
+msgstr "開啟檔案"
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "Open File(s)"
@@ -1220,7 +1196,7 @@ msgstr "儲存"
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "Save a File"
-msgstr ""
+msgstr "儲存檔案"
 
 #: editor/editor_file_dialog.cpp
 msgid "Go Back"
@@ -1236,15 +1212,16 @@ msgstr "往上"
 
 #: editor/editor_file_dialog.cpp
 msgid "Toggle Hidden Files"
-msgstr ""
+msgstr "切換顯示隱藏檔案"
 
 #: editor/editor_file_dialog.cpp
+#, fuzzy
 msgid "Toggle Favorite"
-msgstr ""
+msgstr "切換最愛"
 
 #: editor/editor_file_dialog.cpp
 msgid "Toggle Mode"
-msgstr ""
+msgstr "切換模式"
 
 #: editor/editor_file_dialog.cpp
 msgid "Focus Path"
@@ -1277,8 +1254,9 @@ msgid "File:"
 msgstr "檔案:"
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
+#, fuzzy
 msgid "Must use a valid extension."
-msgstr ""
+msgstr "必須使用有效的副檔名。"
 
 #: editor/editor_file_system.cpp
 msgid "ScanSources"
@@ -1291,27 +1269,28 @@ msgstr "(重新)載入素材"
 #: editor/editor_help.cpp editor/editor_node.cpp
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Search Help"
-msgstr ""
+msgstr "搜尋幫助"
 
 #: editor/editor_help.cpp
 msgid "Class List:"
-msgstr ""
+msgstr "Class 列表:"
 
 #: editor/editor_help.cpp
 msgid "Search Classes"
-msgstr ""
+msgstr "搜尋 Class"
 
 #: editor/editor_help.cpp editor/plugins/spatial_editor_plugin.cpp
+#, fuzzy
 msgid "Top"
-msgstr ""
+msgstr "上面"
 
 #: editor/editor_help.cpp editor/property_editor.cpp
 msgid "Class:"
-msgstr ""
+msgstr "Class:"
 
 #: editor/editor_help.cpp editor/scene_tree_editor.cpp
 msgid "Inherits:"
-msgstr ""
+msgstr "繼承:"
 
 #: editor/editor_help.cpp
 msgid "Inherited by:"
@@ -1335,19 +1314,19 @@ msgstr ""
 
 #: editor/editor_help.cpp
 msgid "Public Methods:"
-msgstr ""
+msgstr "公開 method:"
 
 #: editor/editor_help.cpp
 msgid "GUI Theme Items"
-msgstr ""
+msgstr "介面主題項目"
 
 #: editor/editor_help.cpp
 msgid "GUI Theme Items:"
-msgstr ""
+msgstr "介面主題項目:"
 
 #: editor/editor_help.cpp modules/visual_script/visual_script_editor.cpp
 msgid "Signals:"
-msgstr ""
+msgstr "訊號:"
 
 #: editor/editor_help.cpp
 msgid "Enumerations"
@@ -1363,29 +1342,45 @@ msgstr ""
 
 #: editor/editor_help.cpp
 msgid "Constants"
-msgstr ""
+msgstr "定數"
 
 #: editor/editor_help.cpp
 msgid "Constants:"
-msgstr ""
+msgstr "定數:"
 
 #: editor/editor_help.cpp
 msgid "Description"
 msgstr "描述:"
 
 #: editor/editor_help.cpp
+msgid "Online Tutorials:"
+msgstr "線上教學:"
+
+#: editor/editor_help.cpp
+msgid ""
+"There are currently no tutorials for this class, you can [color=$color][url="
+"$url]contribute one[/url][/color] or [color=$color][url=$url2]request one[/"
+"url][/color]."
+msgstr ""
+"目前沒有這個 class 的教學，你可以[color=$color][url=$url]貢獻一個[/url][/"
+"color]或[color=$color][url=$url2]要求一個[/url][/color]。"
+
+#: editor/editor_help.cpp
 msgid "Properties"
 msgstr ""
 
 #: editor/editor_help.cpp
+#, fuzzy
 msgid "Property Description:"
-msgstr ""
+msgstr "Property 說明:"
 
 #: editor/editor_help.cpp
 msgid ""
 "There is currently no description for this property. Please help us by "
 "[color=$color][url=$url]contributing one[/url][/color]!"
 msgstr ""
+"目前沒有這個 property 的說明。請幫我們[color=$color][url=$url]貢獻[/url][/"
+"color]一個!"
 
 #: editor/editor_help.cpp
 msgid "Methods"
@@ -1393,17 +1388,23 @@ msgstr "方法"
 
 #: editor/editor_help.cpp
 msgid "Method Description:"
-msgstr ""
+msgstr "Method 說明:"
 
 #: editor/editor_help.cpp
 msgid ""
 "There is currently no description for this method. Please help us by [color="
 "$color][url=$url]contributing one[/url][/color]!"
 msgstr ""
+"目前沒有這個 method 的說明。請幫我們[color=$color][url=$url]貢獻[/url][/"
+"color]一個!"
 
 #: editor/editor_help.cpp
 msgid "Search Text"
 msgstr "搜尋詞彙"
+
+#: editor/editor_help.cpp
+msgid "Find"
+msgstr "尋找"
 
 #: editor/editor_log.cpp
 msgid "Output:"
@@ -1421,30 +1422,35 @@ msgstr "清除"
 msgid "Clear Output"
 msgstr "輸出:"
 
+#: editor/editor_node.cpp
+msgid "Project export failed with error code %d."
+msgstr "專案輸出失敗，錯誤代碼是 %d。"
+
 #: editor/editor_node.cpp editor/plugins/animation_player_editor_plugin.cpp
 msgid "Error saving resource!"
-msgstr ""
+msgstr "儲存資源錯誤!"
 
 #: editor/editor_node.cpp editor/plugins/animation_player_editor_plugin.cpp
-msgid "Save Resource As.."
-msgstr ""
+msgid "Save Resource As..."
+msgstr "另存資源為..."
 
-#: editor/editor_node.cpp editor/plugins/canvas_item_editor_plugin.cpp
-#: editor/plugins/spatial_editor_plugin.cpp editor/scene_tree_dock.cpp
-msgid "I see.."
+#: editor/editor_node.cpp editor/plugins/spatial_editor_plugin.cpp
+#: editor/scene_tree_dock.cpp
+msgid "I see..."
 msgstr "我知道了"
 
 #: editor/editor_node.cpp
+#, fuzzy
 msgid "Can't open file for writing:"
-msgstr ""
+msgstr "無法以寫入模式開啟檔案:"
 
 #: editor/editor_node.cpp
 msgid "Requested file format unknown:"
-msgstr ""
+msgstr "要求了不明的檔案格式:"
 
 #: editor/editor_node.cpp
 msgid "Error while saving."
-msgstr ""
+msgstr "儲存中發生了錯誤。"
 
 #: editor/editor_node.cpp
 msgid "Can't open '%s'."
@@ -1456,11 +1462,12 @@ msgstr "分析 \"%s\" 時發生錯誤。"
 
 #: editor/editor_node.cpp
 msgid "Unexpected end of file '%s'."
-msgstr ""
+msgstr "意料外的檔案結尾 (EOF) '%s'。"
 
 #: editor/editor_node.cpp
+#, fuzzy
 msgid "Missing '%s' or its dependencies."
-msgstr ""
+msgstr "缺失 '%s' 或它的依存。"
 
 #: editor/editor_node.cpp
 msgid "Error while loading '%s'."
@@ -1468,7 +1475,7 @@ msgstr "載入 \"%s\" 時發生錯誤。"
 
 #: editor/editor_node.cpp
 msgid "Saving Scene"
-msgstr ""
+msgstr "正在儲存場景"
 
 #: editor/editor_node.cpp
 msgid "Analyzing"
@@ -1561,7 +1568,7 @@ msgstr ""
 
 #: editor/editor_node.cpp
 msgid "Expand all properties"
-msgstr ""
+msgstr "展開所有屬性"
 
 #: editor/editor_node.cpp
 msgid "Collapse all properties"
@@ -1637,11 +1644,11 @@ msgid "Open Base Scene"
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Quick Open Scene.."
+msgid "Quick Open Scene..."
 msgstr "快速開啟場景"
 
 #: editor/editor_node.cpp
-msgid "Quick Open Script.."
+msgid "Quick Open Script..."
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -1654,8 +1661,8 @@ msgid "Save changes to '%s' before closing?"
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Save Scene As.."
-msgstr "另存場景為.."
+msgid "Save Scene As..."
+msgstr "另存場景為..."
 
 #: editor/editor_node.cpp
 msgid "No"
@@ -1678,17 +1685,17 @@ msgid "Export Mesh Library"
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "This operation can't be done without a root node."
-msgstr "此操作無法復原, 確定要還原嗎?"
+msgstr "此操作無法在沒有根節點的情況下進行。"
 
 #: editor/editor_node.cpp
 msgid "Export Tile Set"
 msgstr ""
 
 #: editor/editor_node.cpp
+#, fuzzy
 msgid "This operation can't be done without a selected node."
-msgstr ""
+msgstr "此操作需要有選擇著節點才能進行。"
 
 #: editor/editor_node.cpp
 msgid "Current scene not saved. Open anyway?"
@@ -1707,8 +1714,8 @@ msgid "This action cannot be undone. Revert anyway?"
 msgstr "此操作無法復原, 確定要還原嗎?"
 
 #: editor/editor_node.cpp
-msgid "Quick Run Scene.."
-msgstr "快速執行場景.."
+msgid "Quick Run Scene..."
+msgstr "快速執行場景..."
 
 #: editor/editor_node.cpp
 msgid "Quit"
@@ -1838,7 +1845,7 @@ msgstr ""
 #: editor/editor_node.cpp
 #, fuzzy
 msgid "Add a new scene."
-msgstr "更新場景中.."
+msgstr "更新場景中..."
 
 #: editor/editor_node.cpp
 #, fuzzy
@@ -1858,8 +1865,8 @@ msgid "Previous tab"
 msgstr "上個分頁"
 
 #: editor/editor_node.cpp
-msgid "Filter Files.."
-msgstr "過濾檔案.."
+msgid "Filter Files..."
+msgstr "過濾檔案..."
 
 #: editor/editor_node.cpp
 msgid "Operations with scene files."
@@ -1870,12 +1877,12 @@ msgid "New Scene"
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "New Inherited Scene.."
+msgid "New Inherited Scene..."
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Open Scene.."
-msgstr "開啟場景.."
+msgid "Open Scene..."
+msgstr "開啟場景..."
 
 #: editor/editor_node.cpp
 msgid "Save Scene"
@@ -1894,15 +1901,15 @@ msgid "Open Recent"
 msgstr "開啟最近存取"
 
 #: editor/editor_node.cpp
-msgid "Convert To.."
-msgstr "轉換成.."
+msgid "Convert To..."
+msgstr "轉換成..."
 
 #: editor/editor_node.cpp
-msgid "MeshLibrary.."
+msgid "MeshLibrary..."
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "TileSet.."
+msgid "TileSet..."
 msgstr ""
 
 #: editor/editor_node.cpp editor/plugins/script_text_editor.cpp
@@ -2048,6 +2055,13 @@ msgstr ""
 msgid "Classes"
 msgstr ""
 
+#: editor/editor_node.cpp editor/plugins/asset_library_editor_plugin.cpp
+#: editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/script_text_editor.cpp
+#: editor/plugins/shader_editor_plugin.cpp editor/project_settings_editor.cpp
+msgid "Search"
+msgstr "搜尋"
+
 #: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
 msgid "Online Docs"
 msgstr ""
@@ -2141,7 +2155,7 @@ msgid "Save the currently edited resource."
 msgstr ""
 
 #: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
-msgid "Save As.."
+msgid "Save As..."
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2170,8 +2184,9 @@ msgid "Import"
 msgstr ""
 
 #: editor/editor_node.cpp
+#, fuzzy
 msgid "Node"
-msgstr ""
+msgstr "節點"
 
 #: editor/editor_node.cpp
 msgid "FileSystem"
@@ -2251,7 +2266,7 @@ msgid "Creating Mesh Previews"
 msgstr ""
 
 #: editor/editor_plugin.cpp
-msgid "Thumbnail.."
+msgid "Thumbnail..."
 msgstr ""
 
 #: editor/editor_plugin_settings.cpp
@@ -2402,7 +2417,7 @@ msgid "(Current)"
 msgstr ""
 
 #: editor/export_template_manager.cpp
-msgid "Retrieving mirrors, please wait.."
+msgid "Retrieving mirrors, please wait..."
 msgstr ""
 
 #: editor/export_template_manager.cpp
@@ -2415,12 +2430,6 @@ msgstr ""
 
 #: editor/export_template_manager.cpp
 msgid "Invalid version.txt format inside templates."
-msgstr ""
-
-#: editor/export_template_manager.cpp
-msgid ""
-"Invalid version.txt format inside templates. Revision is not a valid "
-"identifier."
 msgstr ""
 
 #: editor/export_template_manager.cpp
@@ -2478,10 +2487,6 @@ msgid "Failed:"
 msgstr ""
 
 #: editor/export_template_manager.cpp
-msgid "Can't write file."
-msgstr ""
-
-#: editor/export_template_manager.cpp
 msgid "Download Complete."
 msgstr ""
 
@@ -2492,7 +2497,7 @@ msgstr "載入場景時發生錯誤"
 
 #: editor/export_template_manager.cpp
 #, fuzzy
-msgid "Connecting to Mirror.."
+msgid "Connecting to Mirror..."
 msgstr "連接..."
 
 #: editor/export_template_manager.cpp
@@ -2511,7 +2516,7 @@ msgstr ""
 #: editor/export_template_manager.cpp
 #: editor/plugins/asset_library_editor_plugin.cpp
 #, fuzzy
-msgid "Connecting.."
+msgid "Connecting..."
 msgstr "連接..."
 
 #: editor/export_template_manager.cpp
@@ -2526,7 +2531,7 @@ msgstr "連接..."
 
 #: editor/export_template_manager.cpp
 #: editor/plugins/asset_library_editor_plugin.cpp
-msgid "Requesting.."
+msgid "Requesting..."
 msgstr ""
 
 #: editor/export_template_manager.cpp
@@ -2666,11 +2671,11 @@ msgid "Collapse all"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-msgid "Rename.."
+msgid "Rename..."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-msgid "Move To.."
+msgid "Move To..."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
@@ -2683,16 +2688,16 @@ msgid "Instance"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-msgid "Edit Dependencies.."
+msgid "Edit Dependencies..."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-msgid "View Owners.."
+msgid "View Owners..."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
 #, fuzzy
-msgid "Duplicate.."
+msgid "Duplicate..."
 msgstr "複製動畫關鍵畫格"
 
 #: editor/filesystem_dock.cpp
@@ -2718,7 +2723,7 @@ msgstr ""
 #: editor/filesystem_dock.cpp
 msgid ""
 "Scanning Files,\n"
-"Please Wait.."
+"Please Wait..."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
@@ -2785,7 +2790,7 @@ msgid "Import Scene"
 msgstr ""
 
 #: editor/import/resource_importer_scene.cpp
-msgid "Importing Scene.."
+msgid "Importing Scene..."
 msgstr ""
 
 #: editor/import/resource_importer_scene.cpp
@@ -2797,7 +2802,7 @@ msgid "Generating for Mesh: "
 msgstr ""
 
 #: editor/import/resource_importer_scene.cpp
-msgid "Running Custom Script.."
+msgid "Running Custom Script..."
 msgstr ""
 
 #: editor/import/resource_importer_scene.cpp
@@ -2813,7 +2818,7 @@ msgid "Error running post-import script:"
 msgstr ""
 
 #: editor/import/resource_importer_scene.cpp
-msgid "Saving.."
+msgid "Saving..."
 msgstr ""
 
 #: editor/import_dock.cpp
@@ -2833,7 +2838,7 @@ msgid "Import As:"
 msgstr ""
 
 #: editor/import_dock.cpp editor/property_editor.cpp
-msgid "Preset.."
+msgid "Preset..."
 msgstr ""
 
 #: editor/import_dock.cpp
@@ -3125,7 +3130,7 @@ msgstr ""
 #: editor/plugins/animation_tree_editor_plugin.cpp
 #, fuzzy
 msgid "Edit Filters"
-msgstr "過濾檔案.."
+msgstr "過濾檔案..."
 
 #: editor/plugins/animation_tree_editor_plugin.cpp
 #: editor/plugins/multimesh_editor_plugin.cpp
@@ -3250,7 +3255,7 @@ msgid "Transition Node"
 msgstr ""
 
 #: editor/plugins/animation_tree_editor_plugin.cpp
-msgid "Import Animations.."
+msgid "Import Animations..."
 msgstr ""
 
 #: editor/plugins/animation_tree_editor_plugin.cpp
@@ -3258,7 +3263,7 @@ msgid "Edit Node Filters"
 msgstr ""
 
 #: editor/plugins/animation_tree_editor_plugin.cpp
-msgid "Filters.."
+msgid "Filters..."
 msgstr ""
 
 #: editor/plugins/animation_tree_editor_plugin.cpp
@@ -3276,7 +3281,7 @@ msgstr ""
 #: editor/plugins/asset_library_editor_plugin.cpp
 #, fuzzy
 msgid "View Files"
-msgstr "過濾檔案.."
+msgstr "過濾檔案..."
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Can't resolve hostname:"
@@ -3327,7 +3332,7 @@ msgid "Fetching:"
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-msgid "Resolving.."
+msgid "Resolving..."
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
@@ -3356,8 +3361,9 @@ msgid "first"
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
 msgid "prev"
-msgstr ""
+msgstr "預覽:"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "next"
@@ -3395,7 +3401,7 @@ msgid "Site:"
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-msgid "Support.."
+msgid "Support..."
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
@@ -3584,6 +3590,7 @@ msgid "Use Rotation Snap"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
+#: editor/plugins/spatial_editor_plugin.cpp
 msgid "Configure Snap..."
 msgstr ""
 
@@ -3668,15 +3675,23 @@ msgid "Show Grid"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-msgid "Show helpers"
+msgid "Show Helpers"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-msgid "Show rulers"
+msgid "Show Rulers"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-msgid "Show guides"
+msgid "Show Guides"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "Show Origin"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "Show Viewport"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
@@ -3736,6 +3751,14 @@ msgstr ""
 msgid "Adding %s..."
 msgstr ""
 
+#: editor/plugins/canvas_item_editor_plugin.cpp editor/scene_tree_dock.cpp
+msgid "Ok"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "Cannot instantiate multiple nodes without root."
+msgstr ""
+
 #: editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/spatial_editor_plugin.cpp editor/scene_tree_dock.cpp
 msgid "Create Node"
@@ -3744,11 +3767,6 @@ msgstr ""
 #: editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/spatial_editor_plugin.cpp editor/scene_tree_dock.cpp
 msgid "Error instancing scene from %s"
-msgstr ""
-
-#: editor/plugins/canvas_item_editor_plugin.cpp
-#: editor/plugins/spatial_editor_plugin.cpp editor/scene_tree_dock.cpp
-msgid "This operation requires a single selected node."
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
@@ -3967,6 +3985,10 @@ msgid "Mesh has not surface to create outlines from!"
 msgstr ""
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
+msgid "Mesh primitive type is not PRIMITIVE_TRIANGLES!"
+msgstr ""
+
+#: editor/plugins/mesh_instance_editor_plugin.cpp
 msgid "Could not create outline!"
 msgstr ""
 
@@ -3995,18 +4017,18 @@ msgid "Create Convex Collision Sibling"
 msgstr ""
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
-msgid "Create Outline Mesh.."
+msgid "Create Outline Mesh..."
 msgstr ""
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 #, fuzzy
 msgid "View UV1"
-msgstr "過濾檔案.."
+msgstr "過濾檔案..."
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 #, fuzzy
 msgid "View UV2"
-msgstr "過濾檔案.."
+msgstr "過濾檔案..."
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 msgid "Unwrap UV2 for Lightmap/AO"
@@ -4147,7 +4169,7 @@ msgstr ""
 #: editor/plugins/navigation_mesh_generator.cpp
 #, fuzzy
 msgid "Marking walkable triangles..."
-msgstr "正在儲存變更.."
+msgstr "正在儲存變更..."
 
 #: editor/plugins/navigation_mesh_generator.cpp
 msgid "Constructing compact heightfield..."
@@ -4203,7 +4225,7 @@ msgid "Error loading image:"
 msgstr ""
 
 #: editor/plugins/particles_2d_editor_plugin.cpp
-msgid "No pixels with transparency > 128 in image.."
+msgid "No pixels with transparency > 128 in image..."
 msgstr ""
 
 #: editor/plugins/particles_2d_editor_plugin.cpp
@@ -4507,6 +4529,22 @@ msgid "Resource clipboard is empty!"
 msgstr ""
 
 #: editor/plugins/resource_preloader_editor_plugin.cpp
+#: editor/scene_tree_dock.cpp editor/scene_tree_editor.cpp
+msgid "Open in Editor"
+msgstr ""
+
+#: editor/plugins/resource_preloader_editor_plugin.cpp
+#: editor/scene_tree_editor.cpp
+msgid "Instance:"
+msgstr ""
+
+#: editor/plugins/resource_preloader_editor_plugin.cpp
+#: editor/plugins/theme_editor_plugin.cpp editor/project_settings_editor.cpp
+#: editor/scene_tree_editor.cpp editor/script_editor_debugger.cpp
+msgid "Type:"
+msgstr ""
+
+#: editor/plugins/resource_preloader_editor_plugin.cpp
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "Load Resource"
 msgstr ""
@@ -4553,7 +4591,7 @@ msgid "Import Theme"
 msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
-msgid "Save Theme As.."
+msgid "Save Theme As..."
 msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
@@ -4651,7 +4689,7 @@ msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
 #: editor/plugins/script_text_editor.cpp
-msgid "Find.."
+msgid "Find..."
 msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
@@ -4747,7 +4785,7 @@ msgstr ""
 #: editor/plugins/script_text_editor.cpp
 #, fuzzy
 msgid "Convert Case"
-msgstr "轉換成.."
+msgstr "轉換成..."
 
 #: editor/plugins/script_text_editor.cpp
 msgid "Uppercase"
@@ -4795,10 +4833,6 @@ msgid "Toggle Comment"
 msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
-msgid "Clone Down"
-msgstr ""
-
-#: editor/plugins/script_text_editor.cpp
 #, fuzzy
 msgid "Fold/Unfold Line"
 msgstr "前往第...行"
@@ -4809,6 +4843,10 @@ msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
 msgid "Unfold All Lines"
+msgstr ""
+
+#: editor/plugins/script_text_editor.cpp
+msgid "Clone Down"
 msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
@@ -4851,27 +4889,27 @@ msgstr ""
 #: editor/plugins/script_text_editor.cpp
 #, fuzzy
 msgid "Convert To Uppercase"
-msgstr "轉換成.."
+msgstr "轉換成..."
 
 #: editor/plugins/script_text_editor.cpp
 #, fuzzy
 msgid "Convert To Lowercase"
-msgstr "轉換成.."
+msgstr "轉換成..."
 
 #: editor/plugins/script_text_editor.cpp
 msgid "Find Previous"
 msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
-msgid "Replace.."
+msgid "Replace..."
 msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
-msgid "Goto Function.."
+msgid "Goto Function..."
 msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
-msgid "Goto Line.."
+msgid "Goto Line..."
 msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
@@ -5061,7 +5099,7 @@ msgstr ""
 #: editor/plugins/spatial_editor_plugin.cpp
 #, fuzzy
 msgid "Material Changes"
-msgstr "正在儲存變更.."
+msgstr "正在儲存變更..."
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Shader Changes"
@@ -5139,6 +5177,10 @@ msgstr ""
 msgid "No parent to instance a child at."
 msgstr ""
 
+#: editor/plugins/spatial_editor_plugin.cpp editor/scene_tree_dock.cpp
+msgid "This operation requires a single selected node."
+msgstr ""
+
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Display Normal"
 msgstr ""
@@ -5170,7 +5212,7 @@ msgstr ""
 #: editor/plugins/spatial_editor_plugin.cpp
 #, fuzzy
 msgid "View FPS"
-msgstr "過濾檔案.."
+msgstr "過濾檔案..."
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Half Resolution"
@@ -5324,11 +5366,7 @@ msgid "Transform"
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
-msgid "Configure Snap.."
-msgstr ""
-
-#: editor/plugins/spatial_editor_plugin.cpp
-msgid "Transform Dialog.."
+msgid "Transform Dialog..."
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
@@ -5582,7 +5620,7 @@ msgid "Remove All"
 msgstr "移除"
 
 #: editor/plugins/theme_editor_plugin.cpp
-msgid "Edit theme.."
+msgid "Edit theme..."
 msgstr ""
 
 #: editor/plugins/theme_editor_plugin.cpp
@@ -5630,6 +5668,14 @@ msgid "Checked Item"
 msgstr ""
 
 #: editor/plugins/theme_editor_plugin.cpp
+msgid "Radio Item"
+msgstr ""
+
+#: editor/plugins/theme_editor_plugin.cpp
+msgid "Checked Radio Item"
+msgstr ""
+
+#: editor/plugins/theme_editor_plugin.cpp
 msgid "Has"
 msgstr ""
 
@@ -5642,7 +5688,7 @@ msgid "Options"
 msgstr ""
 
 #: editor/plugins/theme_editor_plugin.cpp
-msgid "Have,Many,Several,Options!"
+msgid "Has,Many,Options"
 msgstr ""
 
 #: editor/plugins/theme_editor_plugin.cpp
@@ -5655,11 +5701,6 @@ msgstr ""
 
 #: editor/plugins/theme_editor_plugin.cpp
 msgid "Tab 3"
-msgstr ""
-
-#: editor/plugins/theme_editor_plugin.cpp editor/project_settings_editor.cpp
-#: editor/scene_tree_editor.cpp editor/script_editor_debugger.cpp
-msgid "Type:"
 msgstr ""
 
 #: editor/plugins/theme_editor_plugin.cpp
@@ -5810,7 +5851,7 @@ msgid "Select current edited sub-tile."
 msgstr "新增資料夾"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-msgid "Select sub-tile to change it's priority."
+msgid "Select sub-tile to change its priority."
 msgstr ""
 
 #: editor/progress_dialog.cpp scene/gui/dialogs.cpp
@@ -5838,7 +5879,7 @@ msgid "Presets"
 msgstr ""
 
 #: editor/project_export.cpp editor/project_settings_editor.cpp
-msgid "Add.."
+msgid "Add..."
 msgstr ""
 
 #: editor/project_export.cpp
@@ -5923,22 +5964,17 @@ msgid "Please choose a 'project.godot' file."
 msgstr ""
 
 #: editor/project_manager.cpp
-msgid ""
-"Your project will be created in a non empty folder (you might want to create "
-"a new folder)."
-msgstr ""
-
-#: editor/project_manager.cpp
-msgid "Please choose a folder that does not contain a 'project.godot' file."
-msgstr ""
-
-#: editor/project_manager.cpp
-msgid "That's a BINGO!"
+msgid "Please choose an empty folder."
 msgstr ""
 
 #: editor/project_manager.cpp
 msgid "Imported Project"
 msgstr ""
+
+#: editor/project_manager.cpp
+#, fuzzy
+msgid "Invalid Project Name."
+msgstr "不能使用的名稱。"
 
 #: editor/project_manager.cpp
 #, fuzzy
@@ -5958,7 +5994,9 @@ msgid "Invalid project path (changed anything?)."
 msgstr ""
 
 #: editor/project_manager.cpp
-msgid "Couldn't get project.godot in project path."
+msgid ""
+"Couldn't load project.godot in project path (error %d). It may be missing or "
+"corrupted."
 msgstr ""
 
 #: editor/project_manager.cpp
@@ -5977,10 +6015,6 @@ msgstr ""
 #, fuzzy
 msgid "Rename Project"
 msgstr "專案設定"
-
-#: editor/project_manager.cpp
-msgid "Couldn't get project.godot in the project path."
-msgstr ""
 
 #: editor/project_manager.cpp
 msgid "New Game Project"
@@ -6134,7 +6168,9 @@ msgid "Mouse Button"
 msgstr ""
 
 #: editor/project_settings_editor.cpp
-msgid "Invalid action (anything goes but '/' or ':')."
+msgid ""
+"Invalid action name. It cannot be empty nor contain '/', ':', '=', '\\' or "
+"'\"'."
 msgstr ""
 
 #: editor/project_settings_editor.cpp
@@ -6162,7 +6198,7 @@ msgid "Control+"
 msgstr ""
 
 #: editor/project_settings_editor.cpp editor/settings_config_dialog.cpp
-msgid "Press a Key.."
+msgid "Press a Key..."
 msgstr ""
 
 #: editor/project_settings_editor.cpp
@@ -6280,10 +6316,6 @@ msgid "Delete Item"
 msgstr "刪除"
 
 #: editor/project_settings_editor.cpp
-msgid "Can't contain '/' or ':'"
-msgstr ""
-
-#: editor/project_settings_editor.cpp
 msgid "Already existing"
 msgstr ""
 
@@ -6354,7 +6386,7 @@ msgid "Property:"
 msgstr ""
 
 #: editor/project_settings_editor.cpp
-msgid "Override For.."
+msgid "Override For..."
 msgstr ""
 
 #: editor/project_settings_editor.cpp
@@ -6416,7 +6448,7 @@ msgstr ""
 #: editor/project_settings_editor.cpp
 #, fuzzy
 msgid "Filter mode:"
-msgstr "過濾檔案.."
+msgstr "過濾檔案..."
 
 #: editor/project_settings_editor.cpp
 msgid "Locales:"
@@ -6451,11 +6483,11 @@ msgid "Easing Out-In"
 msgstr ""
 
 #: editor/property_editor.cpp
-msgid "File.."
+msgid "File..."
 msgstr ""
 
 #: editor/property_editor.cpp
-msgid "Dir.."
+msgid "Dir..."
 msgstr ""
 
 #: editor/property_editor.cpp
@@ -6485,7 +6517,7 @@ msgstr ""
 #: editor/property_editor.cpp
 #, fuzzy
 msgid "Convert To %s"
-msgstr "轉換成.."
+msgstr "轉換成..."
 
 #: editor/property_editor.cpp
 msgid "Error loading file: Not a resource!"
@@ -6589,10 +6621,6 @@ msgid "Error loading scene from %s"
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-msgid "Ok"
-msgstr ""
-
-#: editor/scene_tree_dock.cpp
 msgid ""
 "Cannot instance the scene '%s' because the current scene exists within one "
 "of its nodes."
@@ -6631,7 +6659,7 @@ msgid "This operation can't be done on instanced scenes."
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-msgid "Save New Scene As.."
+msgid "Save New Scene As..."
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
@@ -6683,10 +6711,6 @@ msgstr "複製資源"
 
 #: editor/scene_tree_dock.cpp
 msgid "Clear Inheritance"
-msgstr ""
-
-#: editor/scene_tree_dock.cpp editor/scene_tree_editor.cpp
-msgid "Open in Editor"
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
@@ -6742,7 +6766,7 @@ msgstr ""
 #: editor/scene_tree_dock.cpp
 #, fuzzy
 msgid "Filter nodes"
-msgstr "過濾檔案.."
+msgstr "過濾檔案..."
 
 #: editor/scene_tree_dock.cpp
 msgid "Attach a new or existing script for the selected node."
@@ -6800,10 +6824,6 @@ msgid ""
 msgstr ""
 
 #: editor/scene_tree_editor.cpp
-msgid "Instance:"
-msgstr ""
-
-#: editor/scene_tree_editor.cpp
 #, fuzzy
 msgid "Open script"
 msgstr "開啟最近存取"
@@ -6834,7 +6854,7 @@ msgstr ""
 
 #: editor/scene_tree_editor.cpp
 msgid "Scene Tree (Nodes):"
-msgstr ""
+msgstr "場景樹 (節點):"
 
 #: editor/scene_tree_editor.cpp
 msgid "Node Configuration Warning!"
@@ -7245,6 +7265,33 @@ msgstr ""
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 #, fuzzy
+msgid "Next Plane"
+msgstr "下個分頁"
+
+#: modules/gridmap/grid_map_editor_plugin.cpp
+#, fuzzy
+msgid "Previous Plane"
+msgstr "上個分頁"
+
+#: modules/gridmap/grid_map_editor_plugin.cpp
+msgid "Plane:"
+msgstr ""
+
+#: modules/gridmap/grid_map_editor_plugin.cpp
+msgid "Next Floor"
+msgstr ""
+
+#: modules/gridmap/grid_map_editor_plugin.cpp
+#, fuzzy
+msgid "Previous Floor"
+msgstr "上個分頁"
+
+#: modules/gridmap/grid_map_editor_plugin.cpp
+msgid "Floor:"
+msgstr ""
+
+#: modules/gridmap/grid_map_editor_plugin.cpp
+#, fuzzy
 msgid "GridMap Delete Selection"
 msgstr "複製所選"
 
@@ -7254,24 +7301,11 @@ msgid "GridMap Duplicate Selection"
 msgstr "複製所選"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
-msgid "Floor:"
-msgstr ""
-
-#: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Grid Map"
 msgstr ""
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Snap View"
-msgstr ""
-
-#: modules/gridmap/grid_map_editor_plugin.cpp
-#, fuzzy
-msgid "Previous Floor"
-msgstr "上個分頁"
-
-#: modules/gridmap/grid_map_editor_plugin.cpp
-msgid "Next Floor"
 msgstr ""
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
@@ -7354,6 +7388,10 @@ msgstr "專案設定"
 msgid "Pick Distance:"
 msgstr ""
 
+#: modules/mono/csharp_script.cpp
+msgid "Class name can't be a reserved keyword"
+msgstr ""
+
 #: modules/mono/editor/godotsharp_editor.cpp
 msgid "Generating solution..."
 msgstr ""
@@ -7384,6 +7422,10 @@ msgid "Mono"
 msgstr ""
 
 #: modules/mono/editor/godotsharp_editor.cpp
+msgid "About C# support"
+msgstr ""
+
+#: modules/mono/editor/godotsharp_editor.cpp
 msgid "Create C# solution"
 msgstr ""
 
@@ -7398,6 +7440,15 @@ msgstr "專案設定"
 
 #: modules/mono/editor/mono_bottom_panel.cpp
 msgid "Warnings"
+msgstr ""
+
+#: modules/mono/editor/mono_bottom_panel.cpp
+#, fuzzy
+msgid "View log"
+msgstr "過濾檔案..."
+
+#: modules/mono/mono_gd/gd_mono_utils.cpp
+msgid "End of inner exception stack trace"
 msgstr ""
 
 #: modules/visual_script/visual_script.cpp
@@ -7791,6 +7842,13 @@ msgstr ""
 "每個場景中僅允許一個可見的CanvasModulate，只有第一個CanvasModulate會有作用，"
 "其餘的將被忽略。"
 
+#: scene/2d/collision_object_2d.cpp
+msgid ""
+"This node has no children shapes, so it can't interact with the space.\n"
+"Consider adding CollisionShape2D or CollisionPolygon2D children nodes to "
+"define its shape."
+msgstr ""
+
 #: scene/2d/collision_polygon_2d.cpp
 msgid ""
 "CollisionPolygon2D only serves to provide a collision shape to a "
@@ -7863,7 +7921,7 @@ msgstr ""
 
 #: scene/2d/physics_body_2d.cpp
 msgid ""
-"Size changes to RigidBody2D (in character or rigid modes) will be overriden "
+"Size changes to RigidBody2D (in character or rigid modes) will be overridden "
 "by the physics engine when running.\n"
 "Change the size in children collision shapes instead."
 msgstr ""
@@ -7907,6 +7965,14 @@ msgid "ARVROrigin requires an ARVRCamera child node"
 msgstr ""
 
 #: scene/3d/baked_lightmap.cpp
+msgid "%d%%"
+msgstr ""
+
+#: scene/3d/baked_lightmap.cpp
+msgid "(Time Left: %d:%02d s)"
+msgstr ""
+
+#: scene/3d/baked_lightmap.cpp
 msgid "Plotting Meshes: "
 msgstr ""
 
@@ -7920,6 +7986,13 @@ msgstr ""
 
 #: scene/3d/baked_lightmap.cpp
 msgid "Lighting Meshes: "
+msgstr ""
+
+#: scene/3d/collision_object.cpp
+msgid ""
+"This node has no children shapes, so it can't interact with the space.\n"
+"Consider adding CollisionShape or CollisionPolygon children nodes to define "
+"its shape."
 msgstr ""
 
 #: scene/3d/collision_polygon.cpp
@@ -7967,8 +8040,8 @@ msgstr ""
 
 #: scene/3d/physics_body.cpp
 msgid ""
-"Size changes to RigidBody (in character or rigid modes) will be overriden by "
-"the physics engine when running.\n"
+"Size changes to RigidBody (in character or rigid modes) will be overridden "
+"by the physics engine when running.\n"
 "Change the size in children collision shapes instead."
 msgstr ""
 
@@ -7977,8 +8050,18 @@ msgid "Path property must point to a valid Spatial node to work."
 msgstr ""
 
 #: scene/3d/scenario_fx.cpp
+msgid "WorldEnvironment needs an Environment resource."
+msgstr ""
+
+#: scene/3d/scenario_fx.cpp
 msgid ""
 "Only one WorldEnvironment is allowed per scene (or set of instanced scenes)."
+msgstr ""
+
+#: scene/3d/scenario_fx.cpp
+msgid ""
+"This WorldEnvironment is ignored. Either add a Camera (for 3D scenes) or set "
+"this environment's Background Mode to Canvas (for 2D scenes)."
 msgstr ""
 
 #: scene/3d/sprite_3d.cpp
@@ -7999,20 +8082,19 @@ msgstr ""
 
 #: scene/gui/color_picker.cpp
 msgid "Add current color as a preset"
-msgstr ""
+msgstr "將目前顏色設為預設"
 
 #: scene/gui/dialogs.cpp
 msgid "Alert!"
-msgstr ""
+msgstr "警告!"
 
 #: scene/gui/dialogs.cpp
 msgid "Please Confirm..."
-msgstr ""
+msgstr "請確認..."
 
 #: scene/gui/file_dialog.cpp
-#, fuzzy
 msgid "Select this Folder"
-msgstr "僅選擇區域"
+msgstr "選擇此資料夾"
 
 #: scene/gui/popup.cpp
 msgid ""
@@ -8030,13 +8112,15 @@ msgstr ""
 
 #: scene/gui/tree.cpp
 msgid "(Other)"
-msgstr ""
+msgstr "(其它)"
 
 #: scene/main/scene_tree.cpp
 msgid ""
-"Default Environment as specified in Project Setings (Rendering -> "
+"Default Environment as specified in Project Settings (Rendering -> "
 "Environment -> Default Environment) could not be loaded."
 msgstr ""
+"在專案設定中的預設環境(Rendering -> Environment -> Default Environment)不能被"
+"載入"
 
 #: scene/main/viewport.cpp
 msgid ""
@@ -8063,8 +8147,26 @@ msgid "Invalid font size."
 msgstr "無效的字體大小。"
 
 #, fuzzy
-#~ msgid "preview"
-#~ msgstr "預覽:"
+#~ msgid "Previous"
+#~ msgstr "上個分頁"
+
+#~ msgid "Next"
+#~ msgstr "下一個"
+
+#~ msgid "Not found!"
+#~ msgstr "找不到!"
+
+#~ msgid "Replace By"
+#~ msgstr "用...取代"
+
+#~ msgid "Case Sensitive"
+#~ msgstr "區分大小寫"
+
+#~ msgid "Prompt On Replace"
+#~ msgstr "每次取代都要先詢問我"
+
+#~ msgid "Skip"
+#~ msgstr "跳過"
 
 #~ msgid "List:"
 #~ msgstr "列表:"

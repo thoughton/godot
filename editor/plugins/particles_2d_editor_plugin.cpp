@@ -94,7 +94,7 @@ void Particles2DEditorPlugin::_generate_visibility_rect() {
 	while (running < time) {
 
 		uint64_t ticks = OS::get_singleton()->get_ticks_usec();
-		ep.step("Generating..", int(running), true);
+		ep.step("Generating...", int(running), true);
 		OS::get_singleton()->delay_usec(1000);
 
 		Rect2 capture = particles->capture_rect();
@@ -165,12 +165,12 @@ void Particles2DEditorPlugin::_generate_emission_mask() {
 					if (emode == EMISSION_MODE_SOLID) {
 
 						if (capture_colors) {
-							valid_colors[vpc * 4 + 0] = r[(j * s.width + i) * 4 + 0];
-							valid_colors[vpc * 4 + 1] = r[(j * s.width + i) * 4 + 1];
-							valid_colors[vpc * 4 + 2] = r[(j * s.width + i) * 4 + 2];
-							valid_colors[vpc * 4 + 3] = r[(j * s.width + i) * 4 + 3];
+							valid_colors.write[vpc * 4 + 0] = r[(j * s.width + i) * 4 + 0];
+							valid_colors.write[vpc * 4 + 1] = r[(j * s.width + i) * 4 + 1];
+							valid_colors.write[vpc * 4 + 2] = r[(j * s.width + i) * 4 + 2];
+							valid_colors.write[vpc * 4 + 3] = r[(j * s.width + i) * 4 + 3];
 						}
-						valid_positions[vpc++] = Point2(i, j);
+						valid_positions.write[vpc++] = Point2(i, j);
 
 					} else {
 
@@ -189,7 +189,7 @@ void Particles2DEditorPlugin::_generate_emission_mask() {
 						}
 
 						if (on_border) {
-							valid_positions[vpc] = Point2(i, j);
+							valid_positions.write[vpc] = Point2(i, j);
 
 							if (emode == EMISSION_MODE_BORDER_DIRECTED) {
 								Vector2 normal;
@@ -206,14 +206,14 @@ void Particles2DEditorPlugin::_generate_emission_mask() {
 								}
 
 								normal.normalize();
-								valid_normals[vpc] = normal;
+								valid_normals.write[vpc] = normal;
 							}
 
 							if (capture_colors) {
-								valid_colors[vpc * 4 + 0] = r[(j * s.width + i) * 4 + 0];
-								valid_colors[vpc * 4 + 1] = r[(j * s.width + i) * 4 + 1];
-								valid_colors[vpc * 4 + 2] = r[(j * s.width + i) * 4 + 2];
-								valid_colors[vpc * 4 + 3] = r[(j * s.width + i) * 4 + 3];
+								valid_colors.write[vpc * 4 + 0] = r[(j * s.width + i) * 4 + 0];
+								valid_colors.write[vpc * 4 + 1] = r[(j * s.width + i) * 4 + 1];
+								valid_colors.write[vpc * 4 + 2] = r[(j * s.width + i) * 4 + 2];
+								valid_colors.write[vpc * 4 + 3] = r[(j * s.width + i) * 4 + 3];
 							}
 
 							vpc++;
@@ -229,7 +229,7 @@ void Particles2DEditorPlugin::_generate_emission_mask() {
 		valid_normals.resize(vpc);
 	}
 
-	ERR_EXPLAIN(TTR("No pixels with transparency > 128 in image.."));
+	ERR_EXPLAIN(TTR("No pixels with transparency > 128 in image..."));
 	ERR_FAIL_COND(valid_positions.size() == 0);
 
 	PoolVector<uint8_t> texdata;

@@ -68,6 +68,8 @@ MethodDefinition D_METHOD(const char *p_name, const char *p_arg1, const char *p_
 MethodDefinition D_METHOD(const char *p_name, const char *p_arg1, const char *p_arg2, const char *p_arg3, const char *p_arg4, const char *p_arg5, const char *p_arg6, const char *p_arg7, const char *p_arg8, const char *p_arg9);
 MethodDefinition D_METHOD(const char *p_name, const char *p_arg1, const char *p_arg2, const char *p_arg3, const char *p_arg4, const char *p_arg5, const char *p_arg6, const char *p_arg7, const char *p_arg8, const char *p_arg9, const char *p_arg10);
 MethodDefinition D_METHOD(const char *p_name, const char *p_arg1, const char *p_arg2, const char *p_arg3, const char *p_arg4, const char *p_arg5, const char *p_arg6, const char *p_arg7, const char *p_arg8, const char *p_arg9, const char *p_arg10, const char *p_arg11);
+MethodDefinition D_METHOD(const char *p_name, const char *p_arg1, const char *p_arg2, const char *p_arg3, const char *p_arg4, const char *p_arg5, const char *p_arg6, const char *p_arg7, const char *p_arg8, const char *p_arg9, const char *p_arg10, const char *p_arg11, const char *p_arg12);
+MethodDefinition D_METHOD(const char *p_name, const char *p_arg1, const char *p_arg2, const char *p_arg3, const char *p_arg4, const char *p_arg5, const char *p_arg6, const char *p_arg7, const char *p_arg8, const char *p_arg9, const char *p_arg10, const char *p_arg11, const char *p_arg12, const char *p_arg13);
 
 #else
 
@@ -112,19 +114,19 @@ public:
 
 		APIType api;
 		ClassInfo *inherits_ptr;
-		HashMap<StringName, MethodBind *, StringNameHasher> method_map;
-		HashMap<StringName, int, StringNameHasher> constant_map;
-		HashMap<StringName, MethodInfo, StringNameHasher> signal_map;
+		HashMap<StringName, MethodBind *> method_map;
+		HashMap<StringName, int> constant_map;
+		HashMap<StringName, List<StringName> > enum_map;
+		HashMap<StringName, MethodInfo> signal_map;
 		List<PropertyInfo> property_list;
 #ifdef DEBUG_METHODS_ENABLED
-		HashMap<StringName, List<StringName> > enum_map;
 		List<StringName> constant_order;
 		List<StringName> method_order;
 		Set<StringName> methods_in_properties;
 		List<MethodInfo> virtual_methods;
 		StringName category;
 #endif
-		HashMap<StringName, PropertySetGet, StringNameHasher> property_setget;
+		HashMap<StringName, PropertySetGet> property_setget;
 
 		StringName inherits;
 		StringName name;
@@ -141,9 +143,9 @@ public:
 	}
 
 	static RWLock *lock;
-	static HashMap<StringName, ClassInfo, StringNameHasher> classes;
-	static HashMap<StringName, StringName, StringNameHasher> resource_base_extensions;
-	static HashMap<StringName, StringName, StringNameHasher> compat_classes;
+	static HashMap<StringName, ClassInfo> classes;
+	static HashMap<StringName, StringName> resource_base_extensions;
+	static HashMap<StringName, StringName> compat_classes;
 
 #ifdef DEBUG_METHODS_ENABLED
 	static MethodBind *bind_methodfi(uint32_t p_flags, MethodBind *p_bind, const MethodDefinition &method_name, const Variant **p_defs, int p_defcount);
@@ -342,11 +344,9 @@ public:
 	static void get_integer_constant_list(const StringName &p_class, List<String> *p_constants, bool p_no_inheritance = false);
 	static int get_integer_constant(const StringName &p_class, const StringName &p_name, bool *p_success = NULL);
 
-#ifdef DEBUG_METHODS_ENABLED
 	static StringName get_integer_constant_enum(const StringName &p_class, const StringName &p_name, bool p_no_inheritance = false);
 	static void get_enum_list(const StringName &p_class, List<StringName> *p_enums, bool p_no_inheritance = false);
 	static void get_enum_constants(const StringName &p_class, const StringName &p_enum, List<StringName> *p_constants, bool p_no_inheritance = false);
-#endif
 
 	static StringName get_category(const StringName &p_node);
 

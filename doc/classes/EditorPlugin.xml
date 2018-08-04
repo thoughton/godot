@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="EditorPlugin" inherits="Node" category="Core" version="3.0-beta">
+<class name="EditorPlugin" inherits="Node" category="Core" version="3.1">
 	<brief_description>
 		Used by the editor to extend its functionality.
 	</brief_description>
@@ -7,10 +7,22 @@
 		Plugins are used by the editor to extend functionality. The most common types of plugins are those which edit a given node or resource type, import plugins and export plugins.
 	</description>
 	<tutorials>
+		<link>http://docs.godotengine.org/en/3.0/development/plugins/index.html</link>
 	</tutorials>
 	<demos>
 	</demos>
 	<methods>
+		<method name="add_autoload_singleton">
+			<return type="void">
+			</return>
+			<argument index="0" name="name" type="String">
+			</argument>
+			<argument index="1" name="path" type="String">
+			</argument>
+			<description>
+				Add a script at [code]path[/code] to the Autoload list as [code]name[/code].
+			</description>
+		</method>
 		<method name="add_control_to_bottom_panel">
 			<return type="ToolButton">
 			</return>
@@ -69,7 +81,7 @@
 		<method name="add_export_plugin">
 			<return type="void">
 			</return>
-			<argument index="0" name="exporter" type="EditorExportPlugin">
+			<argument index="0" name="plugin" type="EditorExportPlugin">
 			</argument>
 			<description>
 			</description>
@@ -82,12 +94,35 @@
 			<description>
 			</description>
 		</method>
+		<method name="add_inspector_plugin">
+			<return type="void">
+			</return>
+			<argument index="0" name="plugin" type="EditorInspectorPlugin">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="add_scene_import_plugin">
 			<return type="void">
 			</return>
 			<argument index="0" name="scene_importer" type="EditorSceneImporter">
 			</argument>
 			<description>
+			</description>
+		</method>
+		<method name="add_tool_menu_item">
+			<return type="void">
+			</return>
+			<argument index="0" name="name" type="String">
+			</argument>
+			<argument index="1" name="handler" type="Object">
+			</argument>
+			<argument index="2" name="callback" type="String">
+			</argument>
+			<argument index="3" name="ud" type="Variant" default="null">
+			</argument>
+			<description>
+				Adds a custom menu to 'Project &gt; Tools' as [code]name[/code] that calls [code]callback[/code] on an instance of [code]handler[/code] with a parameter [code]ud[/code] when user activates it.
 			</description>
 		</method>
 		<method name="add_tool_submenu_item">
@@ -106,6 +141,12 @@
 			<description>
 				This method is called when the editor is about to save the project, switch to another tab, etc. It asks the plugin to apply any pending state changes to ensure consistency.
 				This is used, for example, in shader editors to let the plugin know that it must apply the shader code being written by the user to the object.
+			</description>
+		</method>
+		<method name="build" qualifiers="virtual">
+			<return type="bool">
+			</return>
+			<description>
 			</description>
 		</method>
 		<method name="clear" qualifiers="virtual">
@@ -194,6 +235,13 @@
 			<description>
 			</description>
 		</method>
+		<method name="get_script_create_dialog">
+			<return type="ScriptCreateDialog">
+			</return>
+			<description>
+				Gets the Editor's dialogue used for making scripts. Note that users can configure it before use.
+			</description>
+		</method>
 		<method name="get_state" qualifiers="virtual">
 			<return type="Dictionary">
 			</return>
@@ -264,6 +312,15 @@
 				Queue save the project's editor layout.
 			</description>
 		</method>
+		<method name="remove_autoload_singleton">
+			<return type="void">
+			</return>
+			<argument index="0" name="name" type="String">
+			</argument>
+			<description>
+				Remove an Autoload [code]name[/code] from the list.
+			</description>
+		</method>
 		<method name="remove_control_from_bottom_panel">
 			<return type="void">
 			</return>
@@ -271,6 +328,17 @@
 			</argument>
 			<description>
 				Remove the control from the bottom panel. Don't forget to call this if you added one, so the editor can remove it cleanly.
+			</description>
+		</method>
+		<method name="remove_control_from_container">
+			<return type="void">
+			</return>
+			<argument index="0" name="container" type="int" enum="EditorPlugin.CustomControlContainer">
+			</argument>
+			<argument index="1" name="control" type="Control">
+			</argument>
+			<description>
+				Remove the control from the specified container. Use it when cleaning up after adding a control with [method add_control_to_container]. Note that you can simply free the control if you won't use it anymore.
 			</description>
 		</method>
 		<method name="remove_control_from_docks">
@@ -294,7 +362,7 @@
 		<method name="remove_export_plugin">
 			<return type="void">
 			</return>
-			<argument index="0" name="exporter" type="EditorExportPlugin">
+			<argument index="0" name="plugin" type="EditorExportPlugin">
 			</argument>
 			<description>
 			</description>
@@ -307,12 +375,29 @@
 			<description>
 			</description>
 		</method>
+		<method name="remove_inspector_plugin">
+			<return type="void">
+			</return>
+			<argument index="0" name="plugin" type="EditorInspectorPlugin">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="remove_scene_import_plugin">
 			<return type="void">
 			</return>
 			<argument index="0" name="scene_importer" type="EditorSceneImporter">
 			</argument>
 			<description>
+			</description>
+		</method>
+		<method name="remove_tool_menu_item">
+			<return type="void">
+			</return>
+			<argument index="0" name="name" type="String">
+			</argument>
+			<description>
+				Removes a menu [code]name[/code] from 'Project &gt; Tools'.
 			</description>
 		</method>
 		<method name="save_external_data" qualifiers="virtual">
@@ -366,6 +451,12 @@
 			</argument>
 			<description>
 				Emitted when user change main screen view (2D, 3D, Script, AssetLib). Works also with screens which are defined by plugins.
+			</description>
+		</signal>
+		<signal name="resource_saved">
+			<argument index="0" name="resource" type="Object">
+			</argument>
+			<description>
 			</description>
 		</signal>
 		<signal name="scene_changed">

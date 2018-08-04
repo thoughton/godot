@@ -262,15 +262,15 @@ String FileAccess::get_token() const {
 	while (!eof_reached()) {
 
 		if (c <= ' ') {
-			if (!token.empty())
+			if (token.length())
 				break;
 		} else {
-			token.push_back(c);
+			token += c;
 		}
 		c = get_8();
 	}
 
-	token.push_back(0);
+	token += '0';
 	return String::utf8(token.get_data());
 }
 
@@ -293,7 +293,7 @@ class CharBuffer {
 
 			for (int i = 0; i < written; i++) {
 
-				vector[i] = stack_buffer[i];
+				vector.write[i] = stack_buffer[i];
 			}
 		}
 
@@ -478,6 +478,9 @@ void FileAccess::store_double(double p_dest) {
 };
 
 uint64_t FileAccess::get_modified_time(const String &p_file) {
+
+	if (PackedData::get_singleton() && !PackedData::get_singleton()->is_disabled() && PackedData::get_singleton()->has_path(p_file))
+		return 0;
 
 	FileAccess *fa = create_for_path(p_file);
 	ERR_FAIL_COND_V(!fa, 0);

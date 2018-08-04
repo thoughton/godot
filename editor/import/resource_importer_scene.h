@@ -75,11 +75,17 @@ class EditorScenePostImport : public Reference {
 
 	GDCLASS(EditorScenePostImport, Reference);
 
+	String source_folder;
+	String source_file;
+
 protected:
 	static void _bind_methods();
 
 public:
+	String get_source_folder() const;
+	String get_source_file() const;
 	virtual Node *post_import(Node *p_scene);
+	virtual void init(const String &p_scene_folder, const String &p_scene_path);
 	EditorScenePostImport();
 };
 
@@ -153,6 +159,16 @@ public:
 	Ref<Animation> import_animation_from_other_importer(EditorSceneImporter *p_exception, const String &p_path, uint32_t p_flags, int p_bake_fps);
 
 	ResourceImporterScene();
+};
+
+class EditorSceneImporterESCN : public EditorSceneImporter {
+	GDCLASS(EditorSceneImporterESCN, EditorSceneImporter);
+
+public:
+	virtual uint32_t get_import_flags() const;
+	virtual void get_extensions(List<String> *r_extensions) const;
+	virtual Node *import_scene(const String &p_path, uint32_t p_flags, int p_bake_fps, List<String> *r_missing_deps, Error *r_err = NULL);
+	virtual Ref<Animation> import_animation(const String &p_path, uint32_t p_flags, int p_bake_fps);
 };
 
 #endif // RESOURCEIMPORTERSCENE_H

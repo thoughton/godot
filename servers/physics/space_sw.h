@@ -186,7 +186,7 @@ public:
 	void set_debug_contacts(int p_amount) { contact_debug.resize(p_amount); }
 	_FORCE_INLINE_ bool is_debugging_contacts() const { return !contact_debug.empty(); }
 	_FORCE_INLINE_ void add_debug_contact(const Vector3 &p_contact) {
-		if (contact_debug_count < contact_debug.size()) contact_debug[contact_debug_count++] = p_contact;
+		if (contact_debug_count < contact_debug.size()) contact_debug.write[contact_debug_count++] = p_contact;
 	}
 	_FORCE_INLINE_ Vector<Vector3> get_debug_contacts() { return contact_debug; }
 	_FORCE_INLINE_ int get_debug_contact_count() { return contact_debug_count; }
@@ -197,7 +197,7 @@ public:
 	void set_elapsed_time(ElapsedTime p_time, uint64_t p_msec) { elapsed_time[p_time] = p_msec; }
 	uint64_t get_elapsed_time(ElapsedTime p_time) const { return elapsed_time[p_time]; }
 
-	bool test_body_motion(BodySW *p_body, const Transform &p_from, const Vector3 &p_motion, real_t p_margin, PhysicsServer::MotionResult *r_result);
+	bool test_body_motion(BodySW *p_body, const Transform &p_from, const Vector3 &p_motion, bool p_infinite_inertia, real_t p_margin, PhysicsServer::MotionResult *r_result);
 
 	SpaceSW();
 	~SpaceSW();

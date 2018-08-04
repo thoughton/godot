@@ -37,6 +37,8 @@
 #include "os/keyboard.h"
 
 #define CONTRIBUTE_URL "http://docs.godotengine.org/en/latest/community/contributing/updating_the_class_reference.html"
+#define CONTRIBUTE2_URL "https://github.com/godotengine/godot-docs"
+#define REQUEST_URL "https://github.com/godotengine/godot-docs/issues/new"
 
 void EditorHelpSearch::popup() {
 
@@ -79,162 +81,147 @@ void EditorHelpSearch::_sbox_input(const Ref<InputEvent> &p_ie) {
 	}
 }
 
-class EditorHelpSearch::IncrementalSearch : public Reference {
-	String term;
-	TreeItem *root;
+void EditorHelpSearch::IncrementalSearch::phase1(Map<String, DocData::ClassDoc>::Element *E) {
 
-	EditorHelpSearch *search;
-	Tree *search_options;
+	if (E->key().findn(term) != -1) {
 
-	DocData *doc;
-	Ref<Texture> def_icon;
+		TreeItem *item = search_options->create_item(root);
+		item->set_metadata(0, "class_name:" + E->key());
+		item->set_text(0, E->key() + " (Class)");
+		if (search->has_icon(E->key(), "EditorIcons"))
+			item->set_icon(0, search->get_icon(E->key(), "EditorIcons"));
+		else
+			item->set_icon(0, def_icon);
+	}
+}
 
-	int phase;
-	Map<String, DocData::ClassDoc>::Element *iterator;
+void EditorHelpSearch::IncrementalSearch::phase2(Map<String, DocData::ClassDoc>::Element *E) {
 
-	void phase1(Map<String, DocData::ClassDoc>::Element *E) {
+	DocData::ClassDoc &c = E->get();
 
-		if (E->key().findn(term) != -1) {
+	Ref<Texture> cicon;
+	if (search->has_icon(E->key(), "EditorIcons"))
+		cicon = search->get_icon(E->key(), "EditorIcons");
+	else
+		cicon = def_icon;
+
+	for (int i = 0; i < c.methods.size(); i++) {
+		if ((term.begins_with(".") && c.methods[i].name.begins_with(term.right(1))) || (term.ends_with("(") && c.methods[i].name.ends_with(term.left(term.length() - 1).strip_edges())) || (term.begins_with(".") && term.ends_with("(") && c.methods[i].name == term.substr(1, term.length() - 2).strip_edges()) || c.methods[i].name.findn(term) != -1) {
 
 			TreeItem *item = search_options->create_item(root);
-			item->set_metadata(0, "class_name:" + E->key());
-			item->set_text(0, E->key() + " (Class)");
-			if (search->has_icon(E->key(), "EditorIcons"))
-				item->set_icon(0, search->get_icon(E->key(), "EditorIcons"));
-			else
-				item->set_icon(0, def_icon);
+			item->set_metadata(0, "class_method:" + E->key() + ":" + c.methods[i].name);
+			item->set_text(0, E->key() + "." + c.methods[i].name + " (Method)");
+			item->set_icon(0, cicon);
 		}
 	}
 
-	void phase2(Map<String, DocData::ClassDoc>::Element *E) {
+	for (int i = 0; i < c.signals.size(); i++) {
 
-		DocData::ClassDoc &c = E->get();
+		if (c.signals[i].name.findn(term) != -1) {
 
-		Ref<Texture> cicon;
-		if (search->has_icon(E->key(), "EditorIcons"))
-			cicon = search->get_icon(E->key(), "EditorIcons");
-		else
-			cicon = def_icon;
-
-		for (int i = 0; i < c.methods.size(); i++) {
-			if ((term.begins_with(".") && c.methods[i].name.begins_with(term.right(1))) || (term.ends_with("(") && c.methods[i].name.ends_with(term.left(term.length() - 1).strip_edges())) || (term.begins_with(".") && term.ends_with("(") && c.methods[i].name == term.substr(1, term.length() - 2).strip_edges()) || c.methods[i].name.findn(term) != -1) {
-
-				TreeItem *item = search_options->create_item(root);
-				item->set_metadata(0, "class_method:" + E->key() + ":" + c.methods[i].name);
-				item->set_text(0, E->key() + "." + c.methods[i].name + " (Method)");
-				item->set_icon(0, cicon);
-			}
-		}
-
-		for (int i = 0; i < c.signals.size(); i++) {
-
-			if (c.signals[i].name.findn(term) != -1) {
-
-				TreeItem *item = search_options->create_item(root);
-				item->set_metadata(0, "class_signal:" + E->key() + ":" + c.signals[i].name);
-				item->set_text(0, E->key() + "." + c.signals[i].name + " (Signal)");
-				item->set_icon(0, cicon);
-			}
-		}
-
-		for (int i = 0; i < c.constants.size(); i++) {
-
-			if (c.constants[i].name.findn(term) != -1) {
-
-				TreeItem *item = search_options->create_item(root);
-				item->set_metadata(0, "class_constant:" + E->key() + ":" + c.constants[i].name);
-				item->set_text(0, E->key() + "." + c.constants[i].name + " (Constant)");
-				item->set_icon(0, cicon);
-			}
-		}
-
-		for (int i = 0; i < c.properties.size(); i++) {
-
-			if (c.properties[i].name.findn(term) != -1) {
-
-				TreeItem *item = search_options->create_item(root);
-				item->set_metadata(0, "class_property:" + E->key() + ":" + c.properties[i].name);
-				item->set_text(0, E->key() + "." + c.properties[i].name + " (Property)");
-				item->set_icon(0, cicon);
-			}
-		}
-
-		for (int i = 0; i < c.theme_properties.size(); i++) {
-
-			if (c.theme_properties[i].name.findn(term) != -1) {
-
-				TreeItem *item = search_options->create_item(root);
-				item->set_metadata(0, "class_theme_item:" + E->key() + ":" + c.theme_properties[i].name);
-				item->set_text(0, E->key() + "." + c.theme_properties[i].name + " (Theme Item)");
-				item->set_icon(0, cicon);
-			}
+			TreeItem *item = search_options->create_item(root);
+			item->set_metadata(0, "class_signal:" + E->key() + ":" + c.signals[i].name);
+			item->set_text(0, E->key() + "." + c.signals[i].name + " (Signal)");
+			item->set_icon(0, cicon);
 		}
 	}
 
-	bool slice() {
+	for (int i = 0; i < c.constants.size(); i++) {
 
-		if (phase > 2)
-			return true;
+		if (c.constants[i].name.findn(term) != -1) {
 
-		if (iterator) {
-
-			switch (phase) {
-
-				case 1: {
-					phase1(iterator);
-				} break;
-				case 2: {
-					phase2(iterator);
-				} break;
-				default: {
-					WARN_PRINT("illegal phase in IncrementalSearch");
-					return true;
-				}
-			}
-
-			iterator = iterator->next();
-		} else {
-
-			phase += 1;
-			iterator = doc->class_list.front();
+			TreeItem *item = search_options->create_item(root);
+			item->set_metadata(0, "class_constant:" + E->key() + ":" + c.constants[i].name);
+			item->set_text(0, E->key() + "." + c.constants[i].name + " (Constant)");
+			item->set_icon(0, cicon);
 		}
-
-		return false;
 	}
 
-public:
-	IncrementalSearch(EditorHelpSearch *p_search, Tree *p_search_options, const String &p_term) :
-			search(p_search),
-			search_options(p_search_options) {
+	for (int i = 0; i < c.properties.size(); i++) {
 
-		def_icon = search->get_icon("Node", "EditorIcons");
-		doc = EditorHelp::get_doc_data();
+		if (c.properties[i].name.findn(term) != -1) {
 
-		term = p_term;
-
-		root = search_options->create_item();
-		phase = 0;
-		iterator = 0;
-	}
-
-	bool empty() const {
-
-		return root->get_children() == NULL;
-	}
-
-	bool work(uint64_t slot = 1000000 / 10) {
-
-		const uint64_t until = OS::get_singleton()->get_ticks_usec() + slot;
-
-		while (!slice()) {
-
-			if (OS::get_singleton()->get_ticks_usec() > until)
-				return false;
+			TreeItem *item = search_options->create_item(root);
+			item->set_metadata(0, "class_property:" + E->key() + ":" + c.properties[i].name);
+			item->set_text(0, E->key() + "." + c.properties[i].name + " (Property)");
+			item->set_icon(0, cicon);
 		}
+	}
 
+	for (int i = 0; i < c.theme_properties.size(); i++) {
+
+		if (c.theme_properties[i].name.findn(term) != -1) {
+
+			TreeItem *item = search_options->create_item(root);
+			item->set_metadata(0, "class_theme_item:" + E->key() + ":" + c.theme_properties[i].name);
+			item->set_text(0, E->key() + "." + c.theme_properties[i].name + " (Theme Item)");
+			item->set_icon(0, cicon);
+		}
+	}
+}
+
+bool EditorHelpSearch::IncrementalSearch::slice() {
+
+	if (phase > 2)
 		return true;
+
+	if (iterator) {
+
+		switch (phase) {
+
+			case 1: {
+				phase1(iterator);
+			} break;
+			case 2: {
+				phase2(iterator);
+			} break;
+			default: {
+				WARN_PRINT("illegal phase in IncrementalSearch");
+				return true;
+			}
+		}
+
+		iterator = iterator->next();
+	} else {
+
+		phase += 1;
+		iterator = doc->class_list.front();
 	}
-};
+
+	return false;
+}
+
+EditorHelpSearch::IncrementalSearch::IncrementalSearch(EditorHelpSearch *p_search, Tree *p_search_options, const String &p_term) :
+		search(p_search),
+		search_options(p_search_options) {
+
+	def_icon = search->get_icon("Node", "EditorIcons");
+	doc = EditorHelp::get_doc_data();
+
+	term = p_term;
+
+	root = search_options->create_item();
+	phase = 0;
+	iterator = 0;
+}
+
+bool EditorHelpSearch::IncrementalSearch::empty() const {
+
+	return root->get_children() == NULL;
+}
+
+bool EditorHelpSearch::IncrementalSearch::work(uint64_t slot) {
+
+	const uint64_t until = OS::get_singleton()->get_ticks_usec() + slot;
+
+	while (!slice()) {
+
+		if (OS::get_singleton()->get_ticks_usec() > until)
+			return false;
+	}
+
+	return true;
+}
 
 void EditorHelpSearch::_update_search() {
 	search_options->clear();
@@ -539,18 +526,7 @@ void EditorHelp::_unhandled_key_input(const Ref<InputEvent> &p_ev) {
 
 void EditorHelp::_search(const String &) {
 
-	if (search->get_text() == "")
-		return;
-
-	String stext = search->get_text();
-	bool keep = prev_search == stext;
-
-	bool ret = class_desc->search(stext, keep);
-	if (!ret) {
-		class_desc->search(stext, false);
-	}
-
-	prev_search = stext;
+	find_bar->search_next();
 }
 
 void EditorHelp::_class_list_select(const String &p_select) {
@@ -611,14 +587,6 @@ void EditorHelp::_class_desc_select(const String &p_select) {
 }
 
 void EditorHelp::_class_desc_input(const Ref<InputEvent> &p_input) {
-
-	Ref<InputEventMouseButton> mb = p_input;
-
-	if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == 1 && !mb->is_doubleclick()) {
-		class_desc->set_selection_enabled(false);
-		class_desc->set_selection_enabled(true);
-	}
-	set_focused();
 }
 
 void EditorHelp::_add_type(const String &p_type, const String &p_enum) {
@@ -1185,7 +1153,12 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 				class_desc->push_indent(1);
 				Vector<DocData::ConstantDoc> enum_list = E->get();
 
+				Map<String, int> enumValuesContainer;
+				int enumStartingLine = enum_line[E->key()];
+
 				for (int i = 0; i < enum_list.size(); i++) {
+					if (cd.name == "@GlobalScope")
+						enumValuesContainer[enum_list[i].name] = enumStartingLine;
 
 					class_desc->push_font(doc_code_font);
 					class_desc->push_color(headline_color);
@@ -1212,6 +1185,9 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 
 					class_desc->add_newline();
 				}
+
+				if (cd.name == "@GlobalScope")
+					enum_values_line[E->key()] = enumValuesContainer;
 
 				class_desc->pop();
 
@@ -1290,6 +1266,45 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 		class_desc->add_newline();
 	}
 
+	{
+
+		class_desc->push_color(title_color);
+		class_desc->push_font(doc_title_font);
+		class_desc->add_text(TTR("Online Tutorials:"));
+		class_desc->pop();
+		class_desc->pop();
+		class_desc->push_indent(1);
+
+		class_desc->push_font(doc_code_font);
+
+		class_desc->add_newline();
+		//	class_desc->add_newline();
+
+		if (cd.tutorials.size() != 0) {
+
+			for (int i = 0; i < cd.tutorials.size(); i++) {
+				String link = cd.tutorials[i];
+				String linktxt = link;
+				int seppos = linktxt.find("//");
+				if (seppos != -1) {
+					linktxt = link.right(seppos + 2);
+				}
+
+				class_desc->push_color(symbol_color);
+				class_desc->append_bbcode("[url=" + link + "]" + linktxt + "[/url]");
+				class_desc->pop();
+				class_desc->add_newline();
+			}
+		} else {
+			class_desc->push_color(comment_color);
+			class_desc->append_bbcode(TTR("There are currently no tutorials for this class, you can [color=$color][url=$url]contribute one[/url][/color] or [color=$color][url=$url2]request one[/url][/color].").replace("$url2", REQUEST_URL).replace("$url", CONTRIBUTE2_URL).replace("$color", link_color_text));
+			class_desc->pop();
+		}
+		class_desc->pop();
+		class_desc->pop();
+		class_desc->add_newline();
+		class_desc->add_newline();
+	}
 	if (property_descr) {
 
 		section_line.push_back(Pair<String, int>(TTR("Properties"), class_desc->get_line_count() - 2));
@@ -1458,21 +1473,32 @@ void EditorHelp::_help_callback(const String &p_topic) {
 		if (method_line.has(name))
 			line = method_line[name];
 	} else if (what == "class_property") {
-
 		if (property_line.has(name))
 			line = property_line[name];
 	} else if (what == "class_enum") {
-
 		if (enum_line.has(name))
 			line = enum_line[name];
 	} else if (what == "class_theme_item") {
-
 		if (theme_property_line.has(name))
 			line = theme_property_line[name];
 	} else if (what == "class_constant") {
-
 		if (constant_line.has(name))
 			line = constant_line[name];
+	} else if (what == "class_global") {
+		if (constant_line.has(name))
+			line = constant_line[name];
+		else {
+			Map<String, Map<String, int> >::Element *iter = enum_values_line.front();
+			while (true) {
+				if (iter->value().has(name)) {
+					line = iter->value()[name];
+					break;
+				} else if (iter == enum_values_line.back())
+					break;
+				else
+					iter = iter->next();
+			}
+		}
 	}
 
 	class_desc->call_deferred("scroll_to_line", line);
@@ -1770,13 +1796,7 @@ void EditorHelp::scroll_to_section(int p_section_index) {
 
 void EditorHelp::popup_search() {
 
-	search_dialog->popup_centered(Size2(250, 80) * EDSCALE);
-	search->grab_focus();
-}
-
-void EditorHelp::_search_cbk() {
-
-	_search(search->get_text());
+	find_bar->popup_search();
 }
 
 String EditorHelp::get_class() {
@@ -1805,7 +1825,6 @@ void EditorHelp::_bind_methods() {
 	ClassDB::bind_method("_request_help", &EditorHelp::_request_help);
 	ClassDB::bind_method("_unhandled_key_input", &EditorHelp::_unhandled_key_input);
 	ClassDB::bind_method("_search", &EditorHelp::_search);
-	ClassDB::bind_method("_search_cbk", &EditorHelp::_search_cbk);
 	ClassDB::bind_method("_help_callback", &EditorHelp::_help_callback);
 
 	ADD_SIGNAL(MethodInfo("go_to_help"));
@@ -1817,6 +1836,10 @@ EditorHelp::EditorHelp() {
 
 	EDITOR_DEF("text_editor/help/sort_functions_alphabetically", true);
 
+	find_bar = memnew(FindBar);
+	add_child(find_bar);
+	find_bar->hide();
+
 	class_desc = memnew(RichTextLabel);
 	add_child(class_desc);
 	class_desc->set_v_size_flags(SIZE_EXPAND_FILL);
@@ -1824,24 +1847,14 @@ EditorHelp::EditorHelp() {
 	class_desc->connect("meta_clicked", this, "_class_desc_select");
 	class_desc->connect("gui_input", this, "_class_desc_input");
 
+	find_bar->set_rich_text_label(class_desc);
+
 	class_desc->set_selection_enabled(true);
 
 	scroll_locked = false;
 	select_locked = false;
-	set_process_unhandled_key_input(true);
+	//set_process_unhandled_key_input(true);
 	class_desc->hide();
-
-	search_dialog = memnew(ConfirmationDialog);
-	add_child(search_dialog);
-	VBoxContainer *search_vb = memnew(VBoxContainer);
-	search_dialog->add_child(search_vb);
-
-	search = memnew(LineEdit);
-	search_dialog->register_text_enter(search);
-	search_vb->add_margin_child(TTR("Search Text"), search);
-	search_dialog->get_ok()->set_text(TTR("Find"));
-	search_dialog->connect("confirmed", this, "_search_cbk");
-	search_dialog->set_hide_on_ok(false);
 }
 
 EditorHelp::~EditorHelp() {
@@ -1887,6 +1900,7 @@ void EditorHelpBit::_meta_clicked(String p_select) {
 void EditorHelpBit::_bind_methods() {
 
 	ClassDB::bind_method("_meta_clicked", &EditorHelpBit::_meta_clicked);
+	ClassDB::bind_method(D_METHOD("set_text", "text"), &EditorHelpBit::set_text);
 	ADD_SIGNAL(MethodInfo("request_hide"));
 }
 
@@ -1912,9 +1926,203 @@ EditorHelpBit::EditorHelpBit() {
 
 	rich_text = memnew(RichTextLabel);
 	add_child(rich_text);
-	rich_text->set_anchors_and_margins_preset(Control::PRESET_WIDE);
+	//rich_text->set_anchors_and_margins_preset(Control::PRESET_WIDE);
 	rich_text->connect("meta_clicked", this, "_meta_clicked");
 	rich_text->add_color_override("selection_color", get_color("text_editor/theme/selection_color", "Editor"));
 	rich_text->set_override_selected_font_color(false);
 	set_custom_minimum_size(Size2(0, 70 * EDSCALE));
+}
+
+FindBar::FindBar() {
+
+	container = memnew(Control);
+	add_child(container);
+
+	container->set_clip_contents(true);
+	container->set_h_size_flags(SIZE_EXPAND_FILL);
+
+	hbc = memnew(HBoxContainer);
+	container->add_child(hbc);
+
+	vbc_search_text = memnew(VBoxContainer);
+	hbc->add_child(vbc_search_text);
+	vbc_search_text->set_h_size_flags(SIZE_EXPAND_FILL);
+	hbc->set_anchor_and_margin(MARGIN_RIGHT, 1, 0);
+
+	search_text = memnew(LineEdit);
+	vbc_search_text->add_child(search_text);
+	search_text->set_custom_minimum_size(Size2(100 * EDSCALE, 0));
+	search_text->connect("text_changed", this, "_search_text_changed");
+	search_text->connect("text_entered", this, "_search_text_entered");
+
+	find_prev = memnew(ToolButton);
+	hbc->add_child(find_prev);
+	find_prev->set_focus_mode(FOCUS_NONE);
+	find_prev->connect("pressed", this, "_search_prev");
+
+	find_next = memnew(ToolButton);
+	hbc->add_child(find_next);
+	find_next->set_focus_mode(FOCUS_NONE);
+	find_next->connect("pressed", this, "_search_next");
+
+	error_label = memnew(Label);
+	hbc->add_child(error_label);
+	error_label->add_color_override("font_color", EditorNode::get_singleton()->get_gui_base()->get_color("error_color", "Editor"));
+
+	hide_button = memnew(TextureButton);
+	add_child(hide_button);
+	hide_button->set_focus_mode(FOCUS_NONE);
+	hide_button->set_expand(true);
+	hide_button->set_stretch_mode(TextureButton::STRETCH_KEEP_CENTERED);
+	hide_button->connect("pressed", this, "_hide_pressed");
+}
+
+void FindBar::popup_search() {
+
+	show();
+	bool grabbed_focus = false;
+	if (!search_text->has_focus()) {
+		search_text->grab_focus();
+		grabbed_focus = true;
+	}
+
+	if (!search_text->get_text().empty()) {
+		search_text->select_all();
+		search_text->set_cursor_position(search_text->get_text().length());
+		if (grabbed_focus) {
+			_search();
+		}
+	}
+
+	call_deferred("_update_size");
+}
+
+void FindBar::_update_size() {
+
+	container->set_custom_minimum_size(Size2(0, hbc->get_size().height));
+}
+
+void FindBar::_notification(int p_what) {
+
+	if (p_what == NOTIFICATION_READY) {
+
+		find_prev->set_icon(get_icon("MoveUp", "EditorIcons"));
+		find_next->set_icon(get_icon("MoveDown", "EditorIcons"));
+		hide_button->set_normal_texture(get_icon("Close", "EditorIcons"));
+		hide_button->set_hover_texture(get_icon("Close", "EditorIcons"));
+		hide_button->set_pressed_texture(get_icon("Close", "EditorIcons"));
+		hide_button->set_custom_minimum_size(hide_button->get_normal_texture()->get_size());
+	} else if (p_what == NOTIFICATION_VISIBILITY_CHANGED) {
+
+		set_process_unhandled_input(is_visible_in_tree());
+	} else if (p_what == EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED) {
+
+		find_prev->set_icon(get_icon("MoveUp", "EditorIcons"));
+		find_next->set_icon(get_icon("MoveDown", "EditorIcons"));
+		hide_button->set_normal_texture(get_icon("Close", "EditorIcons"));
+		hide_button->set_hover_texture(get_icon("Close", "EditorIcons"));
+		hide_button->set_pressed_texture(get_icon("Close", "EditorIcons"));
+		hide_button->set_custom_minimum_size(hide_button->get_normal_texture()->get_size());
+	}
+}
+
+void FindBar::_bind_methods() {
+
+	ClassDB::bind_method("_unhandled_input", &FindBar::_unhandled_input);
+
+	ClassDB::bind_method("_search_text_changed", &FindBar::_search_text_changed);
+	ClassDB::bind_method("_search_text_entered", &FindBar::_search_text_entered);
+	ClassDB::bind_method("_search_next", &FindBar::search_next);
+	ClassDB::bind_method("_search_prev", &FindBar::search_prev);
+	ClassDB::bind_method("_hide_pressed", &FindBar::_hide_bar);
+	ClassDB::bind_method("_update_size", &FindBar::_update_size);
+
+	ADD_SIGNAL(MethodInfo("search"));
+}
+
+void FindBar::set_rich_text_label(RichTextLabel *p_rich_text_label) {
+
+	rich_text_label = p_rich_text_label;
+}
+
+bool FindBar::search_next() {
+
+	return _search();
+}
+
+bool FindBar::search_prev() {
+
+	return _search(true);
+}
+
+bool FindBar::_search(bool p_search_previous) {
+
+	String stext = search_text->get_text();
+	bool keep = prev_search == stext;
+
+	bool ret = rich_text_label->search(stext, keep, p_search_previous);
+	if (!ret) {
+		ret = rich_text_label->search(stext, false, p_search_previous);
+	}
+
+	prev_search = stext;
+
+	if (ret) {
+		set_error("");
+	} else {
+		set_error(stext.empty() ? "" : TTR("No Matches"));
+	}
+
+	return ret;
+}
+
+void FindBar::set_error(const String &p_label) {
+
+	error_label->set_text(p_label);
+}
+
+void FindBar::_hide_bar() {
+
+	if (search_text->has_focus())
+		rich_text_label->grab_focus();
+
+	hide();
+}
+
+void FindBar::_unhandled_input(const Ref<InputEvent> &p_event) {
+
+	Ref<InputEventKey> k = p_event;
+	if (k.is_valid()) {
+
+		if (k->is_pressed() && (rich_text_label->has_focus() || hbc->is_a_parent_of(get_focus_owner()))) {
+
+			bool accepted = true;
+
+			switch (k->get_scancode()) {
+
+				case KEY_ESCAPE: {
+
+					_hide_bar();
+				} break;
+				default: {
+
+					accepted = false;
+				} break;
+			}
+
+			if (accepted) {
+				accept_event();
+			}
+		}
+	}
+}
+
+void FindBar::_search_text_changed(const String &p_text) {
+
+	search_next();
+}
+
+void FindBar::_search_text_entered(const String &p_text) {
+
+	search_next();
 }

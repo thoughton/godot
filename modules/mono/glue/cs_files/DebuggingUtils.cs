@@ -14,7 +14,7 @@ namespace Godot
             else if (type == typeof(void))
                 sb.Append("void");
             else
-                sb.Append(type.ToString());
+                sb.Append(type);
 
             sb.Append(" ");
         }
@@ -26,10 +26,16 @@ namespace Godot
 
             MethodBase methodBase = frame.GetMethod();
 
-            StringBuilder sb = new StringBuilder();
+            if (methodBase == null)
+            {
+                methodDecl = string.Empty;
+                return;
+            }
 
-            if (methodBase is MethodInfo methodInfo)
-                sb.AppendTypeName(methodInfo.ReturnType);
+            var sb = new StringBuilder();
+
+            if (methodBase is MethodInfo)
+                sb.AppendTypeName(((MethodInfo)methodBase).ReturnType);
 
             sb.Append(methodBase.DeclaringType.FullName);
             sb.Append(".");

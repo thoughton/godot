@@ -195,7 +195,7 @@ $GODOT_HEAD_INCLUDE
 </head>
 <body>
 	<div id="container">
-		<canvas id="canvas" oncontextmenu="event.preventDefault();" width="640" height="480">
+		<canvas id="canvas" width="640" height="480">
 			HTML5 canvas appears to be unsupported in the current browser.<br />
 			Please try updating or use a different browser.
 		</canvas>
@@ -229,7 +229,7 @@ $GODOT_HEAD_INCLUDE
 
 		(function() {
 
-			const BASENAME = '$GODOT_BASENAME';
+			const MAIN_PACK = '$GODOT_BASENAME.pck';
 			const DEBUG_ENABLED = $GODOT_DEBUG_ENABLED;
 			const INDETERMINATE_STATUS_STEP_MS = 100;
 
@@ -243,9 +243,6 @@ $GODOT_HEAD_INCLUDE
 			var initializing = true;
 			var statusMode = 'hidden';
 			var indeterminiateStatusAnimationId = 0;
-
-			setStatusMode('indeterminate');
-			engine.setCanvas(canvas);
 
 			function setStatusMode(mode) {
 
@@ -367,18 +364,27 @@ $GODOT_HEAD_INCLUDE
 				});
 			}
 
-			engine.startGame(BASENAME + '.pck').then(() => {
-				setStatusMode('hidden');
-				initializing = false;
-			}, err => {
+			function displayFailureNotice(err) {
+				var msg = err.message || err;
 				if (DEBUG_ENABLED) {
-					printError(err.message);
-					console.warn(err);
+					printError(msg);
 				}
-				setStatusNotice(err.message);
+				console.error(msg);
+				setStatusNotice(msg);
 				setStatusMode('notice');
 				initializing = false;
-			});
+			};
+
+			if (!Engine.isWebGLAvailable()) {
+				displayFailureNotice("WebGL not available");
+			} else {
+				setStatusMode('indeterminate');
+				engine.setCanvas(canvas);
+				engine.startGame(MAIN_PACK).then(() => {
+					setStatusMode('hidden');
+					initializing = false;
+				}, displayFailureNotice);
+			}
 		})();
 	//]]></script>
 </body>

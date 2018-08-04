@@ -36,6 +36,7 @@
 #include "core/self_list.h"
 #include "io/resource_loader.h"
 #include "io/resource_saver.h"
+#include "oa_hash_map.h"
 #include "ordered_hash_map.h"
 #include "os/thread_safe.h"
 #include "scene/main/node.h"
@@ -53,6 +54,7 @@ struct NativeScriptDesc {
 		godot_instance_method method;
 		MethodInfo info;
 		int rpc_mode;
+		String documentation;
 	};
 	struct Property {
 		godot_property_set_func setter;
@@ -60,11 +62,15 @@ struct NativeScriptDesc {
 		PropertyInfo info;
 		Variant default_value;
 		int rset_mode;
+		String documentation;
 	};
 
 	struct Signal {
 		MethodInfo signal;
+		String documentation;
 	};
+
+	String documentation;
 
 	Map<StringName, Method> methods;
 	OrderedHashMap<StringName, Property> properties;
@@ -75,6 +81,8 @@ struct NativeScriptDesc {
 	godot_instance_create_func create_func;
 	godot_instance_destroy_func destroy_func;
 
+	const void *type_tag;
+
 	bool is_tool;
 
 	inline NativeScriptDesc() :
@@ -82,7 +90,9 @@ struct NativeScriptDesc {
 			properties(),
 			signals_(),
 			base(),
-			base_native_type() {
+			base_native_type(),
+			documentation(),
+			type_tag(NULL) {
 		zeromem(&create_func, sizeof(godot_instance_create_func));
 		zeromem(&destroy_func, sizeof(godot_instance_destroy_func));
 	}
@@ -154,6 +164,11 @@ public:
 	virtual void get_script_method_list(List<MethodInfo> *p_list) const;
 	virtual void get_script_property_list(List<PropertyInfo> *p_list) const;
 
+	String get_class_documentation() const;
+	String get_method_documentation(const StringName &p_method) const;
+	String get_signal_documentation(const StringName &p_signal_name) const;
+	String get_property_documentation(const StringName &p_path) const;
+
 	Variant _new(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
 
 	NativeScript();
@@ -166,6 +181,9 @@ class NativeScriptInstance : public ScriptInstance {
 
 	Object *owner;
 	Ref<NativeScript> script;
+#ifdef DEBUG_ENABLED
+	StringName current_method_call;
+#endif
 
 	void _ml_call_reversed(NativeScriptDesc *script_data, const StringName &p_method, const Variant **p_args, int p_argcount);
 
@@ -181,8 +199,8 @@ public:
 	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error);
 	virtual void notification(int p_notification);
 	virtual Ref<Script> get_script() const;
-	virtual RPCMode get_rpc_mode(const StringName &p_method) const;
-	virtual RPCMode get_rset_mode(const StringName &p_variable) const;
+	virtual MultiplayerAPI::RPCMode get_rpc_mode(const StringName &p_method) const;
+	virtual MultiplayerAPI::RPCMode get_rset_mode(const StringName &p_variable) const;
 	virtual ScriptLanguage *get_language();
 
 	virtual void call_multilevel(const StringName &p_method, const Variant **p_args, int p_argcount);
@@ -204,6 +222,7 @@ class NativeScriptLanguage : public ScriptLanguage {
 
 private:
 	static NativeScriptLanguage *singleton;
+	int lang_idx;
 
 	void _unload_stuff(bool p_reload = false);
 
@@ -222,6 +241,11 @@ private:
 
 	void call_libraries_cb(const StringName &name);
 
+	Vector<Pair<bool, godot_instance_binding_functions> > binding_functions;
+	Set<Vector<void *> *> binding_instances;
+
+	Map<int, HashMap<StringName, const void *> > global_type_tags;
+
 public:
 	// These two maps must only be touched on the main thread
 	Map<String, Map<StringName, NativeScriptDesc> > library_classes;
@@ -231,6 +255,8 @@ public:
 
 	const StringName _init_call_type = "nativescript_init";
 	const StringName _init_call_name = "nativescript_init";
+
+	const StringName _terminate_call_name = "nativescript_terminate";
 
 	const StringName _noarg_call_type = "nativescript_no_arg";
 
@@ -250,6 +276,8 @@ public:
 
 	void _hacky_api_anchor();
 
+	_FORCE_INLINE_ void set_language_index(int p_idx) { lang_idx = p_idx; }
+
 #ifndef NO_THREADS
 	virtual void thread_enter();
 	virtual void thread_exit();
@@ -267,7 +295,7 @@ public:
 	virtual void get_comment_delimiters(List<String> *p_delimiters) const;
 	virtual void get_string_delimiters(List<String> *p_delimiters) const;
 	virtual Ref<Script> get_template(const String &p_class_name, const String &p_base_class_name) const;
-	virtual bool validate(const String &p_script, int &r_line_error, int &r_col_error, String &r_test_error, const String &p_path, List<String> *r_functions) const;
+	virtual bool validate(const String &p_script, int &r_line_error, int &r_col_error, String &r_test_error, const String &p_path, List<String> *r_functions, Set<int> *r_safe_lines = NULL) const;
 	virtual Script *create_script() const;
 	virtual bool has_named_classes() const;
 	virtual bool supports_builtin_mode() const;
@@ -293,6 +321,17 @@ public:
 	virtual void profiling_stop();
 	virtual int profiling_get_accumulated_data(ProfilingInfo *p_info_arr, int p_info_max);
 	virtual int profiling_get_frame_data(ProfilingInfo *p_info_arr, int p_info_max);
+
+	int register_binding_functions(godot_instance_binding_functions p_binding_functions);
+	void unregister_binding_functions(int p_idx);
+
+	void *get_instance_binding_data(int p_idx, Object *p_object);
+
+	virtual void *alloc_instance_binding_data(Object *p_object);
+	virtual void free_instance_binding_data(void *p_data);
+
+	void set_global_type_tag(int p_idx, StringName p_class_name, const void *p_type_tag);
+	const void *get_global_type_tag(int p_idx, StringName p_class_name) const;
 };
 
 inline NativeScriptDesc *NativeScript::get_script_desc() const {

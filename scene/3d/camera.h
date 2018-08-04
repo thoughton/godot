@@ -97,7 +97,7 @@ protected:
 	void _update_camera_mode();
 
 	void _notification(int p_what);
-	virtual void _validate_property(PropertyInfo &property) const;
+	virtual void _validate_property(PropertyInfo &p_property) const;
 
 	static void _bind_methods();
 
@@ -113,7 +113,7 @@ public:
 	void set_projection(Camera::Projection p_mode);
 
 	void make_current();
-	void clear_current();
+	void clear_current(bool p_enable_next = true);
 	void set_current(bool p_current);
 	bool is_current() const;
 
@@ -132,15 +132,18 @@ public:
 
 	virtual Transform get_camera_transform() const;
 
-	Vector3 project_ray_normal(const Point2 &p_pos) const;
+	virtual Vector3 project_ray_normal(const Point2 &p_pos) const;
 	virtual Vector3 project_ray_origin(const Point2 &p_pos) const;
-	Vector3 project_local_ray_normal(const Point2 &p_pos) const;
+	virtual Vector3 project_local_ray_normal(const Point2 &p_pos) const;
 	virtual Point2 unproject_position(const Vector3 &p_pos) const;
 	bool is_position_behind(const Vector3 &p_pos) const;
 	virtual Vector3 project_position(const Point2 &p_point) const;
 
 	void set_cull_mask(uint32_t p_layers);
 	uint32_t get_cull_mask() const;
+
+	void set_cull_mask_bit(int p_layer, bool p_enable);
+	bool get_cull_mask_bit(int p_layer) const;
 
 	virtual Vector<Plane> get_frustum() const;
 

@@ -48,6 +48,7 @@
 #include "audio/effects/audio_effect_panner.h"
 #include "audio/effects/audio_effect_phaser.h"
 #include "audio/effects/audio_effect_pitch_shift.h"
+#include "audio/effects/audio_effect_record.h"
 #include "audio/effects/audio_effect_reverb.h"
 #include "audio/effects/audio_effect_stereo_enhance.h"
 #include "audio_server.h"
@@ -80,6 +81,7 @@ static void _debugger_get_resource_usage(List<ScriptDebuggerRemote::ResourceUsag
 ShaderTypes *shader_types = NULL;
 
 PhysicsServer *_createGodotPhysicsCallback() {
+	WARN_PRINT("The GodotPhysics 3D physics engine is deprecated and will be removed in Godot 3.2. You should use the Bullet physics engine instead (configurable in your project settings).");
 	return memnew(PhysicsServerSW);
 }
 
@@ -137,6 +139,7 @@ void register_server_types() {
 		ClassDB::register_class<AudioEffectLimiter>();
 		ClassDB::register_class<AudioEffectPitchShift>();
 		ClassDB::register_class<AudioEffectPhaser>();
+		ClassDB::register_class<AudioEffectRecord>();
 	}
 
 	ClassDB::register_virtual_class<Physics2DDirectBodyState>();
@@ -163,8 +166,8 @@ void register_server_types() {
 	GLOBAL_DEF(PhysicsServerManager::setting_property_name, "DEFAULT");
 	ProjectSettings::get_singleton()->set_custom_property_info(PhysicsServerManager::setting_property_name, PropertyInfo(Variant::STRING, PhysicsServerManager::setting_property_name, PROPERTY_HINT_ENUM, "DEFAULT"));
 
-	PhysicsServerManager::register_server("GodotPhysics", &_createGodotPhysicsCallback);
-	PhysicsServerManager::set_default_server("GodotPhysics");
+	PhysicsServerManager::register_server("GodotPhysics - deprecated", &_createGodotPhysicsCallback);
+	PhysicsServerManager::set_default_server("GodotPhysics - deprecated");
 }
 
 void unregister_server_types() {

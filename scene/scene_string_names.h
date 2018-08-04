@@ -69,7 +69,9 @@ public:
 	StringName shader_unshaded;
 	StringName shading_mode;
 	StringName tree_entered;
+	StringName tree_exiting;
 	StringName tree_exited;
+	StringName ready;
 	StringName size_flags_changed;
 	StringName minimum_size_changed;
 	StringName sleeping_state_changed;
@@ -124,6 +126,8 @@ public:
 
 	StringName _update_scroll;
 	StringName _update_xform;
+
+	StringName _clips_input;
 
 	StringName _proxgroup_add;
 	StringName _proxgroup_remove;
@@ -196,6 +200,8 @@ public:
 	StringName _default;
 
 	StringName node_configuration_warning_changed;
+
+	StringName output;
 
 	enum {
 		MAX_MATERIALS = 32

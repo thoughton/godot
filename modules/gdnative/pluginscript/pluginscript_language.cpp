@@ -103,11 +103,12 @@ Ref<Script> PluginScriptLanguage::get_template(const String &p_class_name, const
 	if (_desc.get_template_source_code) {
 		godot_string src = _desc.get_template_source_code(_data, (godot_string *)&p_class_name, (godot_string *)&p_base_class_name);
 		script->set_source_code(*(String *)&src);
+		godot_string_destroy(&src);
 	}
 	return script;
 }
 
-bool PluginScriptLanguage::validate(const String &p_script, int &r_line_error, int &r_col_error, String &r_test_error, const String &p_path, List<String> *r_functions) const {
+bool PluginScriptLanguage::validate(const String &p_script, int &r_line_error, int &r_col_error, String &r_test_error, const String &p_path, List<String> *r_functions, Set<int> *r_safe_lines) const {
 	PoolStringArray functions;
 	if (_desc.validate) {
 		bool ret = _desc.validate(

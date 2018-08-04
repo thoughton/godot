@@ -210,7 +210,7 @@ void FileDialog::_action_pressed() {
 		bool valid = false;
 
 		if (filter->get_selected() == filter->get_item_count() - 1) {
-			valid = true; //match none
+			valid = true; // match none
 		} else if (filters.size() > 1 && filter->get_selected() == 0) {
 			// match all filters
 			for (int i = 0; i < filters.size(); i++) {
@@ -287,7 +287,7 @@ bool FileDialog::_is_open_should_be_disabled() {
 	TreeItem *ti = tree->get_selected();
 	// We have something that we can't select?
 	if (!ti)
-		return true;
+		return mode != MODE_OPEN_DIR; // In "Open folder" mode, having nothing selected picks the current folder.
 
 	Dictionary d = ti->get_metadata(0);
 
@@ -319,17 +319,15 @@ void FileDialog::deselect_items() {
 
 			case MODE_OPEN_FILE:
 			case MODE_OPEN_FILES:
-				get_ok()->set_text(TTR("Open"));
-				get_ok()->set_disabled(false);
+				get_ok()->set_text(RTR("Open"));
 				break;
-
 			case MODE_OPEN_DIR:
-				get_ok()->set_text(TTR("Select Current Folder"));
-				get_ok()->set_disabled(false);
+				get_ok()->set_text(RTR("Select Current Folder"));
 				break;
 		}
 	}
 }
+
 void FileDialog::_tree_selected() {
 
 	TreeItem *ti = tree->get_selected();
@@ -341,13 +339,13 @@ void FileDialog::_tree_selected() {
 
 		file->set_text(d["name"]);
 	} else if (mode == MODE_OPEN_DIR) {
-		get_ok()->set_text(TTR("Select this Folder"));
+		get_ok()->set_text(RTR("Select this Folder"));
 	}
 
 	get_ok()->set_disabled(_is_open_should_be_disabled());
 }
 
-void FileDialog::_tree_dc_selected() {
+void FileDialog::_tree_item_activated() {
 
 	TreeItem *ti = tree->get_selected();
 	if (!ti)
@@ -756,7 +754,7 @@ void FileDialog::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_unhandled_input"), &FileDialog::_unhandled_input);
 
 	ClassDB::bind_method(D_METHOD("_tree_selected"), &FileDialog::_tree_selected);
-	ClassDB::bind_method(D_METHOD("_tree_db_selected"), &FileDialog::_tree_dc_selected);
+	ClassDB::bind_method(D_METHOD("_tree_item_activated"), &FileDialog::_tree_item_activated);
 	ClassDB::bind_method(D_METHOD("_dir_entered"), &FileDialog::_dir_entered);
 	ClassDB::bind_method(D_METHOD("_file_entered"), &FileDialog::_file_entered);
 	ClassDB::bind_method(D_METHOD("_action_pressed"), &FileDialog::_action_pressed);
@@ -779,6 +777,7 @@ void FileDialog::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_mode", "mode"), &FileDialog::set_mode);
 	ClassDB::bind_method(D_METHOD("get_mode"), &FileDialog::get_mode);
 	ClassDB::bind_method(D_METHOD("get_vbox"), &FileDialog::get_vbox);
+	ClassDB::bind_method(D_METHOD("get_line_edit"), &FileDialog::get_line_edit);
 	ClassDB::bind_method(D_METHOD("set_access", "access"), &FileDialog::set_access);
 	ClassDB::bind_method(D_METHOD("get_access"), &FileDialog::get_access);
 	ClassDB::bind_method(D_METHOD("set_show_hidden_files", "show"), &FileDialog::set_show_hidden_files);
@@ -793,6 +792,15 @@ void FileDialog::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("invalidate"), &FileDialog::invalidate);
 
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "mode_overrides_title"), "set_mode_overrides_title", "is_mode_overriding_title");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "mode", PROPERTY_HINT_ENUM, "Open one,Open many,Open folder,Open any,Save"), "set_mode", "get_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "access", PROPERTY_HINT_ENUM, "Resources,User data,File system"), "set_access", "get_access");
+	ADD_PROPERTY(PropertyInfo(Variant::POOL_STRING_ARRAY, "filters"), "set_filters", "get_filters");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "show_hidden_files"), "set_show_hidden_files", "is_showing_hidden_files");
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "current_dir"), "set_current_dir", "get_current_dir");
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "current_file"), "set_current_file", "get_current_file");
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "current_path"), "set_current_path", "get_current_path");
+
 	ADD_SIGNAL(MethodInfo("file_selected", PropertyInfo(Variant::STRING, "path")));
 	ADD_SIGNAL(MethodInfo("files_selected", PropertyInfo(Variant::POOL_STRING_ARRAY, "paths")));
 	ADD_SIGNAL(MethodInfo("dir_selected", PropertyInfo(Variant::STRING, "dir")));
@@ -806,12 +814,6 @@ void FileDialog::_bind_methods() {
 	BIND_ENUM_CONSTANT(ACCESS_RESOURCES);
 	BIND_ENUM_CONSTANT(ACCESS_USERDATA);
 	BIND_ENUM_CONSTANT(ACCESS_FILESYSTEM);
-
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "mode_overrides_title"), "set_mode_overrides_title", "is_mode_overriding_title");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "mode", PROPERTY_HINT_ENUM, "Open one,Open many,Open folder,Open any,Save"), "set_mode", "get_mode");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "access", PROPERTY_HINT_ENUM, "Resources,User data,File system"), "set_access", "get_access");
-	ADD_PROPERTY(PropertyInfo(Variant::POOL_STRING_ARRAY, "filters"), "set_filters", "get_filters");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "show_hidden_files"), "set_show_hidden_files", "is_showing_hidden_files");
 }
 
 void FileDialog::set_show_hidden_files(bool p_show) {
@@ -842,7 +844,7 @@ FileDialog::FileDialog() {
 	HBoxContainer *hbc = memnew(HBoxContainer);
 
 	dir_up = memnew(ToolButton);
-	dir_up->set_tooltip(TTR("Go to parent folder"));
+	dir_up->set_tooltip(RTR("Go to parent folder"));
 	hbc->add_child(dir_up);
 	dir_up->connect("pressed", this, "_go_up");
 
@@ -878,7 +880,7 @@ FileDialog::FileDialog() {
 	filter = memnew(OptionButton);
 	filter->set_stretch_ratio(3);
 	filter->set_h_size_flags(SIZE_EXPAND_FILL);
-	filter->set_clip_text(true); //too many extensions overflow it
+	filter->set_clip_text(true); // too many extensions overflows it
 	hbc->add_child(filter);
 	vbc->add_child(hbc);
 
@@ -887,9 +889,8 @@ FileDialog::FileDialog() {
 	_update_drives();
 
 	connect("confirmed", this, "_action_pressed");
-	//cancel->connect("pressed", this,"_cancel_pressed");
 	tree->connect("cell_selected", this, "_tree_selected", varray(), CONNECT_DEFERRED);
-	tree->connect("item_activated", this, "_tree_db_selected", varray());
+	tree->connect("item_activated", this, "_tree_item_activated", varray());
 	tree->connect("nothing_selected", this, "deselect_items");
 	dir->connect("text_entered", this, "_dir_entered");
 	file->connect("text_entered", this, "_file_entered");
@@ -919,7 +920,6 @@ FileDialog::FileDialog() {
 	exterr->set_text(RTR("Must use a valid extension."));
 	add_child(exterr);
 
-	//update_file_list();
 	update_filters();
 	update_dir();
 

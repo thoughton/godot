@@ -144,13 +144,13 @@ private:
 
 	Vector<Cell> cells;
 
-	bool collapsed; // wont show childs
+	bool collapsed; // won't show children
 	bool disable_folding;
 	int custom_min_height;
 
 	TreeItem *parent; // parent item
 	TreeItem *next; // next in list
-	TreeItem *childs; //child items
+	TreeItem *children; //child items
 	Tree *tree; //tree (for reference)
 
 	TreeItem(Tree *p_tree);
@@ -507,6 +507,10 @@ private:
 	ValueEvaluator *evaluator;
 
 	int _count_selected_items(TreeItem *p_from) const;
+	void _go_left();
+	void _go_right();
+	void _go_down();
+	void _go_up();
 
 protected:
 	static void _bind_methods();
@@ -542,11 +546,13 @@ public:
 	int get_column_width(int p_column) const;
 
 	void set_hide_root(bool p_enabled);
+	bool is_root_hidden() const;
 	TreeItem *get_next_selected(TreeItem *p_item);
 	TreeItem *get_selected() const;
 	int get_selected_column() const;
 	int get_pressed_button() const;
 	void set_select_mode(SelectMode p_mode);
+	SelectMode get_select_mode() const;
 	void deselect_all();
 	bool is_anything_selected();
 

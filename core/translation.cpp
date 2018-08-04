@@ -34,6 +34,14 @@
 #include "os/os.h"
 #include "project_settings.h"
 
+// ISO 639-1 language codes, with the addition of glibc locales with their
+// regional identifiers. This list must match the language names (in English)
+// of locale_names.
+//
+// References:
+// - https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+// - https://lh.2xlibre.net/locales/
+
 static const char *locale_list[] = {
 	"aa", //  Afar
 	"aa_DJ", //  Afar (Djibouti)
@@ -756,8 +764,17 @@ static const char *locale_names[] = {
 	0
 };
 
+// Windows has some weird locale identifiers which do not honor the ISO 639-1
+// standardized nomenclature. Whenever those don't conflict with existing ISO
+// identifiers, we override them.
+//
+// Reference:
+// - https://msdn.microsoft.com/en-us/library/windows/desktop/ms693062(v=vs.85).aspx
+
 static const char *locale_renames[][2] = {
-	{ "no", "nb" },
+	{ "in", "id" }, //  Indonesian
+	{ "iw", "he" }, //  Hebrew
+	{ "no", "nb" }, //  Norwegian Bokmål
 	{ NULL, NULL }
 };
 
@@ -873,7 +890,7 @@ void Translation::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_set_messages"), &Translation::_set_messages);
 	ClassDB::bind_method(D_METHOD("_get_messages"), &Translation::_get_messages);
 
-	ADD_PROPERTY(PropertyInfo(Variant::POOL_STRING_ARRAY, "messages", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "_set_messages", "_get_messages");
+	ADD_PROPERTY(PropertyInfo(Variant::POOL_STRING_ARRAY, "messages", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL), "_set_messages", "_get_messages");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "locale"), "set_locale", "get_locale");
 }
 
@@ -1154,13 +1171,11 @@ void TranslationServer::_bind_methods() {
 void TranslationServer::load_translations() {
 
 	String locale = get_locale();
-	bool found = _load_translations("locale/translations"); //all
+	_load_translations("locale/translations"); //all
+	_load_translations("locale/translations_" + locale.substr(0, 2));
 
-	if (_load_translations("locale/translations_" + locale.substr(0, 2)))
-		found = true;
 	if (locale.substr(0, 2) != locale) {
-		if (_load_translations("locale/translations_" + locale))
-			found = true;
+		_load_translations("locale/translations_" + locale);
 	}
 }
 

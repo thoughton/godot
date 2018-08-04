@@ -55,9 +55,9 @@ void NavigationMesh::create_from_mesh(const Ref<Mesh> &p_mesh) {
 		for (int j = 0; j < rlen; j += 3) {
 			Vector<int> vi;
 			vi.resize(3);
-			vi[0] = r[j + 0] + from;
-			vi[1] = r[j + 1] + from;
-			vi[2] = r[j + 2] + from;
+			vi.write[0] = r[j + 0] + from;
+			vi.write[1] = r[j + 1] + from;
+			vi.write[2] = r[j + 2] + from;
 
 			add_polygon(vi);
 		}
@@ -215,7 +215,7 @@ void NavigationMesh::_set_polygons(const Array &p_array) {
 
 	polygons.resize(p_array.size());
 	for (int i = 0; i < p_array.size(); i++) {
-		polygons[i].indices = p_array[i];
+		polygons.write[i].indices = p_array[i];
 	}
 }
 
@@ -405,8 +405,8 @@ void NavigationMesh::_bind_methods() {
 	BIND_CONSTANT(SAMPLE_PARTITION_MONOTONE);
 	BIND_CONSTANT(SAMPLE_PARTITION_LAYERS);
 
-	ADD_PROPERTY(PropertyInfo(Variant::POOL_VECTOR3_ARRAY, "vertices", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_vertices", "get_vertices");
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "polygons", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "_set_polygons", "_get_polygons");
+	ADD_PROPERTY(PropertyInfo(Variant::POOL_VECTOR3_ARRAY, "vertices", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL), "set_vertices", "get_vertices");
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "polygons", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL), "_set_polygons", "_get_polygons");
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "sample_partition_type/sample_partition_type", PROPERTY_HINT_ENUM, "Watershed,Monotone,Layers"), "set_sample_partition_type", "get_sample_partition_type");
 

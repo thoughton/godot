@@ -39,7 +39,7 @@
 	@author Bastiaan Olij <mux213@gmail.com>
 
 	Base class for all the classes in this file, handles a number of code functions that are shared among all meshes.
-	This class is set appart that it assumes a single surface is always generated for our mesh.
+	This class is set apart that it assumes a single surface is always generated for our mesh.
 */
 class PrimitiveMesh : public Mesh {
 
@@ -48,8 +48,10 @@ class PrimitiveMesh : public Mesh {
 private:
 	RID mesh;
 	mutable AABB aabb;
+	AABB custom_aabb;
 
 	Ref<Material> material;
+	bool flip_faces;
 
 	mutable bool pending_request;
 	void _update() const;
@@ -80,6 +82,12 @@ public:
 	Ref<Material> get_material() const;
 
 	Array get_mesh_arrays() const;
+
+	void set_custom_aabb(const AABB &p_custom);
+	AABB get_custom_aabb() const;
+
+	void set_flip_faces(bool p_enable);
+	bool get_flip_faces() const;
 
 	PrimitiveMesh();
 	~PrimitiveMesh();
@@ -189,7 +197,7 @@ public:
 };
 
 /**
-	Similar to quadmesh but with tesselation support
+	Similar to quadmesh but with tessellation support
 */
 class PlaneMesh : public PrimitiveMesh {
 

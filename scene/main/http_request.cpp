@@ -30,8 +30,6 @@
 
 #include "http_request.h"
 
-#include "version.h"
-
 void HTTPRequest::_redirect_request(const String &p_new_url) {
 }
 
@@ -106,27 +104,9 @@ Error HTTPRequest::request(const String &p_url, const Vector<String> &p_custom_h
 
 	validate_ssl = p_ssl_validate_domain;
 
-	bool has_user_agent = false;
-	bool has_accept = false;
 	headers = p_custom_headers;
 
 	request_data = p_request_data;
-
-	for (int i = 0; i < headers.size(); i++) {
-
-		if (headers[i].findn("user-agent:") == 0)
-			has_user_agent = true;
-		if (headers[i].findn("Accept:") == 0)
-			has_accept = true;
-	}
-
-	if (!has_user_agent) {
-		headers.push_back("User-Agent: GodotEngine/" + String(VERSION_MKSTRING) + " (" + OS::get_singleton()->get_name() + ")");
-	}
-
-	if (!has_accept) {
-		headers.push_back("Accept: */*");
-	}
 
 	requesting = true;
 
@@ -524,6 +504,7 @@ void HTTPRequest::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_redirect_request"), &HTTPRequest::_redirect_request);
 	ClassDB::bind_method(D_METHOD("_request_done"), &HTTPRequest::_request_done);
 
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "download_file", PROPERTY_HINT_FILE), "set_download_file", "get_download_file");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_threads"), "set_use_threads", "is_using_threads");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "body_size_limit", PROPERTY_HINT_RANGE, "-1,2000000000"), "set_body_size_limit", "get_body_size_limit");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "max_redirects", PROPERTY_HINT_RANGE, "-1,64"), "set_max_redirects", "get_max_redirects");

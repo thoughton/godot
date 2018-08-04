@@ -104,7 +104,6 @@ struct Vector2 {
 
 	real_t dot(const Vector2 &p_other) const;
 	real_t cross(const Vector2 &p_other) const;
-	Vector2 cross(real_t p_other) const;
 	Vector2 project(const Vector2 &p_vec) const;
 
 	Vector2 plane_project(real_t p_d, const Vector2 &p_vec) const;
@@ -113,6 +112,7 @@ struct Vector2 {
 
 	_FORCE_INLINE_ static Vector2 linear_interpolate(const Vector2 &p_a, const Vector2 &p_b, real_t p_t);
 	_FORCE_INLINE_ Vector2 linear_interpolate(const Vector2 &p_b, real_t p_t) const;
+	_FORCE_INLINE_ Vector2 slerp(const Vector2 &p_b, real_t p_t) const;
 	Vector2 cubic_interpolate(const Vector2 &p_b, const Vector2 &p_pre_a, const Vector2 &p_post_b, real_t p_t) const;
 
 	Vector2 slide(const Vector2 &p_normal) const;
@@ -163,6 +163,8 @@ struct Vector2 {
 	}
 
 	Vector2 floor() const;
+	Vector2 ceil() const;
+	Vector2 round() const;
 	Vector2 snapped(const Vector2 &p_by) const;
 	real_t aspect() const { return width / height; }
 
@@ -262,6 +264,14 @@ Vector2 Vector2::linear_interpolate(const Vector2 &p_b, real_t p_t) const {
 	return res;
 }
 
+Vector2 Vector2::slerp(const Vector2 &p_b, real_t p_t) const {
+#ifdef MATH_CHECKS
+	ERR_FAIL_COND_V(is_normalized() == false, Vector2());
+#endif
+	real_t theta = angle_to(p_b);
+	return rotated(theta * p_t);
+}
+
 Vector2 Vector2::linear_interpolate(const Vector2 &p_a, const Vector2 &p_b, real_t p_t) {
 
 	Vector2 res = p_a;
@@ -304,7 +314,7 @@ struct Rect2 {
 
 	inline real_t distance_to(const Vector2 &p_point) const {
 
-		real_t dist;
+		real_t dist = 0.0;
 		bool inside = true;
 
 		if (p_point.x < position.x) {

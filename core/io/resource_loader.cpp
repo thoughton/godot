@@ -202,7 +202,8 @@ RES ResourceLoader::load(const String &p_path, const String &p_type_hint, bool p
 
 		if (OS::get_singleton()->is_stdout_verbose())
 			print_line("load resource: " + local_path + " (cached)");
-
+		if (r_error)
+			*r_error = OK;
 		return RES(ResourceCache::get(local_path));
 	}
 
@@ -555,7 +556,7 @@ void ResourceLoader::load_translation_remaps() {
 		Vector<String> lang_remaps;
 		lang_remaps.resize(langs.size());
 		for (int i = 0; i < langs.size(); i++) {
-			lang_remaps[i] = langs[i];
+			lang_remaps.write[i] = langs[i];
 		}
 
 		translation_remaps[String(E->get())] = lang_remaps;

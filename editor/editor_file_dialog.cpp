@@ -458,6 +458,23 @@ void EditorFileDialog::_item_selected(int p_item) {
 	get_ok()->set_disabled(_is_open_should_be_disabled());
 }
 
+void EditorFileDialog::_multi_selected(int p_item, bool p_selected) {
+
+	int current = p_item;
+	if (current < 0 || current >= item_list->get_item_count())
+		return;
+
+	Dictionary d = item_list->get_item_metadata(current);
+
+	if (!d["dir"] && p_selected) {
+
+		file->set_text(d["name"]);
+		_request_single_thumbnail(get_current_dir().plus_file(get_current_file()));
+	}
+
+	get_ok()->set_disabled(_is_open_should_be_disabled());
+}
+
 void EditorFileDialog::_items_clear_selection() {
 
 	item_list->unselect_all();
@@ -534,7 +551,7 @@ void EditorFileDialog::_item_list_item_rmb_selected(int p_item, const Vector2 &p
 	}
 
 	if (single_item_selected) {
-		item_menu->add_icon_item(get_icon("CopyNodePath", "EditorIcons"), TTR("Copy Path"), ITEM_MENU_COPY_PATH);
+		item_menu->add_icon_item(get_icon("ActionCopy", "EditorIcons"), TTR("Copy Path"), ITEM_MENU_COPY_PATH);
 	}
 	if (allow_delete) {
 		item_menu->add_icon_item(get_icon("Remove", "EditorIcons"), TTR("Delete"), ITEM_MENU_DELETE, KEY_DELETE);
@@ -561,7 +578,7 @@ void EditorFileDialog::_item_list_rmb_clicked(const Vector2 &p_pos) {
 	item_menu->set_size(Size2(1, 1));
 
 	if (can_create_dir) {
-		item_menu->add_icon_item(get_icon("folder", "FileDialog"), TTR("New Folder.."), ITEM_MENU_NEW_FOLDER, KEY_MASK_CMD | KEY_N);
+		item_menu->add_icon_item(get_icon("folder", "FileDialog"), TTR("New Folder..."), ITEM_MENU_NEW_FOLDER, KEY_MASK_CMD | KEY_N);
 	}
 	item_menu->add_icon_item(get_icon("Reload", "EditorIcons"), TTR("Refresh"), ITEM_MENU_REFRESH, KEY_F5);
 	item_menu->add_separator();
@@ -1010,6 +1027,7 @@ void EditorFileDialog::invalidate() {
 
 	if (is_visible_in_tree()) {
 		update_file_list();
+		_update_favorites();
 		invalidated = false;
 	} else {
 		invalidated = true;
@@ -1117,7 +1135,7 @@ void EditorFileDialog::_favorite_move_up() {
 
 		if (a_idx == -1 || b_idx == -1)
 			return;
-		SWAP(favorited[a_idx], favorited[b_idx]);
+		SWAP(favorited.write[a_idx], favorited.write[b_idx]);
 
 		EditorSettings::get_singleton()->set_favorite_dirs(favorited);
 
@@ -1137,7 +1155,7 @@ void EditorFileDialog::_favorite_move_down() {
 
 		if (a_idx == -1 || b_idx == -1)
 			return;
-		SWAP(favorited[a_idx], favorited[b_idx]);
+		SWAP(favorited.write[a_idx], favorited.write[b_idx]);
 
 		EditorSettings::get_singleton()->set_favorite_dirs(favorited);
 
@@ -1290,6 +1308,7 @@ void EditorFileDialog::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_unhandled_input"), &EditorFileDialog::_unhandled_input);
 
 	ClassDB::bind_method(D_METHOD("_item_selected"), &EditorFileDialog::_item_selected);
+	ClassDB::bind_method(D_METHOD("_multi_selected"), &EditorFileDialog::_multi_selected);
 	ClassDB::bind_method(D_METHOD("_items_clear_selection"), &EditorFileDialog::_items_clear_selection);
 	ClassDB::bind_method(D_METHOD("_item_list_item_rmb_selected"), &EditorFileDialog::_item_list_item_rmb_selected);
 	ClassDB::bind_method(D_METHOD("_item_list_rmb_clicked"), &EditorFileDialog::_item_list_rmb_clicked);
@@ -1598,6 +1617,7 @@ EditorFileDialog::EditorFileDialog() {
 
 	connect("confirmed", this, "_action_pressed");
 	item_list->connect("item_selected", this, "_item_selected", varray(), CONNECT_DEFERRED);
+	item_list->connect("multi_selected", this, "_multi_selected", varray(), CONNECT_DEFERRED);
 	item_list->connect("item_activated", this, "_item_db_selected", varray());
 	item_list->connect("nothing_selected", this, "_items_clear_selection");
 	dir->connect("text_entered", this, "_dir_entered");

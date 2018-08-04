@@ -154,7 +154,7 @@ public:
 	/// AREA_PARAM_GRAVITY_VECTOR
 	/// Otherwise you can set area parameters
 	virtual void area_set_param(RID p_area, AreaParameter p_param, const Variant &p_value);
-	virtual Variant area_get_param(RID p_parea, AreaParameter p_param) const;
+	virtual Variant area_get_param(RID p_area, AreaParameter p_param) const;
 
 	virtual void area_set_transform(RID p_area, const Transform &p_transform);
 	virtual Transform area_get_transform(RID p_area) const;
@@ -213,6 +213,9 @@ public:
 	virtual void body_set_param(RID p_body, BodyParameter p_param, float p_value);
 	virtual float body_get_param(RID p_body, BodyParameter p_param) const;
 
+	virtual void body_set_combine_mode(RID p_body, BodyParameter p_param, CombineMode p_mode);
+	virtual CombineMode body_get_combine_mode(RID p_body, BodyParameter p_param) const;
+
 	virtual void body_set_kinematic_safe_margin(RID p_body, real_t p_margin);
 	virtual real_t body_get_kinematic_safe_margin(RID p_body) const;
 
@@ -225,6 +228,11 @@ public:
 	virtual void body_set_applied_torque(RID p_body, const Vector3 &p_torque);
 	virtual Vector3 body_get_applied_torque(RID p_body) const;
 
+	virtual void body_add_central_force(RID p_body, const Vector3 &p_force);
+	virtual void body_add_force(RID p_body, const Vector3 &p_force, const Vector3 &p_pos);
+	virtual void body_add_torque(RID p_body, const Vector3 &p_torque);
+
+	virtual void body_apply_central_impulse(RID p_body, const Vector3 &p_impulse);
 	virtual void body_apply_impulse(RID p_body, const Vector3 &p_pos, const Vector3 &p_impulse);
 	virtual void body_apply_torque_impulse(RID p_body, const Vector3 &p_impulse);
 	virtual void body_set_axis_velocity(RID p_body, const Vector3 &p_axis_velocity);
@@ -239,7 +247,7 @@ public:
 	virtual void body_set_max_contacts_reported(RID p_body, int p_contacts);
 	virtual int body_get_max_contacts_reported(RID p_body) const;
 
-	virtual void body_set_contacts_reported_depth_threshold(RID p_body, float p_treshold);
+	virtual void body_set_contacts_reported_depth_threshold(RID p_body, float p_threshold);
 	virtual float body_get_contacts_reported_depth_threshold(RID p_body) const;
 
 	virtual void body_set_omit_force_integration(RID p_body, bool p_omit);
@@ -253,16 +261,18 @@ public:
 	// this function only works on physics process, errors and returns null otherwise
 	virtual PhysicsDirectBodyState *body_get_direct_state(RID p_body);
 
-	virtual bool body_test_motion(RID p_body, const Transform &p_from, const Vector3 &p_motion, MotionResult *r_result = NULL);
+	virtual bool body_test_motion(RID p_body, const Transform &p_from, const Vector3 &p_motion, bool p_infinite_inertia, MotionResult *r_result = NULL);
 
 	/* SOFT BODY API */
 
 	virtual RID soft_body_create(bool p_init_sleeping = false);
 
+	virtual void soft_body_update_visual_server(RID p_body, class SoftBodyVisualServerHandler *p_visual_server_handler);
+
 	virtual void soft_body_set_space(RID p_body, RID p_space);
 	virtual RID soft_body_get_space(RID p_body) const;
 
-	virtual void soft_body_set_trimesh_body_shape(RID p_body, PoolVector<int> p_indices, PoolVector<Vector3> p_vertices, int p_triangles_num);
+	virtual void soft_body_set_mesh(RID p_body, const REF &p_mesh);
 
 	virtual void soft_body_set_collision_layer(RID p_body, uint32_t p_layer);
 	virtual uint32_t soft_body_get_collision_layer(RID p_body) const;
@@ -277,11 +287,48 @@ public:
 	virtual void soft_body_set_state(RID p_body, BodyState p_state, const Variant &p_variant);
 	virtual Variant soft_body_get_state(RID p_body, BodyState p_state) const;
 
+	/// Special function. This function has bad performance
 	virtual void soft_body_set_transform(RID p_body, const Transform &p_transform);
-	virtual Transform soft_body_get_transform(RID p_body) const;
+	virtual Vector3 soft_body_get_vertex_position(RID p_body, int vertex_index) const;
 
 	virtual void soft_body_set_ray_pickable(RID p_body, bool p_enable);
 	virtual bool soft_body_is_ray_pickable(RID p_body) const;
+
+	virtual void soft_body_set_simulation_precision(RID p_body, int p_simulation_precision);
+	virtual int soft_body_get_simulation_precision(RID p_body);
+
+	virtual void soft_body_set_total_mass(RID p_body, real_t p_total_mass);
+	virtual real_t soft_body_get_total_mass(RID p_body);
+
+	virtual void soft_body_set_linear_stiffness(RID p_body, real_t p_stiffness);
+	virtual real_t soft_body_get_linear_stiffness(RID p_body);
+
+	virtual void soft_body_set_areaAngular_stiffness(RID p_body, real_t p_stiffness);
+	virtual real_t soft_body_get_areaAngular_stiffness(RID p_body);
+
+	virtual void soft_body_set_volume_stiffness(RID p_body, real_t p_stiffness);
+	virtual real_t soft_body_get_volume_stiffness(RID p_body);
+
+	virtual void soft_body_set_pressure_coefficient(RID p_body, real_t p_pressure_coefficient);
+	virtual real_t soft_body_get_pressure_coefficient(RID p_body);
+
+	virtual void soft_body_set_pose_matching_coefficient(RID p_body, real_t p_pose_matching_coefficient);
+	virtual real_t soft_body_get_pose_matching_coefficient(RID p_body);
+
+	virtual void soft_body_set_damping_coefficient(RID p_body, real_t p_damping_coefficient);
+	virtual real_t soft_body_get_damping_coefficient(RID p_body);
+
+	virtual void soft_body_set_drag_coefficient(RID p_body, real_t p_drag_coefficient);
+	virtual real_t soft_body_get_drag_coefficient(RID p_body);
+
+	virtual void soft_body_move_point(RID p_body, int p_point_index, const Vector3 &p_global_position);
+	virtual Vector3 soft_body_get_point_global_position(RID p_body, int p_point_index);
+
+	virtual Vector3 soft_body_get_point_offset(RID p_body, int p_point_index) const;
+
+	virtual void soft_body_remove_all_pinned_points(RID p_body);
+	virtual void soft_body_pin_point(RID p_body, int p_point_index, bool p_pin);
+	virtual bool soft_body_is_point_pinned(RID p_body, int p_point_index);
 
 	/* JOINT API */
 
@@ -289,6 +336,9 @@ public:
 
 	virtual void joint_set_solver_priority(RID p_joint, int p_priority);
 	virtual int joint_get_solver_priority(RID p_joint) const;
+
+	virtual void joint_disable_collisions_between_bodies(RID p_joint, const bool p_disable);
+	virtual bool joint_is_disabled_collisions_between_bodies(RID p_joint) const;
 
 	virtual RID joint_create_pin(RID p_body_A, const Vector3 &p_local_A, RID p_body_B, const Vector3 &p_local_B);
 
@@ -301,7 +351,7 @@ public:
 	virtual void pin_joint_set_local_b(RID p_joint, const Vector3 &p_B);
 	virtual Vector3 pin_joint_get_local_b(RID p_joint) const;
 
-	virtual RID joint_create_hinge(RID p_body_A, const Transform &p_frame_A, RID p_body_B, const Transform &p_frame_B);
+	virtual RID joint_create_hinge(RID p_body_A, const Transform &p_hinge_A, RID p_body_B, const Transform &p_hinge_B);
 	virtual RID joint_create_hinge_simple(RID p_body_A, const Vector3 &p_pivot_A, const Vector3 &p_axis_A, RID p_body_B, const Vector3 &p_pivot_B, const Vector3 &p_axis_B);
 
 	virtual void hinge_joint_set_param(RID p_joint, HingeJointParam p_param, float p_value);

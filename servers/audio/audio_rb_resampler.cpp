@@ -41,7 +41,7 @@ int AudioRBResampler::get_channel_count() const {
 	return channels;
 }
 
-// Linear interpolation based sample rate convertion (low quality)
+// Linear interpolation based sample rate conversion (low quality)
 // Note that AudioStreamPlaybackResampled::mix has better algorithm,
 // but it wasn't obvious to integrate that with VideoPlayer
 template <int C>
@@ -100,6 +100,8 @@ uint32_t AudioRBResampler::_resample(AudioFrame *p_dest, int p_todo, int32_t p_i
 
 		if (C == 6) {
 
+			// FIXME: Lot of unused assignments here, but it seems like intermediate calculations
+			// should be done as for C == 2 (C == 4 also has some unused assignments).
 			float v0 = rb[(pos * 6) + 0];
 			float v1 = rb[(pos * 6) + 1];
 			float v2 = rb[(pos * 6) + 2];

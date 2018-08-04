@@ -31,8 +31,10 @@
 #ifndef EDITOR_PLUGIN_H
 #define EDITOR_PLUGIN_H
 
+#include "editor/editor_inspector.h"
 #include "editor/import/editor_import_plugin.h"
 #include "editor/import/resource_importer_scene.h"
+#include "editor/script_create_dialog.h"
 #include "io/config_file.h"
 #include "scene/gui/tool_button.h"
 #include "scene/main/node.h"
@@ -90,6 +92,9 @@ public:
 
 	Control *get_base_control();
 
+	void set_plugin_enabled(const String &p_plugin, bool p_enabled);
+	bool is_plugin_enabled(const String &p_plugin) const;
+
 	Error save_scene();
 	void save_scene_as(const String &p_scene, bool p_with_preview = true);
 
@@ -145,6 +150,7 @@ public:
 	//TODO: send a resource for editing to the editor node?
 
 	void add_control_to_container(CustomControlContainer p_location, Control *p_control);
+	void remove_control_from_container(CustomControlContainer p_location, Control *p_control);
 	ToolButton *add_control_to_bottom_panel(Control *p_control, const String &p_title);
 	void add_control_to_dock(DockSlot p_slot, Control *p_control);
 	void remove_control_from_docks(Control *p_control);
@@ -163,6 +169,7 @@ public:
 	void notify_main_screen_changed(const String &screen_name);
 	void notify_scene_changed(const Node *scn_root);
 	void notify_scene_closed(const String &scene_filepath);
+	void notify_resource_saved(const Ref<Resource> &p_resource);
 
 	virtual Ref<SpatialEditorGizmo> create_spatial_gizmo(Spatial *p_spatial);
 	virtual bool forward_canvas_gui_input(const Ref<InputEvent> &p_event);
@@ -178,7 +185,7 @@ public:
 	virtual bool handles(Object *p_object) const;
 	virtual Dictionary get_state() const; //save editor state so it can't be reloaded when reloading scene
 	virtual void set_state(const Dictionary &p_state); //restore editor state (likely was saved with the scene)
-	virtual void clear(); // clear any temporary data in te editor, reset it (likely new scene or load another scene)
+	virtual void clear(); // clear any temporary data in the editor, reset it (likely new scene or load another scene)
 	virtual void save_external_data(); // if editor references external resources/scenes, save them
 	virtual void apply_changes(); // if changes are pending in editor, apply them
 	virtual void get_breakpoints(List<String> *p_breakpoints);
@@ -186,8 +193,10 @@ public:
 	virtual void set_window_layout(Ref<ConfigFile> p_layout);
 	virtual void get_window_layout(Ref<ConfigFile> p_layout);
 	virtual void edited_scene_changed() {} // if changes are pending in editor, apply them
+	virtual bool build(); // builds with external tools. Returns true if safe to continue running scene.
 
 	EditorInterface *get_editor_interface();
+	ScriptCreateDialog *get_script_create_dialog();
 
 	int update_overlays() const;
 
@@ -205,8 +214,14 @@ public:
 	void add_export_plugin(const Ref<EditorExportPlugin> &p_exporter);
 	void remove_export_plugin(const Ref<EditorExportPlugin> &p_exporter);
 
+	void add_inspector_plugin(const Ref<EditorInspectorPlugin> &p_plugin);
+	void remove_inspector_plugin(const Ref<EditorInspectorPlugin> &p_plugin);
+
 	void add_scene_import_plugin(const Ref<EditorSceneImporter> &p_importer);
 	void remove_scene_import_plugin(const Ref<EditorSceneImporter> &p_importer);
+
+	void add_autoload_singleton(const String &p_name, const String &p_path);
+	void remove_autoload_singleton(const String &p_name);
 
 	EditorPlugin();
 	virtual ~EditorPlugin();

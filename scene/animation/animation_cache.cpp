@@ -43,7 +43,7 @@ void AnimationCache::_node_exit_tree(Node *p_node) {
 		if (path_cache[i].node != p_node)
 			continue;
 
-		path_cache[i].valid = false; //invalidate path cache
+		path_cache.write[i].valid = false; //invalidate path cache
 	}
 }
 
@@ -56,7 +56,7 @@ void AnimationCache::_clear_cache() {
 
 	while (connected_nodes.size()) {
 
-		connected_nodes.front()->get()->disconnect("tree_exited", this, "_node_exit_tree");
+		connected_nodes.front()->get()->disconnect("tree_exiting", this, "_node_exit_tree");
 		connected_nodes.erase(connected_nodes.front());
 	}
 	path_cache.clear();
@@ -181,7 +181,7 @@ void AnimationCache::_update_cache() {
 
 		if (!connected_nodes.has(path.node)) {
 			connected_nodes.insert(path.node);
-			path.node->connect("tree_exited", this, "_node_exit_tree", Node::make_binds(path.node), CONNECT_ONESHOT);
+			path.node->connect("tree_exiting", this, "_node_exit_tree", Node::make_binds(path.node), CONNECT_ONESHOT);
 		}
 	}
 
@@ -196,7 +196,7 @@ void AnimationCache::set_track_transform(int p_idx, const Transform &p_transform
 
 	ERR_FAIL_COND(!cache_valid);
 	ERR_FAIL_INDEX(p_idx, path_cache.size());
-	Path &p = path_cache[p_idx];
+	Path &p = path_cache.write[p_idx];
 	if (!p.valid)
 		return;
 
@@ -217,7 +217,7 @@ void AnimationCache::set_track_value(int p_idx, const Variant &p_value) {
 
 	ERR_FAIL_COND(!cache_valid);
 	ERR_FAIL_INDEX(p_idx, path_cache.size());
-	Path &p = path_cache[p_idx];
+	Path &p = path_cache.write[p_idx];
 	if (!p.valid)
 		return;
 
@@ -232,7 +232,7 @@ void AnimationCache::call_track(int p_idx, const StringName &p_method, const Var
 
 	ERR_FAIL_COND(!cache_valid);
 	ERR_FAIL_INDEX(p_idx, path_cache.size());
-	Path &p = path_cache[p_idx];
+	Path &p = path_cache.write[p_idx];
 	if (!p.valid)
 		return;
 
@@ -297,11 +297,11 @@ void AnimationCache::set_all(float p_time, float p_delta) {
 						call_track(i, name, NULL, 0, err);
 					} else {
 
-						Vector<Variant *> argptrs;
+						Vector<const Variant *> argptrs;
 						argptrs.resize(args.size());
 						for (int j = 0; j < args.size(); j++) {
 
-							argptrs[j] = &args[j];
+							argptrs.write[j] = &args.write[j];
 						}
 
 						call_track(i, name, (const Variant **)&argptrs[0], args.size(), err);

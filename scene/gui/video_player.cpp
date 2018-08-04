@@ -29,6 +29,7 @@
 /*************************************************************************/
 
 #include "video_player.h"
+#include "scene/scene_string_names.h"
 
 #include "os/os.h"
 #include "servers/audio_server.h"
@@ -159,11 +160,7 @@ void VideoPlayer::_notification(int p_notification) {
 
 			bus_index = AudioServer::get_singleton()->thread_find_bus_index(bus);
 
-			if (stream.is_null())
-				return;
-			if (paused)
-				return;
-			if (!playback->is_playing())
+			if (stream.is_null() || paused || !playback->is_playing())
 				return;
 
 			double audio_time = USEC_TO_SEC(OS::get_singleton()->get_ticks_usec());
@@ -174,7 +171,11 @@ void VideoPlayer::_notification(int p_notification) {
 			if (delta == 0)
 				return;
 
-			playback->update(delta);
+			playback->update(delta); // playback->is_playing() returns false in the last video frame
+
+			if (!playback->is_playing()) {
+				emit_signal(SceneStringNames::get_singleton()->finished);
+			}
 
 		} break;
 
@@ -467,13 +468,19 @@ void VideoPlayer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_video_texture"), &VideoPlayer::get_video_texture);
 
+	ADD_SIGNAL(MethodInfo("finished"));
+
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "audio_track", PROPERTY_HINT_RANGE, "0,128,1"), "set_audio_track", "get_audio_track");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "stream", PROPERTY_HINT_RESOURCE_TYPE, "VideoStream"), "set_stream", "get_stream");
 	//ADD_PROPERTY( PropertyInfo(Variant::BOOL, "stream/loop"), "set_loop", "has_loop") ;
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "volume_db", PROPERTY_HINT_RANGE, "-80,24,0.01"), "set_volume_db", "get_volume_db");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "volume", PROPERTY_HINT_EXP_RANGE, "0,15,0.01", 0), "set_volume", "get_volume");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autoplay"), "set_autoplay", "has_autoplay");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "paused"), "set_paused", "is_paused");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "expand"), "set_expand", "has_expand");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "buffering_msec", PROPERTY_HINT_RANGE, "10,1000"), "set_buffering_msec", "get_buffering_msec");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "stream_position", PROPERTY_HINT_RANGE, "0,1280000,0.1", 0), "set_stream_position", "get_stream_position");
+
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "bus", PROPERTY_HINT_ENUM, ""), "set_bus", "get_bus");
 }
 

@@ -140,7 +140,6 @@ private:
 		::AABB *_aabb;
 		Basis *_basis;
 		Transform *_transform;
-		RefPtr *_resource;
 		void *_ptr; //generic pointer
 		uint8_t _mem[sizeof(ObjData) > (sizeof(real_t) * 4) ? sizeof(ObjData) : (sizeof(real_t) * 4)];
 	} _data;
@@ -217,6 +216,7 @@ public:
 	operator Vector<int>() const;
 	operator Vector<real_t>() const;
 	operator Vector<String>() const;
+	operator Vector<StringName>() const;
 	operator Vector<Vector3>() const;
 	operator Vector<Color>() const;
 	operator Vector<RID>() const;
@@ -281,6 +281,7 @@ public:
 	Variant(const Vector<int> &p_int_array);
 	Variant(const Vector<real_t> &p_real_array);
 	Variant(const Vector<String> &p_string_array);
+	Variant(const Vector<StringName> &p_string_array);
 	Variant(const Vector<Vector3> &p_vector3_array);
 	Variant(const Vector<Color> &p_color_array);
 	Variant(const Vector<Plane> &p_array); // helper
@@ -293,7 +294,7 @@ public:
 	// If this changes the table in variant_op must be updated
 	enum Operator {
 
-		//comparation
+		//comparison
 		OP_EQUAL,
 		OP_NOT_EQUAL,
 		OP_LESS,
@@ -338,6 +339,7 @@ public:
 	}
 
 	void zero();
+	Variant duplicate(bool deep = false) const;
 	static void blend(const Variant &a, const Variant &b, float c, Variant &r_dst);
 	static void interpolate(const Variant &a, const Variant &b, float c, Variant &r_dst);
 

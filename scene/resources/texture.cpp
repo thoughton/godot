@@ -76,10 +76,14 @@ void Texture::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("draw_rect_region", "canvas_item", "rect", "src_rect", "modulate", "transpose", "normal_map", "clip_uv"), &Texture::draw_rect_region, DEFVAL(Color(1, 1, 1)), DEFVAL(false), DEFVAL(Variant()), DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("get_data"), &Texture::get_data);
 
+	ADD_GROUP("Flags", "");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "flags", PROPERTY_HINT_FLAGS, "Mipmaps,Repeat,Filter,Anisotropic Linear,Convert to Linear,Mirrored Repeat,Video Surface"), "set_flags", "get_flags");
+	ADD_GROUP("", "");
+
+	BIND_ENUM_CONSTANT(FLAGS_DEFAULT);
 	BIND_ENUM_CONSTANT(FLAG_MIPMAPS);
 	BIND_ENUM_CONSTANT(FLAG_REPEAT);
 	BIND_ENUM_CONSTANT(FLAG_FILTER);
-	BIND_ENUM_CONSTANT(FLAGS_DEFAULT);
 	BIND_ENUM_CONSTANT(FLAG_ANISOTROPIC_FILTER);
 	BIND_ENUM_CONSTANT(FLAG_CONVERT_TO_LINEAR);
 	BIND_ENUM_CONSTANT(FLAG_MIRRORED_REPEAT);
@@ -121,10 +125,6 @@ bool ImageTexture::_set(const StringName &p_name, const Variant &p_value) {
 		w = s.width;
 		h = s.height;
 		VisualServer::get_singleton()->texture_set_size_override(texture, w, h);
-	} else if (p_name == "storage") {
-		storage = Storage(p_value.operator int());
-	} else if (p_name == "lossy_quality") {
-		lossy_storage_quality = p_value;
 	} else if (p_name == "_data") {
 		_set_data(p_value);
 	} else
@@ -143,10 +143,6 @@ bool ImageTexture::_get(const StringName &p_name, Variant &r_ret) const {
 		r_ret = flags;
 	else if (p_name == "size")
 		r_ret = Size2(w, h);
-	else if (p_name == "storage")
-		r_ret = storage;
-	else if (p_name == "lossy_quality")
-		r_ret = lossy_storage_quality;
 	else
 		return false;
 
@@ -165,8 +161,6 @@ void ImageTexture::_get_property_list(List<PropertyInfo> *p_list) const {
 	p_list->push_back(PropertyInfo(Variant::INT, "flags", PROPERTY_HINT_FLAGS, "Mipmaps,Repeat,Filter,Anisotropic,sRGB,Mirrored Repeat"));
 	p_list->push_back(PropertyInfo(Variant::OBJECT, "image", PROPERTY_HINT_RESOURCE_TYPE, "Image"));
 	p_list->push_back(PropertyInfo(Variant::VECTOR2, "size", PROPERTY_HINT_NONE, ""));
-	p_list->push_back(PropertyInfo(Variant::INT, "storage", PROPERTY_HINT_ENUM, "Uncompressed,Compress Lossy,Compress Lossless"));
-	p_list->push_back(PropertyInfo(Variant::REAL, "lossy_quality", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"));
 }
 
 void ImageTexture::_reload_hook(const RID &p_hook) {
@@ -228,15 +222,20 @@ Image::Format ImageTexture::get_format() const {
 	return format;
 }
 
-void ImageTexture::load(const String &p_path) {
+Error ImageTexture::load(const String &p_path) {
 
 	Ref<Image> img;
 	img.instance();
-	img->load(p_path);
-	create_from_image(img);
+	Error err = img->load(p_path);
+	if (err == OK) {
+		create_from_image(img);
+	}
+	return err;
 }
 
 void ImageTexture::set_data(const Ref<Image> &p_image) {
+
+	ERR_FAIL_COND(p_image.is_null());
 
 	VisualServer::get_singleton()->texture_set_data(texture, p_image);
 
@@ -362,6 +361,9 @@ void ImageTexture::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_size_override", "size"), &ImageTexture::set_size_override);
 	ClassDB::bind_method(D_METHOD("_reload_hook", "rid"), &ImageTexture::_reload_hook);
+
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "storage", PROPERTY_HINT_ENUM, "Uncompressed,Compress Lossy,Compress Lossless"), "set_storage", "get_storage");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "lossy_quality", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"), "set_lossy_storage_quality", "get_lossy_storage_quality");
 
 	BIND_ENUM_CONSTANT(STORAGE_RAW);
 	BIND_ENUM_CONSTANT(STORAGE_COMPRESS_LOSSY);
@@ -1037,7 +1039,7 @@ bool LargeTexture::has_alpha() const {
 void LargeTexture::set_flags(uint32_t p_flags) {
 
 	for (int i = 0; i < pieces.size(); i++) {
-		pieces[i].texture->set_flags(p_flags);
+		pieces.write[i].texture->set_flags(p_flags);
 	}
 }
 
@@ -1063,13 +1065,13 @@ int LargeTexture::add_piece(const Point2 &p_offset, const Ref<Texture> &p_textur
 void LargeTexture::set_piece_offset(int p_idx, const Point2 &p_offset) {
 
 	ERR_FAIL_INDEX(p_idx, pieces.size());
-	pieces[p_idx].offset = p_offset;
+	pieces.write[p_idx].offset = p_offset;
 };
 
 void LargeTexture::set_piece_texture(int p_idx, const Ref<Texture> &p_texture) {
 
 	ERR_FAIL_INDEX(p_idx, pieces.size());
-	pieces[p_idx].texture = p_texture;
+	pieces.write[p_idx].texture = p_texture;
 };
 
 void LargeTexture::set_size(const Size2 &p_size) {
@@ -1133,7 +1135,7 @@ void LargeTexture::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_set_data", "data"), &LargeTexture::_set_data);
 	ClassDB::bind_method(D_METHOD("_get_data"), &LargeTexture::_get_data);
 
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "_data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "_set_data", "_get_data");
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "_data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL), "_set_data", "_get_data");
 }
 
 void LargeTexture::draw(RID p_canvas_item, const Point2 &p_pos, const Color &p_modulate, bool p_transpose, const Ref<Texture> &p_normal_map) const {
@@ -1284,8 +1286,6 @@ bool CubeMap::_set(const StringName &p_name, const Variant &p_value) {
 		set_side(SIDE_FRONT, p_value);
 	} else if (p_name == "side/back") {
 		set_side(SIDE_BACK, p_value);
-	} else if (p_name == "flags") {
-		set_flags(p_value);
 	} else if (p_name == "storage") {
 		storage = Storage(p_value.operator int());
 	} else if (p_name == "lossy_quality") {
@@ -1310,8 +1310,6 @@ bool CubeMap::_get(const StringName &p_name, Variant &r_ret) const {
 		r_ret = get_side(SIDE_FRONT);
 	} else if (p_name == "side/back") {
 		r_ret = get_side(SIDE_BACK);
-	} else if (p_name == "flags") {
-		r_ret = flags;
 	} else if (p_name == "storage") {
 		r_ret = storage;
 	} else if (p_name == "lossy_quality") {
@@ -1331,7 +1329,6 @@ void CubeMap::_get_property_list(List<PropertyInfo> *p_list) const {
 		img_hint = PROPERTY_HINT_IMAGE_COMPRESS_LOSSLESS;
 	}
 
-	p_list->push_back(PropertyInfo(Variant::INT, "flags", PROPERTY_HINT_FLAGS, "Mipmaps,Repeat,Filter"));
 	p_list->push_back(PropertyInfo(Variant::OBJECT, "side/left", PROPERTY_HINT_RESOURCE_TYPE, "Image"));
 	p_list->push_back(PropertyInfo(Variant::OBJECT, "side/right", PROPERTY_HINT_RESOURCE_TYPE, "Image"));
 	p_list->push_back(PropertyInfo(Variant::OBJECT, "side/bottom", PROPERTY_HINT_RESOURCE_TYPE, "Image"));
@@ -1353,6 +1350,7 @@ void CubeMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_lossy_storage_quality", "quality"), &CubeMap::set_lossy_storage_quality);
 	ClassDB::bind_method(D_METHOD("get_lossy_storage_quality"), &CubeMap::get_lossy_storage_quality);
 
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "flags", PROPERTY_HINT_FLAGS, "Mipmaps,Repeat,Filter"), "set_flags", "get_flags");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "storage_mode", PROPERTY_HINT_ENUM, "Raw,Lossy Compressed,Lossless Compressed"), "set_storage", "get_storage");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "lossy_storage_quality"), "set_lossy_storage_quality", "get_lossy_storage_quality");
 
@@ -1671,5 +1669,210 @@ ProxyTexture::ProxyTexture() {
 
 ProxyTexture::~ProxyTexture() {
 
+	VS::get_singleton()->free(proxy);
+}
+//////////////////////////////////////////////
+
+void AnimatedTexture::_update_proxy() {
+
+	_THREAD_SAFE_METHOD_
+
+	float delta;
+	if (prev_ticks == 0) {
+		delta = 0;
+		prev_ticks = OS::get_singleton()->get_ticks_usec();
+	} else {
+		uint64_t ticks = OS::get_singleton()->get_ticks_usec();
+		delta = float(double(ticks - prev_ticks) / 1000000.0);
+		prev_ticks = ticks;
+	}
+
+	time += delta;
+
+	float limit;
+
+	if (fps == 0) {
+		limit = 0;
+	} else {
+		limit = 1.0 / fps;
+	}
+
+	int iter_max = frame_count;
+	while (iter_max) {
+		float frame_limit = limit + frames[current_frame].delay_sec;
+
+		if (time > frame_limit) {
+			current_frame++;
+			if (current_frame >= frame_count) {
+				current_frame = 0;
+			}
+			time -= frame_limit;
+		} else {
+			break;
+		}
+		iter_max--;
+	}
+
+	if (frames[current_frame].texture.is_valid()) {
+		VisualServer::get_singleton()->texture_set_proxy(proxy, frames[current_frame].texture->get_rid());
+	}
+}
+
+void AnimatedTexture::set_frames(int p_frames) {
+	ERR_FAIL_COND(p_frames < 1 || p_frames > MAX_FRAMES);
+
+	_THREAD_SAFE_METHOD_
+
+	frame_count = p_frames;
+}
+int AnimatedTexture::get_frames() const {
+	return frame_count;
+}
+
+void AnimatedTexture::set_frame_texture(int p_frame, const Ref<Texture> &p_texture) {
+	ERR_FAIL_INDEX(p_frame, MAX_FRAMES);
+
+	_THREAD_SAFE_METHOD_
+
+	frames[p_frame].texture = p_texture;
+}
+Ref<Texture> AnimatedTexture::get_frame_texture(int p_frame) const {
+	ERR_FAIL_INDEX_V(p_frame, MAX_FRAMES, Ref<Texture>());
+
+	_THREAD_SAFE_METHOD_
+
+	return frames[p_frame].texture;
+}
+
+void AnimatedTexture::set_frame_delay(int p_frame, float p_delay_sec) {
+	ERR_FAIL_INDEX(p_frame, MAX_FRAMES);
+
+	_THREAD_SAFE_METHOD_
+
+	frames[p_frame].delay_sec = p_delay_sec;
+}
+float AnimatedTexture::get_frame_delay(int p_frame) const {
+	ERR_FAIL_INDEX_V(p_frame, MAX_FRAMES, 0);
+
+	_THREAD_SAFE_METHOD_
+
+	return frames[p_frame].delay_sec;
+}
+
+void AnimatedTexture::set_fps(float p_fps) {
+	ERR_FAIL_COND(p_fps < 0 || p_fps >= 1000);
+
+	fps = p_fps;
+}
+float AnimatedTexture::get_fps() const {
+	return fps;
+}
+
+int AnimatedTexture::get_width() const {
+
+	_THREAD_SAFE_METHOD_
+
+	if (!frames[current_frame].texture.is_valid()) {
+		return 1;
+	}
+
+	return frames[current_frame].texture->get_width();
+}
+int AnimatedTexture::get_height() const {
+
+	_THREAD_SAFE_METHOD_
+
+	if (!frames[current_frame].texture.is_valid()) {
+		return 1;
+	}
+
+	return frames[current_frame].texture->get_height();
+}
+RID AnimatedTexture::get_rid() const {
+	return proxy;
+}
+
+bool AnimatedTexture::has_alpha() const {
+
+	_THREAD_SAFE_METHOD_
+
+	if (!frames[current_frame].texture.is_valid()) {
+		return false;
+	}
+
+	return frames[current_frame].texture->has_alpha();
+}
+
+Ref<Image> AnimatedTexture::get_data() const {
+
+	_THREAD_SAFE_METHOD_
+
+	if (!frames[current_frame].texture.is_valid()) {
+		return Ref<Image>();
+	}
+
+	return frames[current_frame].texture->get_data();
+}
+
+void AnimatedTexture::set_flags(uint32_t p_flags) {
+}
+uint32_t AnimatedTexture::get_flags() const {
+
+	_THREAD_SAFE_METHOD_
+
+	if (!frames[current_frame].texture.is_valid()) {
+		return 0;
+	}
+
+	return frames[current_frame].texture->get_flags();
+}
+
+void AnimatedTexture::_validate_property(PropertyInfo &property) const {
+
+	String prop = property.name;
+	if (prop.begins_with("frame_")) {
+		int frame = prop.get_slicec('/', 0).get_slicec('_', 1).to_int();
+		if (frame >= frame_count) {
+			property.usage = 0;
+		}
+	}
+}
+
+void AnimatedTexture::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_frames", "frames"), &AnimatedTexture::set_frames);
+	ClassDB::bind_method(D_METHOD("get_frames"), &AnimatedTexture::get_frames);
+
+	ClassDB::bind_method(D_METHOD("set_fps", "fps"), &AnimatedTexture::set_fps);
+	ClassDB::bind_method(D_METHOD("get_fps"), &AnimatedTexture::get_fps);
+
+	ClassDB::bind_method(D_METHOD("set_frame_texture", "frame", "texture"), &AnimatedTexture::set_frame_texture);
+	ClassDB::bind_method(D_METHOD("get_frame_texture", "frame"), &AnimatedTexture::get_frame_texture);
+
+	ClassDB::bind_method(D_METHOD("set_frame_delay", "frame", "delay"), &AnimatedTexture::set_frame_delay);
+	ClassDB::bind_method(D_METHOD("get_frame_delay", "frame"), &AnimatedTexture::get_frame_delay);
+
+	ClassDB::bind_method(D_METHOD("_update_proxy"), &AnimatedTexture::_update_proxy);
+
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "frames", PROPERTY_HINT_RANGE, "1," + itos(MAX_FRAMES), PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), "set_frames", "get_frames");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "fps", PROPERTY_HINT_RANGE, "0,1024,0.1"), "set_fps", "get_fps");
+
+	for (int i = 0; i < MAX_FRAMES; i++) {
+		ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "frame_" + itos(i) + "/texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture"), "set_frame_texture", "get_frame_texture", i);
+		ADD_PROPERTYI(PropertyInfo(Variant::REAL, "frame_" + itos(i) + "/delay_sec", PROPERTY_HINT_RANGE, "0.0,16.0,0.01"), "set_frame_delay", "get_frame_delay", i);
+	}
+}
+
+AnimatedTexture::AnimatedTexture() {
+	proxy = VS::get_singleton()->texture_create();
+	VisualServer::get_singleton()->texture_set_force_redraw_if_visible(proxy, true);
+	time = 0;
+	frame_count = 1;
+	fps = 4;
+	prev_ticks = 0;
+	current_frame = 0;
+	VisualServer::get_singleton()->connect("frame_pre_draw", this, "_update_proxy");
+}
+
+AnimatedTexture::~AnimatedTexture() {
 	VS::get_singleton()->free(proxy);
 }

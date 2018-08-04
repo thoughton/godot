@@ -56,6 +56,41 @@ static int _get_datatype_size(SL::DataType p_type) {
 		case SL::TYPE_VOID: return 0;
 		case SL::TYPE_BOOL: return 4;
 		case SL::TYPE_BVEC2: return 8;
+		case SL::TYPE_BVEC3: return 12;
+		case SL::TYPE_BVEC4: return 16;
+		case SL::TYPE_INT: return 4;
+		case SL::TYPE_IVEC2: return 8;
+		case SL::TYPE_IVEC3: return 12;
+		case SL::TYPE_IVEC4: return 16;
+		case SL::TYPE_UINT: return 4;
+		case SL::TYPE_UVEC2: return 8;
+		case SL::TYPE_UVEC3: return 12;
+		case SL::TYPE_UVEC4: return 16;
+		case SL::TYPE_FLOAT: return 4;
+		case SL::TYPE_VEC2: return 8;
+		case SL::TYPE_VEC3: return 12;
+		case SL::TYPE_VEC4: return 16;
+		case SL::TYPE_MAT2:
+			return 32; //4 * 4 + 4 * 4
+		case SL::TYPE_MAT3:
+			return 48; // 4 * 4 + 4 * 4 + 4 * 4
+		case SL::TYPE_MAT4: return 64;
+		case SL::TYPE_SAMPLER2D: return 16;
+		case SL::TYPE_ISAMPLER2D: return 16;
+		case SL::TYPE_USAMPLER2D: return 16;
+		case SL::TYPE_SAMPLERCUBE: return 16;
+	}
+
+	ERR_FAIL_V(0);
+}
+
+static int _get_datatype_alignment(SL::DataType p_type) {
+
+	switch (p_type) {
+
+		case SL::TYPE_VOID: return 0;
+		case SL::TYPE_BOOL: return 4;
+		case SL::TYPE_BVEC2: return 8;
 		case SL::TYPE_BVEC3: return 16;
 		case SL::TYPE_BVEC4: return 16;
 		case SL::TYPE_INT: return 4;
@@ -71,8 +106,8 @@ static int _get_datatype_size(SL::DataType p_type) {
 		case SL::TYPE_VEC3: return 16;
 		case SL::TYPE_VEC4: return 16;
 		case SL::TYPE_MAT2: return 16;
-		case SL::TYPE_MAT3: return 48;
-		case SL::TYPE_MAT4: return 64;
+		case SL::TYPE_MAT3: return 16;
+		case SL::TYPE_MAT4: return 16;
 		case SL::TYPE_SAMPLER2D: return 16;
 		case SL::TYPE_ISAMPLER2D: return 16;
 		case SL::TYPE_USAMPLER2D: return 16;
@@ -81,7 +116,6 @@ static int _get_datatype_size(SL::DataType p_type) {
 
 	ERR_FAIL_V(0);
 }
-
 static String _interpstr(SL::DataInterpolation p_interp) {
 
 	switch (p_interp) {
@@ -331,17 +365,17 @@ String ShaderCompilerGLES3::_dump_node_code(SL::Node *p_node, int p_level, Gener
 				if (SL::is_sampler_type(E->get().type)) {
 					r_gen_code.vertex_global += ucode;
 					r_gen_code.fragment_global += ucode;
-					r_gen_code.texture_uniforms[E->get().texture_order] = _mkid(E->key());
-					r_gen_code.texture_hints[E->get().texture_order] = E->get().hint;
+					r_gen_code.texture_uniforms.write[E->get().texture_order] = _mkid(E->key());
+					r_gen_code.texture_hints.write[E->get().texture_order] = E->get().hint;
 				} else {
 					if (!uses_uniforms) {
 
 						r_gen_code.defines.push_back(String("#define USE_MATERIAL\n").ascii());
 						uses_uniforms = true;
 					}
-					uniform_defines[E->get().order] = ucode;
-					uniform_sizes[E->get().order] = _get_datatype_size(E->get().type);
-					uniform_alignments[E->get().order] = MIN(16, _get_datatype_size(E->get().type));
+					uniform_defines.write[E->get().order] = ucode;
+					uniform_sizes.write[E->get().order] = _get_datatype_size(E->get().type);
+					uniform_alignments.write[E->get().order] = _get_datatype_alignment(E->get().type);
 				}
 
 				p_actions.uniforms->insert(E->key(), E->get());
@@ -350,6 +384,27 @@ String ShaderCompilerGLES3::_dump_node_code(SL::Node *p_node, int p_level, Gener
 			for (int i = 0; i < max_uniforms; i++) {
 				r_gen_code.uniforms += uniform_defines[i];
 			}
+#if 1
+			// add up
+			int offset = 0;
+			for (int i = 0; i < uniform_sizes.size(); i++) {
+
+				int align = offset % uniform_alignments[i];
+
+				if (align != 0) {
+					offset += uniform_alignments[i] - align;
+				}
+
+				r_gen_code.uniform_offsets.push_back(offset);
+
+				offset += uniform_sizes[i];
+			}
+
+			r_gen_code.uniform_total_size = offset;
+			if (r_gen_code.uniform_total_size % 16 != 0) { //UBO sizes must be multiples of 16
+				r_gen_code.uniform_total_size += r_gen_code.uniform_total_size % 16;
+			}
+#else
 			// add up
 			for (int i = 0; i < uniform_sizes.size(); i++) {
 
@@ -389,6 +444,7 @@ String ShaderCompilerGLES3::_dump_node_code(SL::Node *p_node, int p_level, Gener
 			} else {
 				r_gen_code.uniform_total_size = 0;
 			}
+#endif
 
 			for (Map<StringName, SL::ShaderNode::Varying>::Element *E = pnode->varyings.front(); E; E = E->next()) {
 
@@ -421,22 +477,22 @@ String ShaderCompilerGLES3::_dump_node_code(SL::Node *p_node, int p_level, Gener
 
 				current_func_name = fnode->name;
 
-				if (fnode->name == "vertex") {
+				if (fnode->name == vertex_name) {
 
 					_dump_function_deps(pnode, fnode->name, function_code, r_gen_code.vertex_global, added_vtx);
-					r_gen_code.vertex = function_code["vertex"];
+					r_gen_code.vertex = function_code[vertex_name];
 				}
 
-				if (fnode->name == "fragment") {
+				if (fnode->name == fragment_name) {
 
 					_dump_function_deps(pnode, fnode->name, function_code, r_gen_code.fragment_global, added_fragment);
-					r_gen_code.fragment = function_code["fragment"];
+					r_gen_code.fragment = function_code[fragment_name];
 				}
 
-				if (fnode->name == "light") {
+				if (fnode->name == light_name) {
 
 					_dump_function_deps(pnode, fnode->name, function_code, r_gen_code.fragment_global, added_fragment);
-					r_gen_code.light = function_code["light"];
+					r_gen_code.light = function_code[light_name];
 				}
 			}
 
@@ -517,7 +573,7 @@ String ShaderCompilerGLES3::_dump_node_code(SL::Node *p_node, int p_level, Gener
 				if (current_func_name == vertex_name) {
 					r_gen_code.uses_vertex_time = true;
 				}
-				if (current_func_name == fragment_name) {
+				if (current_func_name == fragment_name || current_func_name == light_name) {
 					r_gen_code.uses_fragment_time = true;
 				}
 			}
@@ -724,8 +780,6 @@ ShaderCompilerGLES3::ShaderCompilerGLES3() {
 	actions[VS::SHADER_CANVAS_ITEM].renames["NORMAL"] = "normal";
 	actions[VS::SHADER_CANVAS_ITEM].renames["NORMALMAP"] = "normal_map";
 	actions[VS::SHADER_CANVAS_ITEM].renames["NORMALMAP_DEPTH"] = "normal_depth";
-	actions[VS::SHADER_CANVAS_ITEM].renames["UV"] = "uv_interp";
-	actions[VS::SHADER_CANVAS_ITEM].renames["COLOR"] = "color";
 	actions[VS::SHADER_CANVAS_ITEM].renames["TEXTURE"] = "color_texture";
 	actions[VS::SHADER_CANVAS_ITEM].renames["TEXTURE_PIXEL_SIZE"] = "color_texpixel_size";
 	actions[VS::SHADER_CANVAS_ITEM].renames["NORMAL_TEXTURE"] = "normal_texture";
@@ -739,7 +793,6 @@ ShaderCompilerGLES3::ShaderCompilerGLES3() {
 	actions[VS::SHADER_CANVAS_ITEM].renames["LIGHT_HEIGHT"] = "light_height";
 	actions[VS::SHADER_CANVAS_ITEM].renames["LIGHT_COLOR"] = "light_color";
 	actions[VS::SHADER_CANVAS_ITEM].renames["LIGHT_UV"] = "light_uv";
-	//actions[VS::SHADER_CANVAS_ITEM].renames["LIGHT_SHADOW_COLOR"]="light_shadow_color";
 	actions[VS::SHADER_CANVAS_ITEM].renames["LIGHT"] = "light";
 	actions[VS::SHADER_CANVAS_ITEM].renames["SHADOW_COLOR"] = "shadow_color";
 
@@ -749,9 +802,7 @@ ShaderCompilerGLES3::ShaderCompilerGLES3() {
 	actions[VS::SHADER_CANVAS_ITEM].usage_defines["SCREEN_PIXEL_SIZE"] = "@SCREEN_UV";
 	actions[VS::SHADER_CANVAS_ITEM].usage_defines["NORMAL"] = "#define NORMAL_USED\n";
 	actions[VS::SHADER_CANVAS_ITEM].usage_defines["NORMALMAP"] = "#define NORMALMAP_USED\n";
-	actions[VS::SHADER_CANVAS_ITEM].usage_defines["SHADOW_COLOR"] = "#define SHADOW_COLOR_USED\n";
 	actions[VS::SHADER_CANVAS_ITEM].usage_defines["LIGHT"] = "#define USE_LIGHT_SHADER_CODE\n";
-
 	actions[VS::SHADER_CANVAS_ITEM].render_mode_defines["skip_vertex_transform"] = "#define SKIP_TRANSFORM_USED\n";
 
 	/** SPATIAL SHADER **/
@@ -771,7 +822,7 @@ ShaderCompilerGLES3::ShaderCompilerGLES3() {
 	actions[VS::SHADER_SPATIAL].renames["UV2"] = "uv2_interp";
 	actions[VS::SHADER_SPATIAL].renames["COLOR"] = "color_interp";
 	actions[VS::SHADER_SPATIAL].renames["POINT_SIZE"] = "gl_PointSize";
-	//actions[VS::SHADER_SPATIAL].renames["INSTANCE_ID"]=ShaderLanguage::TYPE_INT;
+	actions[VS::SHADER_SPATIAL].renames["INSTANCE_ID"] = "gl_InstanceID";
 
 	//builtins
 
@@ -793,13 +844,11 @@ ShaderCompilerGLES3::ShaderCompilerGLES3() {
 	actions[VS::SHADER_SPATIAL].renames["CLEARCOAT_GLOSS"] = "clearcoat_gloss";
 	actions[VS::SHADER_SPATIAL].renames["ANISOTROPY"] = "anisotropy";
 	actions[VS::SHADER_SPATIAL].renames["ANISOTROPY_FLOW"] = "anisotropy_flow";
-	//actions[VS::SHADER_SPATIAL].renames["SSS_SPREAD"] = "sss_spread";
 	actions[VS::SHADER_SPATIAL].renames["SSS_STRENGTH"] = "sss_strength";
 	actions[VS::SHADER_SPATIAL].renames["TRANSMISSION"] = "transmission";
 	actions[VS::SHADER_SPATIAL].renames["AO"] = "ao";
 	actions[VS::SHADER_SPATIAL].renames["AO_LIGHT_AFFECT"] = "ao_light_affect";
 	actions[VS::SHADER_SPATIAL].renames["EMISSION"] = "emission";
-	//actions[VS::SHADER_SPATIAL].renames["SCREEN_UV"]=ShaderLanguage::TYPE_VEC2;
 	actions[VS::SHADER_SPATIAL].renames["POINT_COORD"] = "gl_PointCoord";
 	actions[VS::SHADER_SPATIAL].renames["INSTANCE_CUSTOM"] = "instance_custom";
 	actions[VS::SHADER_SPATIAL].renames["SCREEN_UV"] = "screen_uv";
@@ -841,10 +890,9 @@ ShaderCompilerGLES3::ShaderCompilerGLES3() {
 	actions[VS::SHADER_SPATIAL].usage_defines["DIFFUSE_LIGHT"] = "#define USE_LIGHT_SHADER_CODE\n";
 	actions[VS::SHADER_SPATIAL].usage_defines["SPECULAR_LIGHT"] = "#define USE_LIGHT_SHADER_CODE\n";
 
-	actions[VS::SHADER_SPATIAL].renames["SSS_STRENGTH"] = "sss_strength";
-
 	actions[VS::SHADER_SPATIAL].render_mode_defines["skip_vertex_transform"] = "#define SKIP_TRANSFORM_USED\n";
 	actions[VS::SHADER_SPATIAL].render_mode_defines["world_vertex_coords"] = "#define VERTEX_WORLD_COORDS_USED\n";
+	actions[VS::SHADER_SPATIAL].render_mode_defines["ensure_correct_normals"] = "#define ENSURE_CORRECT_NORMALS\n";
 	actions[VS::SHADER_SPATIAL].render_mode_defines["cull_front"] = "#define DO_SIDE_CHECK\n";
 	actions[VS::SHADER_SPATIAL].render_mode_defines["cull_disabled"] = "#define DO_SIDE_CHECK\n";
 
@@ -858,6 +906,8 @@ ShaderCompilerGLES3::ShaderCompilerGLES3() {
 	actions[VS::SHADER_SPATIAL].render_mode_defines["specular_phong"] = "#define SPECULAR_PHONG\n";
 	actions[VS::SHADER_SPATIAL].render_mode_defines["specular_toon"] = "#define SPECULAR_TOON\n";
 	actions[VS::SHADER_SPATIAL].render_mode_defines["specular_disabled"] = "#define SPECULAR_DISABLED\n";
+	actions[VS::SHADER_SPATIAL].render_mode_defines["shadows_disabled"] = "#define SHADOWS_DISABLED\n";
+	actions[VS::SHADER_SPATIAL].render_mode_defines["ambient_light_disabled"] = "#define AMBIENT_LIGHT_DISABLED\n";
 
 	/* PARTICLES SHADER */
 
@@ -883,6 +933,7 @@ ShaderCompilerGLES3::ShaderCompilerGLES3() {
 
 	vertex_name = "vertex";
 	fragment_name = "fragment";
+	light_name = "light";
 	time_name = "TIME";
 
 	List<String> func_list;

@@ -45,8 +45,8 @@ namespace Godot
         {
             get
             {
-                float max = Mathf.Max(r, Mathf.Max(g, b));
-                float min = Mathf.Min(r, Mathf.Min(g, b));
+                float max = Math.Max(r, Math.Max(g, b));
+                float min = Math.Min(r, Math.Min(g, b));
 
                 float delta = max - min;
 
@@ -79,8 +79,8 @@ namespace Godot
         {
             get
             {
-                float max = Mathf.Max(r, Mathf.Max(g, b));
-                float min = Mathf.Min(r, Mathf.Min(g, b));
+                float max = Math.Max(r, Math.Max(g, b));
+                float min = Math.Min(r, Math.Min(g, b));
 
                 float delta = max - min;
 
@@ -96,7 +96,7 @@ namespace Godot
         {
             get
             {
-                return Mathf.Max(r, Mathf.Max(g, b));
+                return Math.Max(r, Math.Max(g, b));
             }
             set
             {
@@ -104,7 +104,7 @@ namespace Godot
             }
         }
 
-        private static readonly Color black = new Color(0f, 0f, 0f, 1.0f);
+        private static readonly Color black = new Color(0f, 0f, 0f);
 
         public Color Black
         {
@@ -180,7 +180,7 @@ namespace Godot
                     hue += 1.0f;
             }
 
-            saturation = (max == 0) ? 0 : 1f - (1f * min / max);
+            saturation = max == 0 ? 0 : 1f - 1f * min / max;
             value = max / 255f;
         }
 
@@ -232,12 +232,10 @@ namespace Godot
             {
                 return new Color(0, 0, 0, 0);
             }
-            else
-            {
-                res.r = (r * a * sa + over.r * over.a) / res.a;
-                res.g = (g * a * sa + over.g * over.a) / res.a;
-                res.b = (b * a * sa + over.b * over.a) / res.a;
-            }
+
+            res.r = (r * a * sa + over.r * over.a) / res.a;
+            res.g = (g * a * sa + over.g * over.a) / res.a;
+            res.b = (b * a * sa + over.b * over.a) / res.a;
 
             return res;
         }
@@ -249,6 +247,15 @@ namespace Godot
                 (g + 0.5f) % 1.0f,
                 (b + 0.5f) % 1.0f
             );
+        }
+
+        public Color Darkened(float amount)
+        {
+            Color res = this;
+            res.r = res.r * (1.0f - amount);
+            res.g = res.g * (1.0f - amount);
+            res.b = res.b * (1.0f - amount);
+            return res;
         }
 
         public float Gray()
@@ -265,47 +272,108 @@ namespace Godot
             );
         }
 
-        public Color LinearInterpolate(Color b, float t)
+        public Color Lightened(float amount)
         {
             Color res = this;
+            res.r = res.r + (1.0f - res.r) * amount;
+            res.g = res.g + (1.0f - res.g) * amount;
+            res.b = res.b + (1.0f - res.b) * amount;
+            return res;
+        }
 
-            res.r += (t * (b.r - this.r));
-            res.g += (t * (b.g - this.g));
-            res.b += (t * (b.b - this.b));
-            res.a += (t * (b.a - this.a));
+        public Color LinearInterpolate(Color c, float t)
+        {
+            var res = this;
+
+            res.r += t * (c.r - r);
+            res.g += t * (c.g - g);
+            res.b += t * (c.b - b);
+            res.a += t * (c.a - a);
 
             return res;
         }
 
-        public int To32()
+        public int ToAbgr32()
         {
-            int c = (byte)(a * 255);
+            int c = (byte)Math.Round(a * 255);
             c <<= 8;
-            c |= (byte)(r * 255);
+            c |= (byte)Math.Round(b * 255);
             c <<= 8;
-            c |= (byte)(g * 255);
+            c |= (byte)Math.Round(g * 255);
             c <<= 8;
-            c |= (byte)(b * 255);
+            c |= (byte)Math.Round(r * 255);
+
+            return c;
+        }
+
+        public long ToAbgr64()
+        {
+            long c = (ushort)Math.Round(a * 65535);
+            c <<= 16;
+            c |= (ushort)Math.Round(b * 65535);
+            c <<= 16;
+            c |= (ushort)Math.Round(g * 65535);
+            c <<= 16;
+            c |= (ushort)Math.Round(r * 65535);
 
             return c;
         }
 
         public int ToArgb32()
         {
-            int c = (byte)(a * 255);
+            int c = (byte)Math.Round(a * 255);
             c <<= 8;
-            c |= (byte)(r * 255);
+            c |= (byte)Math.Round(r * 255);
             c <<= 8;
-            c |= (byte)(g * 255);
+            c |= (byte)Math.Round(g * 255);
             c <<= 8;
-            c |= (byte)(b * 255);
+            c |= (byte)Math.Round(b * 255);
+
+            return c;
+        }
+
+        public long ToArgb64()
+        {
+            long c = (ushort)Math.Round(a * 65535);
+            c <<= 16;
+            c |= (ushort)Math.Round(r * 65535);
+            c <<= 16;
+            c |= (ushort)Math.Round(g * 65535);
+            c <<= 16;
+            c |= (ushort)Math.Round(b * 65535);
+
+            return c;
+        }
+
+        public int ToRgba32()
+        {
+            int c = (byte)Math.Round(r * 255);
+            c <<= 8;
+            c |= (byte)Math.Round(g * 255);
+            c <<= 8;
+            c |= (byte)Math.Round(b * 255);
+            c <<= 8;
+            c |= (byte)Math.Round(a * 255);
+
+            return c;
+        }
+
+        public long ToRgba64()
+        {
+            long c = (ushort)Math.Round(r * 65535);
+            c <<= 16;
+            c |= (ushort)Math.Round(g * 65535);
+            c <<= 16;
+            c |= (ushort)Math.Round(b * 65535);
+            c <<= 16;
+            c |= (ushort)Math.Round(a * 65535);
 
             return c;
         }
 
         public string ToHtml(bool include_alpha = true)
         {
-            String txt = string.Empty;
+            var txt = string.Empty;
 
             txt += _to_hex(r);
             txt += _to_hex(g);
@@ -316,7 +384,8 @@ namespace Godot
 
             return txt;
         }
-
+        
+        // Constructors 
         public Color(float r, float g, float b, float a = 1.0f)
         {
             this.r = r;
@@ -327,23 +396,34 @@ namespace Godot
 
         public Color(int rgba)
         {
-            this.a = (rgba & 0xFF) / 255.0f;
+            a = (rgba & 0xFF) / 255.0f;
             rgba >>= 8;
-            this.b = (rgba & 0xFF) / 255.0f;
+            b = (rgba & 0xFF) / 255.0f;
             rgba >>= 8;
-            this.g = (rgba & 0xFF) / 255.0f;
+            g = (rgba & 0xFF) / 255.0f;
             rgba >>= 8;
-            this.r = (rgba & 0xFF) / 255.0f;
+            r = (rgba & 0xFF) / 255.0f;
         }
 
-        private static float _parse_col(string str, int ofs)
+        public Color(long rgba)
+        {
+            a = (rgba & 0xFFFF) / 65535.0f;
+            rgba >>= 16;
+            b = (rgba & 0xFFFF) / 65535.0f;
+            rgba >>= 16;
+            g = (rgba & 0xFFFF) / 65535.0f;
+            rgba >>= 16;
+            r = (rgba & 0xFFFF) / 65535.0f;
+        }
+
+        private static int _parse_col(string str, int ofs)
         {
             int ig = 0;
 
             for (int i = 0; i < 2; i++)
             {
                 int c = str[i + ofs];
-                int v = 0;
+                int v;
 
                 if (c >= '0' && c <= '9')
                 {
@@ -375,9 +455,9 @@ namespace Godot
 
         private String _to_hex(float val)
         {
-            int v = (int)Mathf.Clamp(val * 255.0f, 0, 255);
+            int v = Mathf.RoundToInt(Mathf.Clamp(val * 255, 0, 255));
 
-            string ret = string.Empty;
+            var ret = string.Empty;
 
             for (int i = 0; i < 2; i++)
             {
@@ -404,7 +484,7 @@ namespace Godot
             if (color[0] == '#')
                 color = color.Substring(1, color.Length - 1);
 
-            bool alpha = false;
+            bool alpha;
 
             if (color.Length == 8)
                 alpha = true;
@@ -415,17 +495,17 @@ namespace Godot
 
             if (alpha)
             {
-                if ((int)_parse_col(color, 0) < 0)
+                if (_parse_col(color, 0) < 0)
                     return false;
             }
 
             int from = alpha ? 2 : 0;
 
-            if ((int)_parse_col(color, from + 0) < 0)
+            if (_parse_col(color, from + 0) < 0)
                 return false;
-            if ((int)_parse_col(color, from + 2) < 0)
+            if (_parse_col(color, from + 2) < 0)
                 return false;
-            if ((int)_parse_col(color, from + 4) < 0)
+            if (_parse_col(color, from + 4) < 0)
                 return false;
 
             return true;
@@ -433,7 +513,7 @@ namespace Godot
 
         public static Color Color8(byte r8, byte g8, byte b8, byte a8)
         {
-            return new Color((float)r8 / 255f, (float)g8 / 255f, (float)b8 / 255f, (float)a8 / 255f);
+            return new Color(r8 / 255f, g8 / 255f, b8 / 255f, a8 / 255f);
         }
 
         public Color(string rgba)
@@ -450,7 +530,7 @@ namespace Godot
             if (rgba[0] == '#')
                 rgba = rgba.Substring(1);
 
-            bool alpha = false;
+            bool alpha;
 
             if (rgba.Length == 8)
             {
@@ -467,10 +547,10 @@ namespace Godot
 
             if (alpha)
             {
-                a = _parse_col(rgba, 0);
+                a = _parse_col(rgba, 0) / 255f;
 
                 if (a < 0)
-                    throw new ArgumentOutOfRangeException("Invalid color code. Alpha is " + a + " but zero or greater is expected: " + rgba);
+                    throw new ArgumentOutOfRangeException("Invalid color code. Alpha part is not valid hexadecimal: " + rgba);
             }
             else
             {
@@ -479,20 +559,20 @@ namespace Godot
 
             int from = alpha ? 2 : 0;
 
-            r = _parse_col(rgba, from + 0);
+            r = _parse_col(rgba, from + 0) / 255f;
 
             if (r < 0)
-                throw new ArgumentOutOfRangeException("Invalid color code. Red is " + r + " but zero or greater is expected: " + rgba);
+                throw new ArgumentOutOfRangeException("Invalid color code. Red part is not valid hexadecimal: " + rgba);
 
-            g = _parse_col(rgba, from + 2);
+            g = _parse_col(rgba, from + 2) / 255f;
 
             if (g < 0)
-                throw new ArgumentOutOfRangeException("Invalid color code. Green is " + g + " but zero or greater is expected: " + rgba);
+                throw new ArgumentOutOfRangeException("Invalid color code. Green part is not valid hexadecimal: " + rgba);
 
-            b = _parse_col(rgba, from + 4);
+            b = _parse_col(rgba, from + 4) / 255f;
 
             if (b < 0)
-                throw new ArgumentOutOfRangeException("Invalid color code. Blue is " + b + " but zero or greater is expected: " + rgba);
+                throw new ArgumentOutOfRangeException("Invalid color code. Blue part is not valid hexadecimal: " + rgba);
         }
 
         public static bool operator ==(Color left, Color right)
@@ -512,14 +592,11 @@ namespace Godot
                 if (left.g == right.g)
                 {
                     if (left.b == right.b)
-                        return (left.a < right.a);
-                    else
-                        return (left.b < right.b);
+                        return left.a < right.a;
+                    return left.b < right.b;
                 }
-                else
-                {
-                    return left.g < right.g;
-                }
+
+                return left.g < right.g;
             }
 
             return left.r < right.r;
@@ -532,14 +609,11 @@ namespace Godot
                 if (left.g == right.g)
                 {
                     if (left.b == right.b)
-                        return (left.a > right.a);
-                    else
-                        return (left.b > right.b);
+                        return left.a > right.a;
+                    return left.b > right.b;
                 }
-                else
-                {
-                    return left.g > right.g;
-                }
+
+                return left.g > right.g;
             }
 
             return left.r > right.r;
@@ -567,24 +641,12 @@ namespace Godot
 
         public override string ToString()
         {
-            return String.Format("{0},{1},{2},{3}", new object[]
-                {
-                    this.r.ToString(),
-                    this.g.ToString(),
-                    this.b.ToString(),
-                    this.a.ToString()
-                });
+            return String.Format("{0},{1},{2},{3}", r.ToString(), g.ToString(), b.ToString(), a.ToString());
         }
 
         public string ToString(string format)
         {
-            return String.Format("{0},{1},{2},{3}", new object[]
-                {
-                    this.r.ToString(format),
-                    this.g.ToString(format),
-                    this.b.ToString(format),
-                    this.a.ToString(format)
-                });
+            return String.Format("{0},{1},{2},{3}", r.ToString(format), g.ToString(format), b.ToString(format), a.ToString(format));
         }
     }
 }

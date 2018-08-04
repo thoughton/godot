@@ -70,7 +70,11 @@ private:
 	volatile float setplay;
 
 	float volume_db;
+	float pitch_scale;
 	bool autoplay;
+	bool stream_paused;
+	bool stream_paused_fade_in;
+	bool stream_paused_fade_out;
 	StringName bus;
 
 	void _mix_audio();
@@ -98,6 +102,9 @@ public:
 	void set_volume_db(float p_volume);
 	float get_volume_db() const;
 
+	void set_pitch_scale(float p_pitch_scale);
+	float get_pitch_scale() const;
+
 	void play(float p_from_pos = 0.0);
 	void seek(float p_seconds);
 	void stop();
@@ -118,6 +125,9 @@ public:
 
 	void set_area_mask(uint32_t p_mask);
 	uint32_t get_area_mask() const;
+
+	void set_stream_paused(bool p_pause);
+	bool get_stream_paused() const;
 
 	AudioStreamPlayer2D();
 	~AudioStreamPlayer2D();

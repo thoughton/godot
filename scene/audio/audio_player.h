@@ -54,8 +54,11 @@ private:
 	volatile bool active;
 
 	float mix_volume_db;
+	float pitch_scale;
 	float volume_db;
 	bool autoplay;
+	bool stream_paused;
+	bool stream_paused_fade;
 	StringName bus;
 
 	MixTarget mix_target;
@@ -81,6 +84,9 @@ public:
 	void set_volume_db(float p_volume);
 	float get_volume_db() const;
 
+	void set_pitch_scale(float p_pitch_scale);
+	float get_pitch_scale() const;
+
 	void play(float p_from_pos = 0.0);
 	void seek(float p_seconds);
 	void stop();
@@ -95,6 +101,9 @@ public:
 
 	void set_mix_target(MixTarget p_target);
 	MixTarget get_mix_target() const;
+
+	void set_stream_paused(bool p_pause);
+	bool get_stream_paused() const;
 
 	AudioStreamPlayer();
 	~AudioStreamPlayer();

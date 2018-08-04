@@ -103,24 +103,18 @@ Material::~Material() {
 
 bool ShaderMaterial::_set(const StringName &p_name, const Variant &p_value) {
 
-	if (p_name == SceneStringNames::get_singleton()->shader) {
-		set_shader(p_value);
-		return true;
-	} else {
+	if (shader.is_valid()) {
 
-		if (shader.is_valid()) {
-
-			StringName pr = shader->remap_param(p_name);
-			if (!pr) {
-				String n = p_name;
-				if (n.find("param/") == 0) { //backwards compatibility
-					pr = n.substr(6, n.length());
-				}
+		StringName pr = shader->remap_param(p_name);
+		if (!pr) {
+			String n = p_name;
+			if (n.find("param/") == 0) { //backwards compatibility
+				pr = n.substr(6, n.length());
 			}
-			if (pr) {
-				VisualServer::get_singleton()->material_set_param(_get_material(), pr, p_value);
-				return true;
-			}
+		}
+		if (pr) {
+			VisualServer::get_singleton()->material_set_param(_get_material(), pr, p_value);
+			return true;
 		}
 	}
 
@@ -129,20 +123,12 @@ bool ShaderMaterial::_set(const StringName &p_name, const Variant &p_value) {
 
 bool ShaderMaterial::_get(const StringName &p_name, Variant &r_ret) const {
 
-	if (p_name == SceneStringNames::get_singleton()->shader) {
+	if (shader.is_valid()) {
 
-		r_ret = get_shader();
-		return true;
-
-	} else {
-
-		if (shader.is_valid()) {
-
-			StringName pr = shader->remap_param(p_name);
-			if (pr) {
-				r_ret = VisualServer::get_singleton()->material_get_param(_get_material(), pr);
-				return true;
-			}
+		StringName pr = shader->remap_param(p_name);
+		if (pr) {
+			r_ret = VisualServer::get_singleton()->material_get_param(_get_material(), pr);
+			return true;
 		}
 	}
 
@@ -150,8 +136,6 @@ bool ShaderMaterial::_get(const StringName &p_name, Variant &r_ret) const {
 }
 
 void ShaderMaterial::_get_property_list(List<PropertyInfo> *p_list) const {
-
-	p_list->push_back(PropertyInfo(Variant::OBJECT, "shader", PROPERTY_HINT_RESOURCE_TYPE, "Shader,ShaderGraph"));
 
 	if (!shader.is_null()) {
 
@@ -161,11 +145,17 @@ void ShaderMaterial::_get_property_list(List<PropertyInfo> *p_list) const {
 
 void ShaderMaterial::set_shader(const Ref<Shader> &p_shader) {
 
+	if (shader.is_valid()) {
+		shader->disconnect("changed", this, "_shader_changed");
+	}
+
 	shader = p_shader;
 
 	RID rid;
-	if (shader.is_valid())
+	if (shader.is_valid()) {
 		rid = shader->get_rid();
+		shader->connect("changed", this, "_shader_changed");
+	}
 
 	VS::get_singleton()->material_set_shader(_get_material(), rid);
 	_change_notify(); //properties for shader exposed
@@ -187,12 +177,19 @@ Variant ShaderMaterial::get_shader_param(const StringName &p_param) const {
 	return VS::get_singleton()->material_get_param(_get_material(), p_param);
 }
 
+void ShaderMaterial::_shader_changed() {
+	_change_notify(); //update all properties
+}
+
 void ShaderMaterial::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_shader", "shader"), &ShaderMaterial::set_shader);
 	ClassDB::bind_method(D_METHOD("get_shader"), &ShaderMaterial::get_shader);
 	ClassDB::bind_method(D_METHOD("set_shader_param", "param", "value"), &ShaderMaterial::set_shader_param);
 	ClassDB::bind_method(D_METHOD("get_shader_param", "param"), &ShaderMaterial::get_shader_param);
+	ClassDB::bind_method(D_METHOD("_shader_changed"), &ShaderMaterial::_shader_changed);
+
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "shader", PROPERTY_HINT_RESOURCE_TYPE, "Shader"), "set_shader", "get_shader");
 }
 
 void ShaderMaterial::get_argument_options(const StringName &p_function, int p_idx, List<String> *r_options) const {
@@ -401,9 +398,17 @@ void SpatialMaterial::_update_shader() {
 	if (flags[FLAG_USE_VERTEX_LIGHTING]) {
 		code += ",vertex_lighting";
 	}
-
 	if (flags[FLAG_TRIPLANAR_USE_WORLD] && (flags[FLAG_UV1_USE_TRIPLANAR] || flags[FLAG_UV2_USE_TRIPLANAR])) {
 		code += ",world_vertex_coords";
+	}
+	if (flags[FLAG_DONT_RECEIVE_SHADOWS]) {
+		code += ",shadows_disabled";
+	}
+	if (flags[FLAG_DISABLE_AMBIENT_LIGHT]) {
+		code += ",ambient_light_disabled";
+	}
+	if (flags[FLAG_ENSURE_CORRECT_NORMALS]) {
+		code += ",ensure_correct_normals";
 	}
 	code += ";\n";
 
@@ -549,9 +554,20 @@ void SpatialMaterial::_update_shader() {
 		case BILLBOARD_ENABLED: {
 
 			code += "\tMODELVIEW_MATRIX = INV_CAMERA_MATRIX * mat4(CAMERA_MATRIX[0],CAMERA_MATRIX[1],CAMERA_MATRIX[2],WORLD_MATRIX[3]);\n";
+
+			if (flags[FLAG_BILLBOARD_KEEP_SCALE]) {
+				code += "\tMODELVIEW_MATRIX = MODELVIEW_MATRIX * mat4(vec4(length(WORLD_MATRIX[0].xyz),0,0,0),vec4(0,length(WORLD_MATRIX[1].xyz),0,0),vec4(0,0,length(WORLD_MATRIX[2].xyz),0),vec4(0,0,0,1));\n";
+			}
 		} break;
 		case BILLBOARD_FIXED_Y: {
+
 			code += "\tMODELVIEW_MATRIX = INV_CAMERA_MATRIX * mat4(CAMERA_MATRIX[0],WORLD_MATRIX[1],vec4(normalize(cross(CAMERA_MATRIX[0].xyz,WORLD_MATRIX[1].xyz)),0.0),WORLD_MATRIX[3]);\n";
+
+			if (flags[FLAG_BILLBOARD_KEEP_SCALE]) {
+				code += "\tMODELVIEW_MATRIX = MODELVIEW_MATRIX * mat4(vec4(length(WORLD_MATRIX[0].xyz),0,0,0),vec4(0,1,0,0),vec4(0,0,length(WORLD_MATRIX[2].xyz),0),vec4(0,0,0,1));\n";
+			} else {
+				code += "\tMODELVIEW_MATRIX = MODELVIEW_MATRIX * mat4(vec4(1,0,0,0),vec4(0,1.0/length(WORLD_MATRIX[1].xyz),0,0),vec4(0,0,1,0),vec4(0,0,0,1));\n";
+			}
 		} break;
 		case BILLBOARD_PARTICLES: {
 
@@ -564,12 +580,10 @@ void SpatialMaterial::_update_shader() {
 
 			//handle animation
 			code += "\tint particle_total_frames = particles_anim_h_frames * particles_anim_v_frames;\n";
-			code += "\tint particle_frame = int(INSTANCE_CUSTOM.y * float(particle_total_frames));\n";
+			code += "\tint particle_frame = int(INSTANCE_CUSTOM.z * float(particle_total_frames));\n";
 			code += "\tif (particles_anim_loop) particle_frame=clamp(particle_frame,0,particle_total_frames-1); else particle_frame=abs(particle_frame)%particle_total_frames;\n";
 			code += "\tUV /= vec2(float(particles_anim_h_frames),float(particles_anim_v_frames));\n";
 			code += "\tUV += vec2(float(particle_frame % particles_anim_h_frames) / float(particles_anim_h_frames),float(particle_frame / particles_anim_h_frames) / float(particles_anim_v_frames));\n";
-			//handle rotation
-			//	code += "\tmat4 rotation = mat4("
 		} break;
 	}
 
@@ -751,15 +765,18 @@ void SpatialMaterial::_update_shader() {
 		}
 	}
 
-	if (features[FEATURE_REFRACTION] && !flags[FLAG_UV1_USE_TRIPLANAR]) { //refraction not supported with triplanar
+	if (features[FEATURE_REFRACTION]) {
 
 		if (features[FEATURE_NORMAL_MAPPING]) {
 			code += "\tvec3 ref_normal = normalize( mix(NORMAL,TANGENT * NORMALMAP.x + BINORMAL * NORMALMAP.y + NORMAL * NORMALMAP.z,NORMALMAP_DEPTH) );\n";
 		} else {
 			code += "\tvec3 ref_normal = NORMAL;\n";
 		}
-
-		code += "\tvec2 ref_ofs = SCREEN_UV - ref_normal.xy * dot(texture(texture_refraction,base_uv),refraction_texture_channel) * refraction;\n";
+		if (flags[FLAG_UV1_USE_TRIPLANAR]) {
+			code += "\tvec2 ref_ofs = SCREEN_UV - ref_normal.xy * dot(triplanar_texture(texture_refraction,uv1_power_normal,uv1_triplanar_pos),refraction_texture_channel) * refraction;\n";
+		} else {
+			code += "\tvec2 ref_ofs = SCREEN_UV - ref_normal.xy * dot(texture(texture_refraction,base_uv),refraction_texture_channel) * refraction;\n";
+		}
 		code += "\tfloat ref_amount = 1.0 - albedo.a * albedo_tex.a;\n";
 		code += "\tEMISSION += textureLod(SCREEN_TEXTURE,ref_ofs,ROUGHNESS * 8.0).rgb * ref_amount;\n";
 		code += "\tALBEDO *= 1.0 - ref_amount;\n";
@@ -1493,9 +1510,9 @@ bool SpatialMaterial::is_grow_enabled() const {
 	return grow_enabled;
 }
 
-void SpatialMaterial::set_alpha_scissor_threshold(float p_treshold) {
-	alpha_scissor_threshold = p_treshold;
-	VS::get_singleton()->material_set_param(_get_material(), shader_names->alpha_scissor_threshold, p_treshold);
+void SpatialMaterial::set_alpha_scissor_threshold(float p_threshold) {
+	alpha_scissor_threshold = p_threshold;
+	VS::get_singleton()->material_set_param(_get_material(), shader_names->alpha_scissor_threshold, p_threshold);
 }
 
 float SpatialMaterial::get_alpha_scissor_threshold() const {
@@ -1860,6 +1877,9 @@ void SpatialMaterial::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "flags_world_triplanar"), "set_flag", "get_flag", FLAG_TRIPLANAR_USE_WORLD);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "flags_fixed_size"), "set_flag", "get_flag", FLAG_FIXED_SIZE);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "flags_albedo_tex_force_srgb"), "set_flag", "get_flag", FLAG_ALBEDO_TEXTURE_FORCE_SRGB);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "flags_do_not_receive_shadows"), "set_flag", "get_flag", FLAG_DONT_RECEIVE_SHADOWS);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "flags_disable_ambient_light"), "set_flag", "get_flag", FLAG_DISABLE_AMBIENT_LIGHT);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "flags_ensure_correct_normals"), "set_flag", "get_flag", FLAG_ENSURE_CORRECT_NORMALS);
 	ADD_GROUP("Vertex Color", "vertex_color");
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "vertex_color_use_as_albedo"), "set_flag", "get_flag", FLAG_ALBEDO_FROM_VERTEX_COLOR);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "vertex_color_is_srgb"), "set_flag", "get_flag", FLAG_SRGB_VERTEX_COLOR);
@@ -1872,7 +1892,8 @@ void SpatialMaterial::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "params_depth_draw_mode", PROPERTY_HINT_ENUM, "Opaque Only,Always,Never,Opaque Pre-Pass"), "set_depth_draw_mode", "get_depth_draw_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "params_line_width", PROPERTY_HINT_RANGE, "0.1,128,0.1"), "set_line_width", "get_line_width");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "params_point_size", PROPERTY_HINT_RANGE, "0.1,128,0.1"), "set_point_size", "get_point_size");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "params_billboard_mode", PROPERTY_HINT_ENUM, "Disabled,Enabled,Y-Billboard,Particle Billboard"), "set_billboard_mode", "get_billboard_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "params_billboard_mode", PROPERTY_HINT_ENUM, "Disabled,Enabled,Y-Billboard,Particle Billboard1"), "set_billboard_mode", "get_billboard_mode");
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "params_billboard_keep_scale"), "set_flag", "get_flag", FLAG_BILLBOARD_KEEP_SCALE);
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "params_grow"), "set_grow_enabled", "is_grow_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "params_grow_amount", PROPERTY_HINT_RANGE, "-16,10,0.01"), "set_grow", "get_grow");
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "params_use_alpha_scissor"), "set_flag", "get_flag", FLAG_USE_ALPHA_SCISSOR);
@@ -2042,6 +2063,7 @@ void SpatialMaterial::_bind_methods() {
 	BIND_ENUM_CONSTANT(FLAG_SRGB_VERTEX_COLOR);
 	BIND_ENUM_CONSTANT(FLAG_USE_POINT_SIZE);
 	BIND_ENUM_CONSTANT(FLAG_FIXED_SIZE);
+	BIND_ENUM_CONSTANT(FLAG_BILLBOARD_KEEP_SCALE);
 	BIND_ENUM_CONSTANT(FLAG_UV1_USE_TRIPLANAR);
 	BIND_ENUM_CONSTANT(FLAG_UV2_USE_TRIPLANAR);
 	BIND_ENUM_CONSTANT(FLAG_AO_ON_UV2);
@@ -2049,6 +2071,9 @@ void SpatialMaterial::_bind_methods() {
 	BIND_ENUM_CONSTANT(FLAG_USE_ALPHA_SCISSOR);
 	BIND_ENUM_CONSTANT(FLAG_TRIPLANAR_USE_WORLD);
 	BIND_ENUM_CONSTANT(FLAG_ALBEDO_TEXTURE_FORCE_SRGB);
+	BIND_ENUM_CONSTANT(FLAG_DONT_RECEIVE_SHADOWS);
+	BIND_ENUM_CONSTANT(FLAG_DISABLE_AMBIENT_LIGHT);
+	BIND_ENUM_CONSTANT(FLAG_ENSURE_CORRECT_NORMALS);
 	BIND_ENUM_CONSTANT(FLAG_MAX);
 
 	BIND_ENUM_CONSTANT(DIFFUSE_BURLEY);
@@ -2141,7 +2166,7 @@ SpatialMaterial::SpatialMaterial() :
 	for (int i = 0; i < FLAG_MAX; i++) {
 		flags[i] = 0;
 	}
-	diffuse_mode = DIFFUSE_LAMBERT;
+	diffuse_mode = DIFFUSE_BURLEY;
 	specular_mode = SPECULAR_SCHLICK_GGX;
 
 	for (int i = 0; i < FEATURE_MAX; i++) {

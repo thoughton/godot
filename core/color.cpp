@@ -37,38 +37,78 @@
 
 uint32_t Color::to_argb32() const {
 
-	uint32_t c = (uint8_t)(a * 255);
+	uint32_t c = (uint8_t)Math::round(a * 255);
 	c <<= 8;
-	c |= (uint8_t)(r * 255);
+	c |= (uint8_t)Math::round(r * 255);
 	c <<= 8;
-	c |= (uint8_t)(g * 255);
+	c |= (uint8_t)Math::round(g * 255);
 	c <<= 8;
-	c |= (uint8_t)(b * 255);
+	c |= (uint8_t)Math::round(b * 255);
 
 	return c;
 }
 
 uint32_t Color::to_abgr32() const {
-	uint32_t c = (uint8_t)(a * 255);
+
+	uint32_t c = (uint8_t)Math::round(a * 255);
 	c <<= 8;
-	c |= (uint8_t)(b * 255);
+	c |= (uint8_t)Math::round(b * 255);
 	c <<= 8;
-	c |= (uint8_t)(g * 255);
+	c |= (uint8_t)Math::round(g * 255);
 	c <<= 8;
-	c |= (uint8_t)(r * 255);
+	c |= (uint8_t)Math::round(r * 255);
 
 	return c;
 }
 
 uint32_t Color::to_rgba32() const {
 
-	uint32_t c = (uint8_t)(r * 255);
+	uint32_t c = (uint8_t)Math::round(r * 255);
 	c <<= 8;
-	c |= (uint8_t)(g * 255);
+	c |= (uint8_t)Math::round(g * 255);
 	c <<= 8;
-	c |= (uint8_t)(b * 255);
+	c |= (uint8_t)Math::round(b * 255);
 	c <<= 8;
-	c |= (uint8_t)(a * 255);
+	c |= (uint8_t)Math::round(a * 255);
+
+	return c;
+}
+
+uint64_t Color::to_abgr64() const {
+
+	uint64_t c = (uint16_t)Math::round(a * 65535);
+	c <<= 16;
+	c |= (uint16_t)Math::round(b * 65535);
+	c <<= 16;
+	c |= (uint16_t)Math::round(g * 65535);
+	c <<= 16;
+	c |= (uint16_t)Math::round(r * 65535);
+
+	return c;
+}
+
+uint64_t Color::to_argb64() const {
+
+	uint64_t c = (uint16_t)Math::round(a * 65535);
+	c <<= 16;
+	c |= (uint16_t)Math::round(r * 65535);
+	c <<= 16;
+	c |= (uint16_t)Math::round(g * 65535);
+	c <<= 16;
+	c |= (uint16_t)Math::round(b * 65535);
+
+	return c;
+}
+
+uint64_t Color::to_rgba64() const {
+
+	uint64_t c = (uint16_t)Math::round(r * 65535);
+	c <<= 16;
+	c |= (uint16_t)Math::round(g * 65535);
+	c <<= 16;
+	c |= (uint16_t)Math::round(b * 65535);
+	c <<= 16;
+	c |= (uint16_t)Math::round(a * 65535);
 
 	return c;
 }
@@ -196,6 +236,19 @@ Color Color::hex(uint32_t p_hex) {
 	float g = (p_hex & 0xFF) / 255.0;
 	p_hex >>= 8;
 	float r = (p_hex & 0xFF) / 255.0;
+
+	return Color(r, g, b, a);
+}
+
+Color Color::hex64(uint64_t p_hex) {
+
+	float a = (p_hex & 0xFFFF) / 65535.0;
+	p_hex >>= 16;
+	float b = (p_hex & 0xFFFF) / 65535.0;
+	p_hex >>= 16;
+	float g = (p_hex & 0xFFFF) / 65535.0;
+	p_hex >>= 16;
+	float r = (p_hex & 0xFFFF) / 65535.0;
 
 	return Color(r, g, b, a);
 }
@@ -368,7 +421,7 @@ Color Color::named(const String &p_name) {
 
 String _to_hex(float p_val) {
 
-	int v = p_val * 255;
+	int v = Math::round(p_val * 255);
 	v = CLAMP(v, 0, 255);
 	String ret;
 
@@ -396,8 +449,61 @@ String Color::to_html(bool p_alpha) const {
 	txt += _to_hex(g);
 	txt += _to_hex(b);
 	if (p_alpha)
-		txt += _to_hex(a);
+		txt = _to_hex(a) + txt;
 	return txt;
+}
+
+Color Color::from_hsv(float p_h, float p_s, float p_v, float p_a) {
+
+	p_h = Math::fmod(p_h * 360.0f, 360.0f);
+	if (p_h < 0.0)
+		p_h += 360.0f;
+
+	const float h_ = p_h / 60.0f;
+	const float c = p_v * p_s;
+	const float x = c * (1.0f - Math::abs(Math::fmod(h_, 2.0f) - 1.0f));
+	float r, g, b;
+
+	switch ((int)h_) {
+		case 0: {
+			r = c;
+			g = x;
+			b = 0;
+		} break;
+		case 1: {
+			r = x;
+			g = c;
+			b = 0;
+		} break;
+		case 2: {
+			r = 0;
+			g = c;
+			b = x;
+		} break;
+		case 3: {
+			r = 0;
+			g = x;
+			b = c;
+		} break;
+		case 4: {
+			r = x;
+			g = 0;
+			b = c;
+		} break;
+		case 5: {
+			r = c;
+			g = 0;
+			b = x;
+		} break;
+		default: {
+			r = 0;
+			g = 0;
+			b = 0;
+		} break;
+	}
+
+	const float m = p_v - c;
+	return Color(m + r, m + g, m + b, p_a);
 }
 
 float Color::gray() const {
@@ -413,96 +519,95 @@ Color::operator String() const {
 Color Color::operator+(const Color &p_color) const {
 
 	return Color(
-			CLAMP(r + p_color.r, 0.0, 1.0),
-			CLAMP(g + p_color.g, 0.0, 1.0),
-			CLAMP(b + p_color.b, 0.0, 1.0),
-			CLAMP(a + p_color.a, 0.0, 1.0));
+			r + p_color.r,
+			g + p_color.g,
+			b + p_color.b,
+			a + p_color.a);
 }
 
 void Color::operator+=(const Color &p_color) {
 
-	r = CLAMP(r + p_color.r, 0.0, 1.0);
-	g = CLAMP(g + p_color.g, 0.0, 1.0);
-	b = CLAMP(b + p_color.b, 0.0, 1.0);
-	a = CLAMP(a + p_color.a, 0.0, 1.0);
+	r = r + p_color.r;
+	g = g + p_color.g;
+	b = b + p_color.b;
+	a = a + p_color.a;
 }
 
 Color Color::operator-(const Color &p_color) const {
 
 	return Color(
-			CLAMP(r - p_color.r, 0.0, 1.0),
-			CLAMP(g - p_color.g, 0.0, 1.0),
-			CLAMP(b - p_color.b, 0.0, 1.0),
-			CLAMP(a - p_color.a, 0.0, 1.0));
+			r - p_color.r,
+			g - p_color.g,
+			b - p_color.b,
+			a - p_color.a);
 }
 
 void Color::operator-=(const Color &p_color) {
 
-	r = CLAMP(r - p_color.r, 0.0, 1.0);
-	g = CLAMP(g - p_color.g, 0.0, 1.0);
-	b = CLAMP(b - p_color.b, 0.0, 1.0);
-	a = CLAMP(a - p_color.a, 0.0, 1.0);
+	r = r - p_color.r;
+	g = g - p_color.g;
+	b = b - p_color.b;
+	a = a - p_color.a;
 }
 
 Color Color::operator*(const Color &p_color) const {
 
 	return Color(
-			CLAMP(r * p_color.r, 0.0, 1.0),
-			CLAMP(g * p_color.g, 0.0, 1.0),
-			CLAMP(b * p_color.b, 0.0, 1.0),
-			CLAMP(a * p_color.a, 0.0, 1.0));
+			r * p_color.r,
+			g * p_color.g,
+			b * p_color.b,
+			a * p_color.a);
 }
 
 Color Color::operator*(const real_t &rvalue) const {
 
 	return Color(
-			CLAMP(r * rvalue, 0.0, 1.0),
-			CLAMP(g * rvalue, 0.0, 1.0),
-			CLAMP(b * rvalue, 0.0, 1.0),
-			CLAMP(a * rvalue, 0.0, 1.0));
+			r * rvalue,
+			g * rvalue,
+			b * rvalue,
+			a * rvalue);
 }
 
 void Color::operator*=(const Color &p_color) {
 
-	r = CLAMP(r * p_color.r, 0.0, 1.0);
-	g = CLAMP(g * p_color.g, 0.0, 1.0);
-	b = CLAMP(b * p_color.b, 0.0, 1.0);
-	a = CLAMP(a * p_color.a, 0.0, 1.0);
+	r = r * p_color.r;
+	g = g * p_color.g;
+	b = b * p_color.b;
+	a = a * p_color.a;
 }
 
 void Color::operator*=(const real_t &rvalue) {
 
-	r = CLAMP(r * rvalue, 0.0, 1.0);
-	g = CLAMP(g * rvalue, 0.0, 1.0);
-	b = CLAMP(b * rvalue, 0.0, 1.0);
-	a = CLAMP(a * rvalue, 0.0, 1.0);
-};
+	r = r * rvalue;
+	g = g * rvalue;
+	b = b * rvalue;
+	a = a * rvalue;
+}
 
 Color Color::operator/(const Color &p_color) const {
 
 	return Color(
-			p_color.r == 0 ? 1 : CLAMP(r / p_color.r, 0.0, 1.0),
-			p_color.g == 0 ? 1 : CLAMP(g / p_color.g, 0.0, 1.0),
-			p_color.b == 0 ? 1 : CLAMP(b / p_color.b, 0.0, 1.0),
-			p_color.a == 0 ? 1 : CLAMP(a / p_color.a, 0.0, 1.0));
+			r / p_color.r,
+			g / p_color.g,
+			b / p_color.b,
+			a / p_color.a);
 }
 
 Color Color::operator/(const real_t &rvalue) const {
 
-	if (rvalue == 0) return Color(1.0, 1.0, 1.0, 1.0);
 	return Color(
-			CLAMP(r / rvalue, 0.0, 1.0),
-			CLAMP(g / rvalue, 0.0, 1.0),
-			CLAMP(b / rvalue, 0.0, 1.0),
-			CLAMP(a / rvalue, 0.0, 1.0));
+			r / rvalue,
+			g / rvalue,
+			b / rvalue,
+			a / rvalue);
 }
 
 void Color::operator/=(const Color &p_color) {
 
-	r = p_color.r == 0 ? 1 : CLAMP(r / p_color.r, 0.0, 1.0);
-	g = p_color.g == 0 ? 1 : CLAMP(g / p_color.g, 0.0, 1.0);
-	b = p_color.b == 0 ? 1 : CLAMP(b / p_color.b, 0.0, 1.0);
-	a = p_color.a == 0 ? 1 : CLAMP(a / p_color.a, 0.0, 1.0);
+	r = r / p_color.r;
+	g = g / p_color.g;
+	b = b / p_color.b;
+	a = a / p_color.a;
 }
 
 void Color::operator/=(const real_t &rvalue) {
@@ -513,18 +618,18 @@ void Color::operator/=(const real_t &rvalue) {
 		b = 1.0;
 		a = 1.0;
 	} else {
-		r = CLAMP(r / rvalue, 0.0, 1.0);
-		g = CLAMP(g / rvalue, 0.0, 1.0);
-		b = CLAMP(b / rvalue, 0.0, 1.0);
-		a = CLAMP(a / rvalue, 0.0, 1.0);
+		r = r / rvalue;
+		g = g / rvalue;
+		b = b / rvalue;
+		a = a / rvalue;
 	}
 };
 
 Color Color::operator-() const {
 
 	return Color(
-			CLAMP(1.0 - r, 0.0, 1.0),
-			CLAMP(1.0 - g, 0.0, 1.0),
-			CLAMP(1.0 - b, 0.0, 1.0),
-			CLAMP(1.0 - a, 0.0, 1.0));
+			1.0 - r,
+			1.0 - g,
+			1.0 - b,
+			1.0 - a);
 }

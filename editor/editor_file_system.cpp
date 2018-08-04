@@ -125,6 +125,14 @@ bool EditorFileSystemDirectory::get_file_import_is_valid(int p_idx) const {
 	return files[p_idx]->import_valid;
 }
 
+String EditorFileSystemDirectory::get_file_script_class_name(int p_idx) const {
+	return files[p_idx]->script_class_name;
+}
+
+String EditorFileSystemDirectory::get_file_script_class_extends(int p_idx) const {
+	return files[p_idx]->script_class_extends;
+}
+
 StringName EditorFileSystemDirectory::get_file_type(int p_idx) const {
 
 	ERR_FAIL_INDEX_V(p_idx, files.size(), "");
@@ -149,6 +157,8 @@ void EditorFileSystemDirectory::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_file", "idx"), &EditorFileSystemDirectory::get_file);
 	ClassDB::bind_method(D_METHOD("get_file_path", "idx"), &EditorFileSystemDirectory::get_file_path);
 	ClassDB::bind_method(D_METHOD("get_file_type", "idx"), &EditorFileSystemDirectory::get_file_type);
+	ClassDB::bind_method(D_METHOD("get_file_script_class_name", "idx"), &EditorFileSystemDirectory::get_file_script_class_name);
+	ClassDB::bind_method(D_METHOD("get_file_script_class_extends", "idx"), &EditorFileSystemDirectory::get_file_script_class_extends);
 	ClassDB::bind_method(D_METHOD("get_file_import_is_valid", "idx"), &EditorFileSystemDirectory::get_file_import_is_valid);
 	ClassDB::bind_method(D_METHOD("get_name"), &EditorFileSystemDirectory::get_name);
 	ClassDB::bind_method(D_METHOD("get_path"), &EditorFileSystemDirectory::get_path);
@@ -189,7 +199,7 @@ void EditorFileSystem::_scan_filesystem() {
 
 	String project = ProjectSettings::get_singleton()->get_resource_path();
 
-	String fscache = EditorSettings::get_singleton()->get_project_settings_dir().plus_file("filesystem_cache3");
+	String fscache = EditorSettings::get_singleton()->get_project_settings_dir().plus_file("filesystem_cache4");
 	FileAccess *f = FileAccess::open(fscache, FileAccess::READ);
 
 	if (f) {
@@ -209,7 +219,7 @@ void EditorFileSystem::_scan_filesystem() {
 
 			} else {
 				Vector<String> split = l.split("::");
-				ERR_CONTINUE(split.size() != 6);
+				ERR_CONTINUE(split.size() != 7);
 				String name = split[0];
 				String file;
 
@@ -221,8 +231,10 @@ void EditorFileSystem::_scan_filesystem() {
 				fc.modification_time = split[2].to_int64();
 				fc.import_modification_time = split[3].to_int64();
 				fc.import_valid = split[4].to_int64() != 0;
+				fc.script_class_name = split[5].get_slice("<>", 0);
+				fc.script_class_extends = split[5].get_slice("<>", 1);
 
-				String deps = split[5].strip_edges();
+				String deps = split[6].strip_edges();
 				if (deps.length()) {
 					Vector<String> dp = deps.split("<>");
 					for (int i = 0; i < dp.size(); i++) {
@@ -239,7 +251,7 @@ void EditorFileSystem::_scan_filesystem() {
 		memdelete(f);
 	}
 
-	String update_cache = EditorSettings::get_singleton()->get_project_settings_dir().plus_file("filesystem_update3");
+	String update_cache = EditorSettings::get_singleton()->get_project_settings_dir().plus_file("filesystem_update4");
 
 	if (FileAccess::exists(update_cache)) {
 		{
@@ -275,20 +287,28 @@ void EditorFileSystem::_scan_filesystem() {
 	memdelete(d);
 
 	f = FileAccess::open(fscache, FileAccess::WRITE);
-	_save_filesystem_cache(new_filesystem, f);
-	f->close();
-	memdelete(f);
+	if (f == NULL) {
+		ERR_PRINTS("Error writing fscache: " + fscache);
+	} else {
+		_save_filesystem_cache(new_filesystem, f);
+		f->close();
+		memdelete(f);
+	}
 
 	scanning = false;
 }
 
 void EditorFileSystem::_save_filesystem_cache() {
-	String fscache = EditorSettings::get_singleton()->get_project_settings_dir().plus_file("filesystem_cache3");
+	String fscache = EditorSettings::get_singleton()->get_project_settings_dir().plus_file("filesystem_cache4");
 
 	FileAccess *f = FileAccess::open(fscache, FileAccess::WRITE);
-	_save_filesystem_cache(filesystem, f);
-	f->close();
-	memdelete(f);
+	if (f == NULL) {
+		ERR_PRINTS("Error writing fscache: " + fscache);
+	} else {
+		_save_filesystem_cache(filesystem, f);
+		f->close();
+		memdelete(f);
+	}
 }
 
 void EditorFileSystem::_thread_func(void *_userdata) {
@@ -321,10 +341,10 @@ bool EditorFileSystem::_test_for_reimport(const String &p_path, bool p_only_impo
 
 	List<String> to_check;
 
-	String source_file;
-	String source_md5;
+	String source_file = "";
+	String source_md5 = "";
 	Vector<String> dest_files;
-	String dest_md5;
+	String dest_md5 = "";
 
 	while (true) {
 
@@ -334,7 +354,6 @@ bool EditorFileSystem::_test_for_reimport(const String &p_path, bool p_only_impo
 
 		err = VariantParser::parse_tag_assign_eof(&stream, lines, error_text, next_tag, assign, value, NULL, true);
 		if (err == ERR_FILE_EOF) {
-			memdelete(f);
 			break;
 		} else if (err != OK) {
 			ERR_PRINTS("ResourceFormatImporter::load - " + p_path + ".import:" + itos(lines) + " error: " + error_text);
@@ -351,12 +370,8 @@ bool EditorFileSystem::_test_for_reimport(const String &p_path, bool p_only_impo
 					to_check.push_back(fa[i]);
 				}
 			} else if (!p_only_imported_files) {
-				if (assign == "source_md5") {
-					source_md5 = value;
-				} else if (assign == "source_file") {
+				if (assign == "source_file") {
 					source_file = value;
-				} else if (assign == "dest_md5") {
-					dest_md5 = value;
 				} else if (assign == "dest_files") {
 					dest_files = value;
 				}
@@ -368,6 +383,42 @@ bool EditorFileSystem::_test_for_reimport(const String &p_path, bool p_only_impo
 	}
 
 	memdelete(f);
+
+	// Read the md5's from a separate file (so the import parameters aren't dependant on the file version
+	String base_path = ResourceFormatImporter::get_singleton()->get_import_base_path(p_path);
+	FileAccess *md5s = FileAccess::open(base_path + ".md5", FileAccess::READ, &err);
+	if (!md5s) { // No md5's stored for this resource
+		return true;
+	}
+
+	VariantParser::StreamFile md5_stream;
+	md5_stream.f = md5s;
+
+	while (true) {
+		assign = Variant();
+		next_tag.fields.clear();
+		next_tag.name = String();
+
+		err = VariantParser::parse_tag_assign_eof(&md5_stream, lines, error_text, next_tag, assign, value, NULL, true);
+
+		if (err == ERR_FILE_EOF) {
+			break;
+		} else if (err != OK) {
+			ERR_PRINTS("ResourceFormatImporter::load - " + p_path + ".import.md5:" + itos(lines) + " error: " + error_text);
+			memdelete(md5s);
+			return false; // parse error
+		}
+		if (assign != String()) {
+			if (!p_only_imported_files) {
+				if (assign == "source_md5") {
+					source_md5 = value;
+				} else if (assign == "dest_md5") {
+					dest_md5 = value;
+				}
+			}
+		}
+	}
+	memdelete(md5s);
 
 	//imported files are gone, reimport
 	for (List<String>::Element *E = to_check.front(); E; E = E->next()) {
@@ -524,6 +575,7 @@ void EditorFileSystem::scan() {
 		scanning = false;
 		emit_signal("filesystem_changed");
 		emit_signal("sources_changed", sources_changed.size() > 0);
+		_queue_update_script_classes();
 
 	} else {
 
@@ -667,6 +719,9 @@ void EditorFileSystem::_scan_new_dir(EditorFileSystemDirectory *p_dir, DirAccess
 				fi->modified_time = fc->modification_time;
 				fi->import_modified_time = fc->import_modification_time;
 				fi->import_valid = fc->import_valid;
+				fi->script_class_name = fc->script_class_name;
+				fi->script_class_extends = fc->script_class_extends;
+
 				if (fc->type == String()) {
 					fi->type = ResourceLoader::get_resource_type(path);
 					//there is also the chance that file type changed due to reimport, must probably check this somehow here (or kind of note it for next time in another file?)
@@ -676,6 +731,7 @@ void EditorFileSystem::_scan_new_dir(EditorFileSystemDirectory *p_dir, DirAccess
 			} else {
 
 				fi->type = ResourceFormatImporter::get_singleton()->get_resource_type(path);
+				fi->script_class_name = _get_global_script_class(fi->type, path, &fi->script_class_extends);
 				fi->modified_time = 0;
 				fi->import_modified_time = 0;
 				fi->import_valid = ResourceLoader::is_import_valid(path);
@@ -695,9 +751,12 @@ void EditorFileSystem::_scan_new_dir(EditorFileSystemDirectory *p_dir, DirAccess
 				fi->deps = fc->deps;
 				fi->import_modified_time = 0;
 				fi->import_valid = true;
+				fi->script_class_name = fc->script_class_name;
+				fi->script_class_extends = fc->script_class_extends;
 			} else {
 				//new or modified time
 				fi->type = ResourceLoader::get_resource_type(path);
+				fi->script_class_name = _get_global_script_class(fi->type, path, &fi->script_class_extends);
 				fi->deps = _get_dependencies(path);
 				fi->modified_time = mt;
 				fi->import_modified_time = 0;
@@ -796,6 +855,7 @@ void EditorFileSystem::_scan_fs_changes(EditorFileSystemDirectory *p_dir, const 
 					fi->modified_time = FileAccess::get_modified_time(path);
 					fi->import_modified_time = 0;
 					fi->type = ResourceLoader::get_resource_type(path);
+					fi->script_class_name = _get_global_script_class(fi->type, path, &fi->script_class_extends);
 					fi->import_valid = ResourceLoader::is_import_valid(path);
 
 					{
@@ -1005,6 +1065,7 @@ void EditorFileSystem::_notification(int p_what) {
 						if (_update_scan_actions())
 							emit_signal("filesystem_changed");
 						emit_signal("sources_changed", sources_changed.size() > 0);
+						_queue_update_script_classes();
 					}
 				} else if (!scanning) {
 
@@ -1020,6 +1081,7 @@ void EditorFileSystem::_notification(int p_what) {
 					_update_scan_actions();
 					emit_signal("filesystem_changed");
 					emit_signal("sources_changed", sources_changed.size() > 0);
+					_queue_update_script_classes();
 				}
 			}
 		} break;
@@ -1048,7 +1110,7 @@ void EditorFileSystem::_save_filesystem_cache(EditorFileSystemDirectory *p_dir, 
 
 	for (int i = 0; i < p_dir->files.size(); i++) {
 
-		String s = p_dir->files[i]->file + "::" + p_dir->files[i]->type + "::" + itos(p_dir->files[i]->modified_time) + "::" + itos(p_dir->files[i]->import_modified_time) + "::" + itos(p_dir->files[i]->import_valid);
+		String s = p_dir->files[i]->file + "::" + p_dir->files[i]->type + "::" + itos(p_dir->files[i]->modified_time) + "::" + itos(p_dir->files[i]->import_modified_time) + "::" + itos(p_dir->files[i]->import_valid) + "::" + p_dir->files[i]->script_class_name + "<>" + p_dir->files[i]->script_class_extends;
 		s += "::";
 		for (int j = 0; j < p_dir->files[i]->deps.size(); j++) {
 
@@ -1229,7 +1291,7 @@ EditorFileSystemDirectory *EditorFileSystem::get_filesystem_path(const String &p
 
 void EditorFileSystem::_save_late_updated_files() {
 	//files that already existed, and were modified, need re-scanning for dependencies upon project restart. This is done via saving this special file
-	String fscache = EditorSettings::get_singleton()->get_project_settings_dir().plus_file("filesystem_update3");
+	String fscache = EditorSettings::get_singleton()->get_project_settings_dir().plus_file("filesystem_update4");
 	FileAccessRef f = FileAccess::open(fscache, FileAccess::WRITE);
 	for (Set<String>::Element *E = late_update_files.front(); E; E = E->next()) {
 		f->store_line(E->get());
@@ -1254,6 +1316,67 @@ Vector<String> EditorFileSystem::_get_dependencies(const String &p_path) {
 	return ret;
 }
 
+String EditorFileSystem::_get_global_script_class(const String &p_type, const String &p_path, String *r_extends) const {
+
+	for (int i = 0; i < ScriptServer::get_language_count(); i++) {
+		if (ScriptServer::get_language(i)->handles_global_class_type(p_type)) {
+			String global_name;
+			String extends;
+
+			global_name = ScriptServer::get_language(i)->get_global_class_name(p_path, &extends);
+			*r_extends = extends;
+			return global_name;
+		}
+	}
+	*r_extends = String();
+	return String();
+}
+
+void EditorFileSystem::_scan_script_classes(EditorFileSystemDirectory *p_dir) {
+	int filecount = p_dir->files.size();
+	const EditorFileSystemDirectory::FileInfo *const *files = p_dir->files.ptr();
+	for (int i = 0; i < filecount; i++) {
+		if (files[i]->script_class_name == String()) {
+			continue;
+		}
+
+		String lang;
+		for (int j = 0; j < ScriptServer::get_language_count(); j++) {
+			if (ScriptServer::get_language(j)->handles_global_class_type(files[i]->type)) {
+				lang = ScriptServer::get_language(j)->get_name();
+			}
+		}
+
+		ScriptServer::add_global_class(files[i]->script_class_name, files[i]->script_class_extends, lang, p_dir->get_file_path(i));
+	}
+	for (int i = 0; i < p_dir->get_subdir_count(); i++) {
+		_scan_script_classes(p_dir->get_subdir(i));
+	}
+}
+
+void EditorFileSystem::update_script_classes() {
+
+	if (!update_script_classes_queued)
+		return;
+
+	update_script_classes_queued = false;
+	ScriptServer::global_classes_clear();
+	if (get_filesystem()) {
+		_scan_script_classes(get_filesystem());
+	}
+
+	ScriptServer::save_global_classes();
+}
+
+void EditorFileSystem::_queue_update_script_classes() {
+	if (update_script_classes_queued) {
+		return;
+	}
+
+	update_script_classes_queued = true;
+	call_deferred("update_script_classes");
+}
+
 void EditorFileSystem::update_file(const String &p_file) {
 
 	EditorFileSystemDirectory *fs = NULL;
@@ -1272,7 +1395,9 @@ void EditorFileSystem::update_file(const String &p_file) {
 			memdelete(fs->files[cpos]);
 			fs->files.remove(cpos);
 		}
+
 		call_deferred("emit_signal", "filesystem_changed"); //update later
+		_queue_update_script_classes();
 		return;
 	}
 
@@ -1312,11 +1437,16 @@ void EditorFileSystem::update_file(const String &p_file) {
 	}
 
 	fs->files[cpos]->type = type;
+	fs->files[cpos]->script_class_name = _get_global_script_class(type, p_file, &fs->files[cpos]->script_class_extends);
 	fs->files[cpos]->modified_time = FileAccess::get_modified_time(p_file);
 	fs->files[cpos]->deps = _get_dependencies(p_file);
 	fs->files[cpos]->import_valid = ResourceLoader::is_import_valid(p_file);
 
+	// Update preview
+	EditorResourcePreview::get_singleton()->check_for_invalidation(p_file);
+
 	call_deferred("emit_signal", "filesystem_changed"); //update later
+	_queue_update_script_classes();
 }
 
 void EditorFileSystem::_reimport_file(const String &p_file) {
@@ -1456,15 +1586,13 @@ void EditorFileSystem::_reimport_file(const String &p_file) {
 	}
 
 	f->store_line("source_file=" + Variant(p_file).get_construct_string());
-	f->store_line("source_md5=\"" + FileAccess::get_md5(p_file) + "\"\n");
 
 	if (dest_paths.size()) {
 		Array dp;
 		for (int i = 0; i < dest_paths.size(); i++) {
 			dp.push_back(dest_paths[i]);
 		}
-		f->store_line("dest_files=" + Variant(dp).get_construct_string());
-		f->store_line("dest_md5=\"" + FileAccess::get_multiple_md5(dest_paths) + "\"\n");
+		f->store_line("dest_files=" + Variant(dp).get_construct_string() + "\n");
 	}
 
 	f->store_line("[params]");
@@ -1482,6 +1610,16 @@ void EditorFileSystem::_reimport_file(const String &p_file) {
 
 	f->close();
 	memdelete(f);
+
+	// Store the md5's of the various files. These are stored separately so that the .import files can be version controlled.
+	FileAccess *md5s = FileAccess::open(base_path + ".md5", FileAccess::WRITE);
+	ERR_FAIL_COND(!md5s);
+	md5s->store_line("source_md5=\"" + FileAccess::get_md5(p_file) + "\"");
+	if (dest_paths.size()) {
+		md5s->store_line("dest_md5=\"" + FileAccess::get_multiple_md5(dest_paths) + "\"\n");
+	}
+	md5s->close();
+	memdelete(md5s);
 
 	//update modified times, to avoid reimport
 	fs->files[cpos]->modified_time = FileAccess::get_modified_time(p_file);
@@ -1561,6 +1699,7 @@ void EditorFileSystem::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("update_file", "path"), &EditorFileSystem::update_file);
 	ClassDB::bind_method(D_METHOD("get_filesystem_path", "path"), &EditorFileSystem::get_filesystem_path);
 	ClassDB::bind_method(D_METHOD("get_file_type", "path"), &EditorFileSystem::get_file_type);
+	ClassDB::bind_method(D_METHOD("update_script_classes"), &EditorFileSystem::update_script_classes);
 
 	ADD_SIGNAL(MethodInfo("filesystem_changed"));
 	ADD_SIGNAL(MethodInfo("sources_changed", PropertyInfo(Variant::BOOL, "exist")));
@@ -1614,6 +1753,7 @@ EditorFileSystem::EditorFileSystem() {
 	memdelete(da);
 
 	scan_total = 0;
+	update_script_classes_queued = false;
 }
 
 EditorFileSystem::~EditorFileSystem() {

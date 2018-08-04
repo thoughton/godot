@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="Object" category="Core" version="3.0-beta">
+<class name="Object" category="Core" version="3.1">
 	<brief_description>
 		Base class for all non built-in types.
 	</brief_description>
@@ -16,7 +16,7 @@
 	</demos>
 	<methods>
 		<method name="_get" qualifiers="virtual">
-			<return type="void">
+			<return type="Variant">
 			</return>
 			<argument index="0" name="property" type="String">
 			</argument>
@@ -398,6 +398,7 @@
 	<signals>
 		<signal name="script_changed">
 			<description>
+				Emitted whenever the script of the Object is changed.
 			</description>
 		</signal>
 	</signals>

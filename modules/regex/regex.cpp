@@ -156,6 +156,10 @@ void RegExMatch::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_string", "name"), &RegExMatch::get_string, DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("get_start", "name"), &RegExMatch::get_start, DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("get_end", "name"), &RegExMatch::get_end, DEFVAL(0));
+
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "subject"), "", "get_subject");
+	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "names"), "", "get_names");
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "strings"), "", "get_strings");
 }
 
 void RegEx::_pattern_info(uint32_t what, void *where) const {
@@ -261,8 +265,8 @@ Ref<RegExMatch> RegEx::search(const String &p_subject, int p_offset, int p_end) 
 
 		for (uint32_t i = 0; i < size; i++) {
 
-			result->data[i].start = ovector[i * 2];
-			result->data[i].end = ovector[i * 2 + 1];
+			result->data.write[i].start = ovector[i * 2];
+			result->data.write[i].end = ovector[i * 2 + 1];
 		}
 
 		pcre2_match_data_free_16(match);
@@ -291,8 +295,8 @@ Ref<RegExMatch> RegEx::search(const String &p_subject, int p_offset, int p_end) 
 
 		for (uint32_t i = 0; i < size; i++) {
 
-			result->data[i].start = ovector[i * 2];
-			result->data[i].end = ovector[i * 2 + 1];
+			result->data.write[i].start = ovector[i * 2];
+			result->data.write[i].end = ovector[i * 2 + 1];
 		}
 
 		pcre2_match_data_free_32(match);

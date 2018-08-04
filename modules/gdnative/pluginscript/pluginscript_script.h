@@ -53,7 +53,7 @@ private:
 	bool _tool;
 	bool _valid;
 
-	Ref<PluginScript> _ref_base_parent;
+	Ref<Script> _ref_base_parent;
 	StringName _native_parent;
 	SelfList<PluginScript> _script_list;
 
@@ -62,8 +62,8 @@ private:
 	Map<StringName, PropertyInfo> _properties_info;
 	Map<StringName, MethodInfo> _signals_info;
 	Map<StringName, MethodInfo> _methods_info;
-	Map<StringName, ScriptInstance::RPCMode> _variables_rset_mode;
-	Map<StringName, ScriptInstance::RPCMode> _methods_rpc_mode;
+	Map<StringName, MultiplayerAPI::RPCMode> _variables_rset_mode;
+	Map<StringName, MultiplayerAPI::RPCMode> _methods_rpc_mode;
 
 	Set<Object *> _instances;
 	//exported members
@@ -112,12 +112,12 @@ public:
 
 	virtual void update_exports();
 	virtual void get_script_method_list(List<MethodInfo> *r_methods) const;
-	virtual void get_script_property_list(List<PropertyInfo> *r_propertieslist) const;
+	virtual void get_script_property_list(List<PropertyInfo> *r_properties) const;
 
 	virtual int get_member_line(const StringName &p_member) const;
 
-	ScriptInstance::RPCMode get_rpc_mode(const StringName &p_method) const;
-	ScriptInstance::RPCMode get_rset_mode(const StringName &p_variable) const;
+	MultiplayerAPI::RPCMode get_rpc_mode(const StringName &p_method) const;
+	MultiplayerAPI::RPCMode get_rset_mode(const StringName &p_variable) const;
 
 	PluginScript();
 	void init(PluginScriptLanguage *language);

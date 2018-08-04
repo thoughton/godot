@@ -79,9 +79,7 @@ private:
 	void _update_transform();
 
 protected:
-	bool _set(const StringName &p_name, const Variant &p_value);
-	bool _get(const StringName &p_name, Variant &r_ret) const;
-	void _get_property_list(List<PropertyInfo> *p_list) const;
+	virtual void _validate_property(PropertyInfo &property) const;
 
 	void _notification(int p_what);
 	static void _bind_methods();
@@ -112,5 +110,48 @@ public:
 };
 
 VARIANT_ENUM_CAST(PathFollow::RotationMode);
+
+class OrientedPathFollow : public Spatial {
+
+	GDCLASS(OrientedPathFollow, Spatial);
+
+private:
+	Path *path;
+	real_t delta_offset; // change in offset since last _update_transform
+	real_t offset;
+	real_t h_offset;
+	real_t v_offset;
+	bool cubic;
+	bool loop;
+
+	void _update_transform();
+
+protected:
+	virtual void _validate_property(PropertyInfo &property) const;
+
+	void _notification(int p_what);
+	static void _bind_methods();
+
+public:
+	void set_offset(float p_offset);
+	float get_offset() const;
+
+	void set_h_offset(float p_h_offset);
+	float get_h_offset() const;
+
+	void set_v_offset(float p_v_offset);
+	float get_v_offset() const;
+
+	void set_unit_offset(float p_unit_offset);
+	float get_unit_offset() const;
+
+	void set_loop(bool p_loop);
+	bool has_loop() const;
+
+	void set_cubic_interpolation(bool p_enable);
+	bool get_cubic_interpolation() const;
+
+	OrientedPathFollow();
+};
 
 #endif // PATH_H

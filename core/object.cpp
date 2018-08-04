@@ -601,15 +601,19 @@ void Object::get_property_list(List<PropertyInfo> *p_list, bool p_reversed) cons
 
 	_get_property_listv(p_list, p_reversed);
 
-	if (!is_class("Script")) // can still be set, but this is for userfriendlyness
+	if (!is_class("Script")) { // can still be set, but this is for userfriendlyness
+#ifdef TOOLS_ENABLED
+		p_list->push_back(PropertyInfo(Variant::NIL, "Script", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_GROUP));
+#endif
 		p_list->push_back(PropertyInfo(Variant::OBJECT, "script", PROPERTY_HINT_RESOURCE_TYPE, "Script", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_STORE_IF_NONZERO));
+	}
 #ifdef TOOLS_ENABLED
 	if (editor_section_folding.size()) {
-		p_list->push_back(PropertyInfo(Variant::ARRAY, CoreStringNames::get_singleton()->_sections_unfolded, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR));
+		p_list->push_back(PropertyInfo(Variant::ARRAY, CoreStringNames::get_singleton()->_sections_unfolded, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL));
 	}
 #endif
 	if (!metadata.empty())
-		p_list->push_back(PropertyInfo(Variant::DICTIONARY, "__meta__", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_STORE_IF_NONZERO));
+		p_list->push_back(PropertyInfo(Variant::DICTIONARY, "__meta__", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL | PROPERTY_USAGE_STORE_IF_NONZERO));
 	if (script_instance && !p_reversed) {
 		p_list->push_back(PropertyInfo(Variant::NIL, "Script Variables", PROPERTY_HINT_NONE, String(), PROPERTY_USAGE_CATEGORY));
 		script_instance->get_property_list(p_list);
@@ -814,8 +818,8 @@ Variant Object::callv(const StringName &p_method, const Array &p_args) {
 	argptrs.resize(p_args.size());
 
 	for (int i = 0; i < p_args.size(); i++) {
-		args[i] = p_args[i];
-		argptrs[i] = &args[i];
+		args.write[i] = p_args[i];
+		argptrs.write[i] = &args[i];
 	}
 
 	Variant::CallError ce;
@@ -1178,10 +1182,10 @@ Error Object::emit_signal(const StringName &p_name, const Variant **p_args, int 
 			bind_mem.resize(p_argcount + c.binds.size());
 
 			for (int j = 0; j < p_argcount; j++) {
-				bind_mem[j] = p_args[j];
+				bind_mem.write[j] = p_args[j];
 			}
 			for (int j = 0; j < c.binds.size(); j++) {
-				bind_mem[p_argcount + j] = &c.binds[j];
+				bind_mem.write[p_argcount + j] = &c.binds[j];
 			}
 
 			args = (const Variant **)bind_mem.ptr();
@@ -1205,7 +1209,15 @@ Error Object::emit_signal(const StringName &p_name, const Variant **p_args, int 
 			}
 		}
 
-		if (c.flags & CONNECT_ONESHOT) {
+		bool disconnect = c.flags & CONNECT_ONESHOT;
+#ifdef TOOLS_ENABLED
+		if (disconnect && (c.flags & CONNECT_PERSIST) && Engine::get_singleton()->is_editor_hint()) {
+			//this signal was connected from the editor, and is being edited. just dont disconnect for now
+			disconnect = false;
+		}
+#endif
+		if (disconnect) {
+
 			_ObjectSignalDisconnectData dd;
 			dd.signal = p_name;
 			dd.target = target;
@@ -1677,6 +1689,7 @@ void Object::_bind_methods() {
 #ifdef TOOLS_ENABLED
 	MethodInfo miget("_get", PropertyInfo(Variant::STRING, "property"));
 	miget.return_val.name = "Variant";
+	miget.return_val.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
 	BIND_VMETHOD(miget);
 
 	MethodInfo plget("_get_property_list");
@@ -1919,9 +1932,7 @@ ObjectID ObjectDB::add_instance(Object *p_object) {
 
 	rw_lock->write_lock();
 	instances[++instance_counter] = p_object;
-#ifdef DEBUG_ENABLED
 	instance_checks[p_object] = instance_counter;
-#endif
 	rw_lock->write_unlock();
 
 	return instance_counter;
@@ -1932,9 +1943,7 @@ void ObjectDB::remove_instance(Object *p_object) {
 	rw_lock->write_lock();
 
 	instances.erase(p_object->get_instance_id());
-#ifdef DEBUG_ENABLED
 	instance_checks.erase(p_object);
-#endif
 
 	rw_lock->write_unlock();
 }

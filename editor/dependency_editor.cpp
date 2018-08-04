@@ -472,17 +472,18 @@ void DependencyRemoveDialog::_build_removed_dependency_tree(const Vector<Removed
 
 void DependencyRemoveDialog::show(const Vector<String> &p_folders, const Vector<String> &p_files) {
 	all_remove_files.clear();
-	to_delete.clear();
+	dirs_to_delete.clear();
+	files_to_delete.clear();
 	owners->clear();
 
 	for (int i = 0; i < p_folders.size(); ++i) {
 		String folder = p_folders[i].ends_with("/") ? p_folders[i] : (p_folders[i] + "/");
 		_find_files_in_removed_folder(EditorFileSystem::get_singleton()->get_filesystem_path(folder), folder);
-		to_delete.push_back(folder);
+		dirs_to_delete.push_back(folder);
 	}
 	for (int i = 0; i < p_files.size(); ++i) {
 		all_remove_files[p_files[i]] = String();
-		to_delete.push_back(p_files[i]);
+		files_to_delete.push_back(p_files[i]);
 	}
 
 	Vector<RemovedDependency> removed_deps;
@@ -502,29 +503,49 @@ void DependencyRemoveDialog::show(const Vector<String> &p_folders, const Vector<
 }
 
 void DependencyRemoveDialog::ok_pressed() {
-	bool files_only = true;
-	for (int i = 0; i < to_delete.size(); ++i) {
-		if (to_delete[i].ends_with("/")) {
-			files_only = false;
-		} else if (ResourceCache::has(to_delete[i])) {
-			Resource *res = ResourceCache::get(to_delete[i]);
-			res->set_path(""); //clear reference to path
-		}
 
-		String path = OS::get_singleton()->get_resource_dir() + to_delete[i].replace_first("res://", "/");
+	for (int i = 0; i < files_to_delete.size(); ++i) {
+		if (ResourceCache::has(files_to_delete[i])) {
+			Resource *res = ResourceCache::get(files_to_delete[i]);
+			res->set_path("");
+		}
+		String path = OS::get_singleton()->get_resource_dir() + files_to_delete[i].replace_first("res://", "/");
 		print_line("Moving to trash: " + path);
 		Error err = OS::get_singleton()->move_to_trash(path);
 		if (err != OK) {
-			EditorNode::get_singleton()->add_io_error(TTR("Cannot remove:") + "\n" + to_delete[i] + "\n");
+			EditorNode::get_singleton()->add_io_error(TTR("Cannot remove:") + "\n" + files_to_delete[i] + "\n");
 		}
 	}
 
-	if (files_only) {
+	if (dirs_to_delete.size() == 0) {
 		//If we only deleted files we should only need to tell the file system about the files we touched.
-		for (int i = 0; i < to_delete.size(); ++i) {
-			EditorFileSystem::get_singleton()->update_file(to_delete[i]);
-		}
+		for (int i = 0; i < files_to_delete.size(); ++i)
+			EditorFileSystem::get_singleton()->update_file(files_to_delete[i]);
 	} else {
+
+		for (int i = 0; i < dirs_to_delete.size(); ++i) {
+			String path = OS::get_singleton()->get_resource_dir() + dirs_to_delete[i].replace_first("res://", "/");
+			print_line("Moving to trash: " + path);
+			Error err = OS::get_singleton()->move_to_trash(path);
+			if (err != OK) {
+				EditorNode::get_singleton()->add_io_error(TTR("Cannot remove:") + "\n" + dirs_to_delete[i] + "\n");
+			}
+		}
+
+		// if some dirs would be deleted, favorite dirs need to be updated
+		Vector<String> previous_favorite_dirs = EditorSettings::get_singleton()->get_favorite_dirs();
+		Vector<String> new_favorite_dirs;
+
+		for (int i = 0; i < previous_favorite_dirs.size(); ++i) {
+			if (dirs_to_delete.find(previous_favorite_dirs[i] + "/") < 0) {
+				new_favorite_dirs.push_back(previous_favorite_dirs[i]);
+			}
+		}
+
+		if (new_favorite_dirs.size() < previous_favorite_dirs.size()) {
+			EditorSettings::get_singleton()->set_favorite_dirs(new_favorite_dirs);
+		}
+
 		EditorFileSystem::get_singleton()->scan_changes();
 	}
 }
@@ -595,6 +616,7 @@ DependencyErrorDialog::DependencyErrorDialog() {
 	files->set_hide_root(true);
 	vb->add_margin_child(TTR("Scene failed to load due to missing dependencies:"), files, true);
 	files->set_v_size_flags(SIZE_EXPAND_FILL);
+	files->set_custom_minimum_size(Size2(1, 200));
 	get_ok()->set_text(TTR("Open Anyway"));
 	get_cancel()->set_text(TTR("Close"));
 
@@ -626,7 +648,7 @@ bool OrphanResourcesDialog::_fill_owners(EditorFileSystemDirectory *efsd, HashMa
 	if (!efsd)
 		return false;
 
-	bool has_childs = false;
+	bool has_children = false;
 
 	for (int i = 0; i < efsd->get_subdir_count(); i++) {
 
@@ -642,7 +664,7 @@ bool OrphanResourcesDialog::_fill_owners(EditorFileSystemDirectory *efsd, HashMa
 			if (!children) {
 				memdelete(dir_item);
 			} else {
-				has_childs = true;
+				has_children = true;
 			}
 		}
 	}
@@ -682,12 +704,12 @@ bool OrphanResourcesDialog::_fill_owners(EditorFileSystemDirectory *efsd, HashMa
 					ti->add_button(1, get_icon("GuiVisibilityVisible", "EditorIcons"));
 				}
 				ti->set_metadata(0, path);
-				has_childs = true;
+				has_children = true;
 			}
 		}
 	}
 
-	return has_childs;
+	return has_children;
 }
 
 void OrphanResourcesDialog::refresh() {

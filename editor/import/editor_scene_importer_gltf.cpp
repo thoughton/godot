@@ -651,7 +651,7 @@ Vector<double> EditorSceneImporterGLTF::_decode_accessor(GLTFState &state, int p
 	} else {
 		//fill with zeros, as bufferview is not defined.
 		for (int i = 0; i < (a.count * component_count); i++) {
-			dst_buffer[i] = 0;
+			dst_buffer.write[i] = 0;
 		}
 	}
 
@@ -762,14 +762,22 @@ PoolVector<Color> EditorSceneImporterGLTF::_decode_accessor_as_color(GLTFState &
 	PoolVector<Color> ret;
 	if (attribs.size() == 0)
 		return ret;
-	ERR_FAIL_COND_V(attribs.size() % 4 != 0, ret);
+	int type = state.accessors[p_accessor].type;
+	ERR_FAIL_COND_V(!(type == TYPE_VEC3 || type == TYPE_VEC4), ret);
+	int components;
+	if (type == TYPE_VEC3) {
+		components = 3;
+	} else { // TYPE_VEC4
+		components = 4;
+	}
+	ERR_FAIL_COND_V(attribs.size() % components != 0, ret);
 	const double *attribs_ptr = attribs.ptr();
-	int ret_size = attribs.size() / 4;
+	int ret_size = attribs.size() / components;
 	ret.resize(ret_size);
 	{
 		PoolVector<Color>::Write w = ret.write();
 		for (int i = 0; i < ret_size; i++) {
-			w[i] = Color(attribs_ptr[i * 4 + 0], attribs_ptr[i * 4 + 1], attribs_ptr[i * 4 + 2], attribs_ptr[i * 4 + 3]);
+			w[i] = Color(attribs_ptr[i * 4 + 0], attribs_ptr[i * 4 + 1], attribs_ptr[i * 4 + 2], components == 4 ? attribs_ptr[i * 4 + 3] : 1.0);
 		}
 	}
 	return ret;
@@ -786,7 +794,7 @@ Vector<Quat> EditorSceneImporterGLTF::_decode_accessor_as_quat(GLTFState &state,
 	ret.resize(ret_size);
 	{
 		for (int i = 0; i < ret_size; i++) {
-			ret[i] = Quat(attribs_ptr[i * 4 + 0], attribs_ptr[i * 4 + 1], attribs_ptr[i * 4 + 2], attribs_ptr[i * 4 + 3]);
+			ret.write[i] = Quat(attribs_ptr[i * 4 + 0], attribs_ptr[i * 4 + 1], attribs_ptr[i * 4 + 2], attribs_ptr[i * 4 + 3]);
 		}
 	}
 	return ret;
@@ -800,8 +808,8 @@ Vector<Transform2D> EditorSceneImporterGLTF::_decode_accessor_as_xform2d(GLTFSta
 	ERR_FAIL_COND_V(attribs.size() % 4 != 0, ret);
 	ret.resize(attribs.size() / 4);
 	for (int i = 0; i < ret.size(); i++) {
-		ret[i][0] = Vector2(attribs[i * 4 + 0], attribs[i * 4 + 1]);
-		ret[i][1] = Vector2(attribs[i * 4 + 2], attribs[i * 4 + 3]);
+		ret.write[i][0] = Vector2(attribs[i * 4 + 0], attribs[i * 4 + 1]);
+		ret.write[i][1] = Vector2(attribs[i * 4 + 2], attribs[i * 4 + 3]);
 	}
 	return ret;
 }
@@ -815,9 +823,9 @@ Vector<Basis> EditorSceneImporterGLTF::_decode_accessor_as_basis(GLTFState &stat
 	ERR_FAIL_COND_V(attribs.size() % 9 != 0, ret);
 	ret.resize(attribs.size() / 9);
 	for (int i = 0; i < ret.size(); i++) {
-		ret[i].set_axis(0, Vector3(attribs[i * 9 + 0], attribs[i * 9 + 1], attribs[i * 9 + 2]));
-		ret[i].set_axis(1, Vector3(attribs[i * 9 + 3], attribs[i * 9 + 4], attribs[i * 9 + 5]));
-		ret[i].set_axis(2, Vector3(attribs[i * 9 + 6], attribs[i * 9 + 7], attribs[i * 9 + 8]));
+		ret.write[i].set_axis(0, Vector3(attribs[i * 9 + 0], attribs[i * 9 + 1], attribs[i * 9 + 2]));
+		ret.write[i].set_axis(1, Vector3(attribs[i * 9 + 3], attribs[i * 9 + 4], attribs[i * 9 + 5]));
+		ret.write[i].set_axis(2, Vector3(attribs[i * 9 + 6], attribs[i * 9 + 7], attribs[i * 9 + 8]));
 	}
 	return ret;
 }
@@ -830,10 +838,10 @@ Vector<Transform> EditorSceneImporterGLTF::_decode_accessor_as_xform(GLTFState &
 	ERR_FAIL_COND_V(attribs.size() % 16 != 0, ret);
 	ret.resize(attribs.size() / 16);
 	for (int i = 0; i < ret.size(); i++) {
-		ret[i].basis.set_axis(0, Vector3(attribs[i * 16 + 0], attribs[i * 16 + 1], attribs[i * 16 + 2]));
-		ret[i].basis.set_axis(1, Vector3(attribs[i * 16 + 4], attribs[i * 16 + 5], attribs[i * 16 + 6]));
-		ret[i].basis.set_axis(2, Vector3(attribs[i * 16 + 8], attribs[i * 16 + 9], attribs[i * 16 + 10]));
-		ret[i].set_origin(Vector3(attribs[i * 16 + 12], attribs[i * 16 + 13], attribs[i * 16 + 14]));
+		ret.write[i].basis.set_axis(0, Vector3(attribs[i * 16 + 0], attribs[i * 16 + 1], attribs[i * 16 + 2]));
+		ret.write[i].basis.set_axis(1, Vector3(attribs[i * 16 + 4], attribs[i * 16 + 5], attribs[i * 16 + 6]));
+		ret.write[i].basis.set_axis(2, Vector3(attribs[i * 16 + 8], attribs[i * 16 + 9], attribs[i * 16 + 10]));
+		ret.write[i].set_origin(Vector3(attribs[i * 16 + 12], attribs[i * 16 + 13], attribs[i * 16 + 14]));
 	}
 	return ret;
 }
@@ -855,6 +863,7 @@ Error EditorSceneImporterGLTF::_parse_meshes(GLTFState &state) {
 		ERR_FAIL_COND_V(!d.has("primitives"), ERR_PARSE_ERROR);
 
 		Array primitives = d["primitives"];
+		Dictionary extras = d.has("extras") ? (Dictionary)d["extras"] : Dictionary();
 
 		for (int j = 0; j < primitives.size(); j++) {
 
@@ -992,8 +1001,10 @@ Error EditorSceneImporterGLTF::_parse_meshes(GLTFState &state) {
 				Array targets = p["targets"];
 
 				if (j == 0) {
+					Array target_names = extras.has("targetNames") ? (Array)extras["targetNames"] : Array();
 					for (int k = 0; k < targets.size(); k++) {
-						mesh.mesh->add_blend_shape(String("morph_") + itos(k));
+						String name = k < target_names.size() ? (String)target_names[k] : String("morph_") + itos(k);
+						mesh.mesh->add_blend_shape(name);
 					}
 				}
 
@@ -1074,7 +1085,7 @@ Error EditorSceneImporterGLTF::_parse_meshes(GLTFState &state) {
 			ERR_FAIL_COND_V(mesh.mesh->get_blend_shape_count() != weights.size(), ERR_PARSE_ERROR);
 			mesh.blend_weights.resize(weights.size());
 			for (int j = 0; j < weights.size(); j++) {
-				mesh.blend_weights[j] = weights[j];
+				mesh.blend_weights.write[j] = weights[j];
 			}
 		}
 
@@ -1108,7 +1119,8 @@ Error EditorSceneImporterGLTF::_parse_images(GLTFState &state, const String &p_b
 		if (d.has("uri")) {
 			String uri = d["uri"];
 
-			if (uri.findn("data:application/octet-stream;base64") == 0) {
+			if (uri.findn("data:application/octet-stream;base64") == 0 ||
+					uri.findn("data:" + mimetype + ";base64") == 0) {
 				//embedded data
 				data = _parse_base64_uri(uri);
 				data_ptr = data.ptr();
@@ -1127,7 +1139,7 @@ Error EditorSceneImporterGLTF::_parse_images(GLTFState &state, const String &p_b
 
 			ERR_FAIL_INDEX_V(bvi, state.buffer_views.size(), ERR_PARAMETER_RANGE_ERROR);
 
-			GLTFBufferView &bv = state.buffer_views[bvi];
+			const GLTFBufferView &bv = state.buffer_views[bvi];
 
 			int bi = bv.buffer;
 			ERR_FAIL_INDEX_V(bi, state.buffers.size(), ERR_PARAMETER_RANGE_ERROR);
@@ -1154,7 +1166,7 @@ Error EditorSceneImporterGLTF::_parse_images(GLTFState &state, const String &p_b
 			continue;
 		}
 
-		if (mimetype.findn("jpg") != -1) {
+		if (mimetype.findn("jpeg") != -1) {
 			//is a jpg
 			Ref<Image> img = Image::_jpg_mem_loader_func(data_ptr, data_size);
 
@@ -1244,12 +1256,15 @@ Error EditorSceneImporterGLTF::_parse_materials(GLTFState &state) {
 			}
 
 			if (mr.has("metallicFactor")) {
-
 				material->set_metallic(mr["metallicFactor"]);
+			} else {
+				material->set_metallic(1.0);
 			}
-			if (mr.has("roughnessFactor")) {
 
+			if (mr.has("roughnessFactor")) {
 				material->set_roughness(mr["roughnessFactor"]);
+			} else {
+				material->set_roughness(1.0);
 			}
 
 			if (mr.has("metallicRoughnessTexture")) {
@@ -1581,7 +1596,7 @@ Error EditorSceneImporterGLTF::_parse_animations(GLTFState &state) {
 				PoolVector<float> weights = _decode_accessor_as_floats(state, output, false);
 
 				ERR_FAIL_INDEX_V(state.nodes[node]->mesh, state.meshes.size(), ERR_PARSE_ERROR);
-				GLTFMesh *mesh = &state.meshes[state.nodes[node]->mesh];
+				const GLTFMesh *mesh = &state.meshes[state.nodes[node]->mesh];
 				ERR_FAIL_COND_V(mesh->blend_weights.size() == 0, ERR_PARSE_ERROR);
 				int wc = mesh->blend_weights.size();
 
@@ -1596,11 +1611,11 @@ Error EditorSceneImporterGLTF::_parse_animations(GLTFState &state) {
 					Vector<float> wdata;
 					wdata.resize(wlen);
 					for (int l = 0; l < wlen; l++) {
-						wdata[l] = r[l * wc + k];
+						wdata.write[l] = r[l * wc + k];
 					}
 
 					cf.values = wdata;
-					track->weight_tracks[k] = cf;
+					track->weight_tracks.write[k] = cf;
 				}
 			} else {
 				WARN_PRINTS("Invalid path: " + path);
@@ -1642,7 +1657,7 @@ void EditorSceneImporterGLTF::_generate_node(GLTFState &state, int p_node, Node 
 	if (n->mesh >= 0) {
 		ERR_FAIL_INDEX(n->mesh, state.meshes.size());
 		MeshInstance *mi = memnew(MeshInstance);
-		GLTFMesh &mesh = state.meshes[n->mesh];
+		GLTFMesh &mesh = state.meshes.write[n->mesh];
 		mi->set_mesh(mesh.mesh);
 		if (mesh.mesh->get_name() == "") {
 			mesh.mesh->set_name(n->name);
@@ -1696,14 +1711,14 @@ void EditorSceneImporterGLTF::_generate_node(GLTFState &state, int p_node, Node 
 #endif
 	for (int i = 0; i < n->children.size(); i++) {
 		if (state.nodes[n->children[i]]->joints.size()) {
-			_generate_bone(state, n->children[i], skeletons, Vector<int>(), node);
+			_generate_bone(state, n->children[i], skeletons, node);
 		} else {
 			_generate_node(state, n->children[i], node, p_owner, skeletons);
 		}
 	}
 }
 
-void EditorSceneImporterGLTF::_generate_bone(GLTFState &state, int p_node, Vector<Skeleton *> &skeletons, const Vector<int> &p_parent_bones, Node *p_parent_node) {
+void EditorSceneImporterGLTF::_generate_bone(GLTFState &state, int p_node, Vector<Skeleton *> &skeletons, Node *p_parent_node) {
 	ERR_FAIL_INDEX(p_node, state.nodes.size());
 
 	if (state.skeleton_nodes.has(p_node)) {
@@ -1718,25 +1733,28 @@ void EditorSceneImporterGLTF::_generate_bone(GLTFState &state, int p_node, Vecto
 	}
 
 	GLTFNode *n = state.nodes[p_node];
-	Vector<int> parent_bones;
 
 	for (int i = 0; i < n->joints.size(); i++) {
-		ERR_FAIL_COND(n->joints[i].skin < 0);
+		const int skin = n->joints[i].skin;
+		ERR_FAIL_COND(skin < 0);
 
-		int bone_index = skeletons[n->joints[i].skin]->get_bone_count();
-		skeletons[n->joints[i].skin]->add_bone(n->name);
-		if (p_parent_bones.size()) {
-			skeletons[n->joints[i].skin]->set_bone_parent(bone_index, p_parent_bones[i]);
-		}
-		skeletons[n->joints[i].skin]->set_bone_rest(bone_index, state.skins[n->joints[i].skin].bones[n->joints[i].bone].inverse_bind.affine_inverse());
+		Skeleton *s = skeletons[skin];
+		const GLTFNode *gltf_bone_node = state.nodes[state.skins[skin].bones[n->joints[i].bone].node];
+		const String bone_name = gltf_bone_node->name;
+		const int parent = gltf_bone_node->parent;
+		const int parent_index = s->find_bone(state.nodes[parent]->name);
 
-		n->godot_nodes.push_back(skeletons[n->joints[i].skin]);
-		n->joints[i].godot_bone_index = bone_index;
-		parent_bones.push_back(bone_index);
+		s->add_bone(bone_name);
+		const int bone_index = s->find_bone(bone_name);
+		s->set_bone_parent(bone_index, parent_index);
+		s->set_bone_rest(bone_index, state.skins[skin].bones[n->joints[i].bone].inverse_bind.affine_inverse());
+
+		n->godot_nodes.push_back(s);
+		n->joints.write[i].godot_bone_index = bone_index;
 	}
 
 	for (int i = 0; i < n->children.size(); i++) {
-		_generate_bone(state, n->children[i], skeletons, parent_bones, p_parent_node);
+		_generate_bone(state, n->children[i], skeletons, p_parent_node);
 	}
 }
 
@@ -1874,6 +1892,8 @@ void EditorSceneImporterGLTF::_import_animation(GLTFState &state, AnimationPlaye
 	animation.instance();
 	animation->set_name(name);
 
+	float length = 0;
+
 	for (Map<int, GLTFAnimation::Track>::Element *E = anim.tracks.front(); E; E = E->next()) {
 
 		const GLTFAnimation::Track &track = E->get();
@@ -1892,8 +1912,6 @@ void EditorSceneImporterGLTF::_import_animation(GLTFState &state, AnimationPlaye
 				node_path = ap->get_parent()->get_path_to(node->godot_nodes[i]);
 			}
 
-			float length = 0;
-
 			for (int i = 0; i < track.rotation_track.times.size(); i++) {
 				length = MAX(length, track.rotation_track.times[i]);
 			}
@@ -1909,8 +1927,6 @@ void EditorSceneImporterGLTF::_import_animation(GLTFState &state, AnimationPlaye
 					length = MAX(length, track.weight_tracks[i].times[j]);
 				}
 			}
-
-			animation->set_length(length);
 
 			if (track.rotation_track.values.size() || track.translation_track.values.size() || track.scale_track.values.size()) {
 				//make transform track
@@ -1971,8 +1987,7 @@ void EditorSceneImporterGLTF::_import_animation(GLTFState &state, AnimationPlaye
 						int bone = node->joints[i].godot_bone_index;
 						xform = skeleton->get_bone_rest(bone).affine_inverse() * xform;
 
-						rot = xform.basis;
-						rot.normalize();
+						rot = xform.basis.get_rotation_quat();
 						scale = xform.basis.get_scale();
 						pos = xform.origin;
 					}
@@ -2029,6 +2044,7 @@ void EditorSceneImporterGLTF::_import_animation(GLTFState &state, AnimationPlaye
 			}
 		}
 	}
+	animation->set_length(length);
 
 	ap->add_animation(name, animation);
 }
@@ -2052,7 +2068,7 @@ Spatial *EditorSceneImporterGLTF::_generate_scene(GLTFState &state, int p_bake_f
 	}
 	for (int i = 0; i < state.root_nodes.size(); i++) {
 		if (state.nodes[state.root_nodes[i]]->joints.size()) {
-			_generate_bone(state, state.root_nodes[i], skeletons, Vector<int>(), root);
+			_generate_bone(state, state.root_nodes[i], skeletons, root);
 		} else {
 			_generate_node(state, state.root_nodes[i], root, root, skeletons);
 		}

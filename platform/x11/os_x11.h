@@ -38,6 +38,7 @@
 #include "servers/visual_server.h"
 //#include "servers/visual/visual_server_wrap_mt.h"
 #include "drivers/alsa/audio_driver_alsa.h"
+#include "drivers/alsamidi/alsa_midi.h"
 #include "drivers/pulseaudio/audio_driver_pulseaudio.h"
 #include "joypad_linux.h"
 #include "main/input_default.h"
@@ -116,6 +117,10 @@ class OS_X11 : public OS_Unix {
 	static void xim_destroy_callback(::XIM im, ::XPointer client_data,
 			::XPointer call_data);
 
+	// IME
+	bool im_active;
+	Vector2 im_position;
+
 	Point2i last_mouse_pos;
 	bool last_mouse_pos_valid;
 	Point2i last_click_pos;
@@ -127,6 +132,7 @@ class OS_X11 : public OS_Unix {
 		Vector<int> devices;
 		XIEventMask event_mask;
 		Map<int, Vector2> state;
+		Vector2 mouse_pos_to_filter;
 	} touch;
 #endif
 
@@ -163,6 +169,10 @@ class OS_X11 : public OS_Unix {
 	AudioDriverALSA driver_alsa;
 #endif
 
+#ifdef ALSAMIDI_ENABLED
+	MIDIDriverALSAMidi driver_alsamidi;
+#endif
+
 #ifdef PULSEAUDIO_ENABLED
 	AudioDriverPulseAudio driver_pulseaudio;
 #endif
@@ -171,13 +181,17 @@ class OS_X11 : public OS_Unix {
 
 	PowerX11 *power_manager;
 
+	bool layered_window;
+
 	CrashHandler crash_handler;
 
+	int video_driver_index;
 	int audio_driver_index;
 	unsigned int capture_idle;
 	bool maximized;
 	//void set_wm_border(bool p_enabled);
 	void set_wm_fullscreen(bool p_enabled);
+	void set_wm_above(bool p_enabled);
 
 	typedef xrr_monitor_info *(*xrr_get_monitors_t)(Display *dpy, Window window, Bool get_active, int *nmonitors);
 	typedef void (*xrr_free_monitors_t)(xrr_monitor_info *monitors);
@@ -187,11 +201,7 @@ class OS_X11 : public OS_Unix {
 	Bool xrandr_ext_ok;
 
 protected:
-	virtual int get_video_driver_count() const;
-	virtual const char *get_video_driver_name(int p_driver) const;
-
-	virtual int get_audio_driver_count() const;
-	virtual const char *get_audio_driver_name(int p_driver) const;
+	virtual int get_current_video_driver() const;
 
 	virtual void initialize_core();
 	virtual Error initialize(const VideoMode &p_desired, int p_video_driver, int p_audio_driver);
@@ -199,7 +209,7 @@ protected:
 
 	virtual void set_main_loop(MainLoop *p_main_loop);
 
-	void _window_changed(XEvent *xevent);
+	void _window_changed(XEvent *event);
 
 	bool is_window_maximize_allowed();
 
@@ -251,6 +261,7 @@ public:
 	virtual Point2 get_window_position() const;
 	virtual void set_window_position(const Point2 &p_position);
 	virtual Size2 get_window_size() const;
+	virtual Size2 get_real_window_size() const;
 	virtual void set_window_size(const Size2 p_size);
 	virtual void set_window_fullscreen(bool p_enabled);
 	virtual bool is_window_fullscreen() const;
@@ -260,11 +271,20 @@ public:
 	virtual bool is_window_minimized() const;
 	virtual void set_window_maximized(bool p_enabled);
 	virtual bool is_window_maximized() const;
+	virtual void set_window_always_on_top(bool p_enabled);
+	virtual bool is_window_always_on_top() const;
 	virtual void request_attention();
 
 	virtual void set_borderless_window(bool p_borderless);
 	virtual bool get_borderless_window();
+
+	virtual bool get_window_per_pixel_transparency_enabled() const;
+	virtual void set_window_per_pixel_transparency_enabled(bool p_enabled);
+
+	virtual void set_ime_active(const bool p_active);
 	virtual void set_ime_position(const Point2 &p_pos);
+
+	virtual String get_unique_id() const;
 
 	virtual void move_window_to_foreground();
 	virtual void alert(const String &p_alert, const String &p_title = "ALERT!");

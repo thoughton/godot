@@ -102,17 +102,26 @@ Vector<Vector<Vector2> > CollisionPolygon2D::_decompose_in_convex() {
 
 		TriangulatorPoly &tp = I->get();
 
-		decomp[idx].resize(tp.GetNumPoints());
+		decomp.write[idx].resize(tp.GetNumPoints());
 
 		for (int i = 0; i < tp.GetNumPoints(); i++) {
 
-			decomp[idx][i] = tp.GetPoint(i);
+			decomp.write[idx].write[i] = tp.GetPoint(i);
 		}
 
 		idx++;
 	}
 
 	return decomp;
+}
+
+void CollisionPolygon2D::_update_in_shape_owner(bool p_xform_only) {
+
+	parent->shape_owner_set_transform(owner_id, get_transform());
+	if (p_xform_only)
+		return;
+	parent->shape_owner_set_disabled(owner_id, disabled);
+	parent->shape_owner_set_one_way_collision(owner_id, one_way_collision);
 }
 
 void CollisionPolygon2D::_notification(int p_what) {
@@ -124,9 +133,7 @@ void CollisionPolygon2D::_notification(int p_what) {
 			if (parent) {
 				owner_id = parent->create_shape_owner(this);
 				_build_polygon();
-				parent->shape_owner_set_transform(owner_id, get_transform());
-				parent->shape_owner_set_disabled(owner_id, disabled);
-				parent->shape_owner_set_one_way_collision(owner_id, one_way_collision);
+				_update_in_shape_owner();
 			}
 
 			/*if (Engine::get_singleton()->is_editor_hint()) {
@@ -136,10 +143,17 @@ void CollisionPolygon2D::_notification(int p_what) {
 			}*/
 
 		} break;
+		case NOTIFICATION_ENTER_TREE: {
+
+			if (parent) {
+				_update_in_shape_owner();
+			}
+
+		} break;
 		case NOTIFICATION_LOCAL_TRANSFORM_CHANGED: {
 
 			if (parent) {
-				parent->shape_owner_set_transform(owner_id, get_transform());
+				_update_in_shape_owner(true);
 			}
 
 		} break;
@@ -161,7 +175,8 @@ void CollisionPolygon2D::_notification(int p_what) {
 
 				Vector2 p = polygon[i];
 				Vector2 n = polygon[(i + 1) % polygon.size()];
-				draw_line(p, n, Color(0.9, 0.2, 0.0, 0.8), 3);
+				// draw line with width <= 1, so it does not scale with zoom and break pixel exact editing
+				draw_line(p, n, Color(0.9, 0.2, 0.0, 0.8), 1);
 			}
 #define DEBUG_DECOMPOSE
 #if defined(TOOLS_ENABLED) && defined(DEBUG_DECOMPOSE)
@@ -247,6 +262,10 @@ CollisionPolygon2D::BuildMode CollisionPolygon2D::get_build_mode() const {
 Rect2 CollisionPolygon2D::_edit_get_rect() const {
 
 	return aabb;
+}
+
+bool CollisionPolygon2D::_edit_use_rect() const {
+	return true;
 }
 
 bool CollisionPolygon2D::_edit_is_selected_on_click(const Point2 &p_point, double p_tolerance) const {

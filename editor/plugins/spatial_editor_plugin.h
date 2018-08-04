@@ -60,9 +60,10 @@ public:
 	virtual Variant get_handle_value(int p_idx) const;
 	virtual void set_handle(int p_idx, Camera *p_camera, const Point2 &p_point);
 	virtual void commit_handle(int p_idx, const Variant &p_restore, bool p_cancel = false);
+	virtual bool is_gizmo_handle_highlighted(int idx) const { return false; }
 
 	virtual bool intersect_frustum(const Camera *p_camera, const Vector<Plane> &p_frustum);
-	virtual bool intersect_ray(const Camera *p_camera, const Point2 &p_point, Vector3 &r_pos, Vector3 &r_normal, int *r_gizmo_handle = NULL, bool p_sec_first = false);
+	virtual bool intersect_ray(Camera *p_camera, const Point2 &p_point, Vector3 &r_pos, Vector3 &r_normal, int *r_gizmo_handle = NULL, bool p_sec_first = false);
 	SpatialEditorGizmo();
 };
 
@@ -93,7 +94,9 @@ class SpatialEditorViewport : public Control {
 		VIEW_DISPLAY_NORMAL,
 		VIEW_DISPLAY_WIREFRAME,
 		VIEW_DISPLAY_OVERDRAW,
-		VIEW_DISPLAY_SHADELESS
+		VIEW_DISPLAY_SHADELESS,
+		VIEW_LOCK_ROTATION,
+		VIEW_CINEMATIC_PREVIEW
 	};
 
 public:
@@ -107,7 +110,6 @@ private:
 	int index;
 	String name;
 	void _menu_option(int p_option);
-
 	Spatial *preview_node;
 	AABB *preview_bounds;
 	Vector<String> selected_files;
@@ -131,6 +133,7 @@ private:
 	Camera *camera;
 	bool transforming;
 	bool orthogonal;
+	bool lock_rotation;
 	float gizmo_scale;
 
 	bool freelook_active;
@@ -138,6 +141,7 @@ private:
 
 	Label *info_label;
 	Label *fps_label;
+	Label *cinema_label;
 
 	struct _RayResult {
 
@@ -286,8 +290,11 @@ private:
 	Camera *previewing;
 	Camera *preview;
 
+	bool previewing_cinema;
+
 	void _preview_exited_scene();
 	void _toggle_camera_preview(bool);
+	void _toggle_cinema_preview(bool);
 	void _init_gizmo_instance(int p_idx);
 	void _finish_gizmo_instances();
 	void _selection_result_pressed(int);
@@ -402,7 +409,6 @@ public:
 		TOOL_LOCK_SELECTED,
 		TOOL_UNLOCK_SELECTED,
 		TOOL_MAX
-
 	};
 
 	enum ToolOptions {
@@ -486,7 +492,8 @@ private:
 		MENU_VIEW_CAMERA_SETTINGS,
 		MENU_LOCK_SELECTED,
 		MENU_UNLOCK_SELECTED,
-		MENU_VISIBILITY_SKELETON
+		MENU_VISIBILITY_SKELETON,
+		MENU_SNAP_TO_FLOOR
 	};
 
 	Button *tool_button[TOOL_MAX];
@@ -505,6 +512,7 @@ private:
 	ConfirmationDialog *settings_dialog;
 
 	bool snap_enabled;
+	bool snap_key_enabled;
 	LineEdit *snap_translate;
 	LineEdit *snap_rotate;
 	LineEdit *snap_scale;
@@ -531,7 +539,9 @@ private:
 
 	void _instance_scene();
 	void _init_indicators();
+	void _init_grid();
 	void _finish_indicators();
+	void _finish_grid();
 
 	void _toggle_maximize_view(Object *p_viewport);
 
@@ -577,7 +587,7 @@ public:
 
 	ToolMode get_tool_mode() const { return tool_mode; }
 	bool are_local_coords_enabled() const { return tool_option_button[SpatialEditor::TOOL_OPT_LOCAL_COORDS]->is_pressed(); }
-	bool is_snap_enabled() const { return snap_enabled; }
+	bool is_snap_enabled() const { return snap_enabled ^ snap_key_enabled; }
 	float get_translate_snap() const { return snap_translate->get_text().to_double(); }
 	float get_rotate_snap() const { return snap_rotate->get_text().to_double(); }
 	float get_scale_snap() const { return snap_scale->get_text().to_double(); }
@@ -592,7 +602,7 @@ public:
 
 	void update_transform_gizmo();
 	void update_all_gizmos();
-
+	void snap_selected_nodes_to_floor();
 	void select_gizmo_highlight_axis(int p_axis);
 	void set_custom_camera(Node *p_camera) { custom_camera = p_camera; }
 
@@ -605,6 +615,7 @@ public:
 	UndoRedo *get_undo_redo() { return undo_redo; }
 
 	void add_control_to_menu_panel(Control *p_control);
+	void remove_control_from_menu_panel(Control *p_control);
 
 	VSplitContainer *get_shader_split();
 	HSplitContainer *get_palette_split();

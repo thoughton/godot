@@ -98,6 +98,12 @@ private:
 		Vector3 scale_accum;
 		uint64_t accum_pass;
 
+		bool audio_playing;
+		float audio_start;
+		float audio_len;
+
+		bool animation_playing;
+
 		struct PropertyAnim {
 
 			TrackNodeCache *owner;
@@ -106,6 +112,7 @@ private:
 			Object *object;
 			Variant value_accum;
 			uint64_t accum_pass;
+			Variant capture;
 			PropertyAnim() {
 				accum_pass = 0;
 				object = NULL;
@@ -114,6 +121,22 @@ private:
 
 		Map<StringName, PropertyAnim> property_anim;
 
+		struct BezierAnim {
+
+			Vector<StringName> bezier_property;
+			TrackNodeCache *owner;
+			float bezier_accum;
+			Object *object;
+			uint64_t accum_pass;
+			BezierAnim() {
+				accum_pass = 0;
+				bezier_accum = 0;
+				object = NULL;
+			}
+		};
+
+		Map<StringName, BezierAnim> bezier_anim;
+
 		TrackNodeCache() {
 			skeleton = NULL;
 			spatial = NULL;
@@ -121,6 +144,8 @@ private:
 			accum_pass = 0;
 			bone_idx = -1;
 			node_2d = NULL;
+			audio_playing = false;
+			animation_playing = false;
 		}
 	};
 
@@ -146,6 +171,10 @@ private:
 	int cache_update_size;
 	TrackNodeCache::PropertyAnim *cache_update_prop[NODE_CACHE_UPDATE_MAX];
 	int cache_update_prop_size;
+	TrackNodeCache::BezierAnim *cache_update_bezier[NODE_CACHE_UPDATE_MAX];
+	int cache_update_bezier_size;
+	Set<TrackNodeCache *> playing_caches;
+
 	Map<Ref<Animation>, int> used_anims;
 
 	uint64_t accum_pass;
@@ -202,6 +231,8 @@ private:
 		List<Blend> blend;
 		PlaybackData current;
 		StringName assigned;
+		bool seeked;
+		bool started;
 	} playback;
 
 	List<StringName> queued;
@@ -216,15 +247,16 @@ private:
 
 	NodePath root;
 
-	void _animation_process_animation(AnimationData *p_anim, float p_time, float p_delta, float p_interp, bool p_allow_discrete = true);
+	void _animation_process_animation(AnimationData *p_anim, float p_time, float p_delta, float p_interp, bool p_is_current = true, bool p_seeked = false, bool p_started = false);
 
 	void _ensure_node_caches(AnimationData *p_anim);
-	void _animation_process_data(PlaybackData &cd, float p_delta, float p_blend);
-	void _animation_process2(float p_delta);
+	void _animation_process_data(PlaybackData &cd, float p_delta, float p_blend, bool p_seeked, bool p_started);
+	void _animation_process2(float p_delta, bool p_started);
 	void _animation_update_transforms();
 	void _animation_process(float p_delta);
 
 	void _node_removed(Node *p_node);
+	void _stop_playing_caches();
 
 	// bind helpers
 	PoolVector<String> _get_animation_list() const {
@@ -251,6 +283,7 @@ private:
 protected:
 	bool _set(const StringName &p_name, const Variant &p_value);
 	bool _get(const StringName &p_name, Variant &r_ret) const;
+	virtual void _validate_property(PropertyInfo &property) const;
 	void _get_property_list(List<PropertyInfo> *p_list) const;
 	void _notification(int p_what);
 
@@ -283,6 +316,8 @@ public:
 	bool is_playing() const;
 	String get_current_animation() const;
 	void set_current_animation(const String &p_anim);
+	String get_assigned_animation() const;
+	void set_assigned_animation(const String &p_anim);
 	void stop_all();
 	void set_active(bool p_active);
 	bool is_active() const;
@@ -290,6 +325,7 @@ public:
 
 	void set_speed_scale(float p_speed);
 	float get_speed_scale() const;
+	float get_playing_speed() const;
 
 	void set_autoplay(const String &p_name);
 	String get_autoplay() const;

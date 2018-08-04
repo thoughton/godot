@@ -77,8 +77,6 @@ public:
 
 	virtual void mix(AudioFrame *p_buffer, float p_rate_scale, int p_frames);
 
-	virtual float get_length() const; //if supported, otherwise return 0
-
 	AudioStreamPlaybackSample();
 };
 
@@ -137,8 +135,12 @@ public:
 	void set_stereo(bool p_enable);
 	bool is_stereo() const;
 
+	virtual float get_length() const; //if supported, otherwise return 0
+
 	void set_data(const PoolVector<uint8_t> &p_data);
 	PoolVector<uint8_t> get_data() const;
+
+	void save_to_wav(String p_path);
 
 	virtual Ref<AudioStreamPlayback> instance_playback();
 	virtual String get_stream_name() const;

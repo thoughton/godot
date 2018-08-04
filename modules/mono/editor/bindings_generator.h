@@ -81,6 +81,15 @@ class BindingsGenerator {
 		const DocData::PropertyDoc *prop_doc;
 	};
 
+	struct TypeReference {
+		StringName cname;
+		bool is_enum;
+
+		TypeReference() {
+			is_enum = false;
+		}
+	};
+
 	struct ArgumentInterface {
 		enum DefaultParamMode {
 			CONSTANT,
@@ -88,7 +97,8 @@ class BindingsGenerator {
 			NULLABLE_REF
 		};
 
-		StringName type;
+		TypeReference type;
+
 		String name;
 		String default_argument;
 		DefaultParamMode def_param_mode;
@@ -110,7 +120,7 @@ class BindingsGenerator {
 		/**
 		 * [TypeInterface::name] of the return type
 		 */
-		StringName return_type;
+		TypeReference return_type;
 
 		/**
 		 * Determines if the method has a variable number of arguments (VarArg)
@@ -146,7 +156,7 @@ class BindingsGenerator {
 		}
 
 		MethodInterface() {
-			return_type = BindingsGenerator::get_singleton()->name_cache.type_void;
+			return_type.cname = BindingsGenerator::get_singleton()->name_cache.type_void;
 			is_vararg = false;
 			is_virtual = false;
 			requires_object_call = false;
@@ -175,6 +185,7 @@ class BindingsGenerator {
 
 		ClassDB::APIType api_type;
 
+		bool is_enum;
 		bool is_object_type;
 		bool is_singleton;
 		bool is_reference;
@@ -276,7 +287,9 @@ class BindingsGenerator {
 		 * One or more statements that determine how a variable of this type is returned from a method.
 		 * It must contain the return statement(s).
 		 * Formatting elements:
-		 * %0 or %s: name of the variable to be returned
+		 * %0: internal method call statement
+		 * %1: [cs_type] of the return type
+		 * %2: [im_type_out] of the return type
 		 */
 		String cs_out;
 
@@ -293,8 +306,6 @@ class BindingsGenerator {
 
 		/**
 		 * Type used for the return type of internal call methods.
-		 * If [cs_out] is not empty and the method return type is not void,
-		 * it is also used for the type of the return variable.
 		 */
 		String im_type_out;
 
@@ -379,10 +390,24 @@ class BindingsGenerator {
 			r_itype.im_type_out = r_itype.proxy_name;
 		}
 
+		static void postsetup_enum_type(TypeInterface &r_enum_itype) {
+			r_enum_itype.c_arg_in = "&%s";
+			r_enum_itype.c_type = "int";
+			r_enum_itype.c_type_in = "int";
+			r_enum_itype.c_type_out = "int";
+			r_enum_itype.cs_type = r_enum_itype.proxy_name;
+			r_enum_itype.cs_in = "(int)%s";
+			r_enum_itype.cs_out = "return (%1)%0;";
+			r_enum_itype.im_type_in = "int";
+			r_enum_itype.im_type_out = "int";
+			r_enum_itype.class_doc = &EditorHelp::get_doc_data()->class_list[r_enum_itype.proxy_name];
+		}
+
 		TypeInterface() {
 
 			api_type = ClassDB::API_NONE;
 
+			is_enum = false;
 			is_object_type = false;
 			is_singleton = false;
 			is_reference = false;
@@ -441,6 +466,7 @@ class BindingsGenerator {
 	Map<StringName, String> extra_members;
 
 	List<InternalCall> method_icalls;
+	List<InternalCall> builtin_method_icalls;
 	Map<const MethodInterface *, const InternalCall *> method_icalls_map;
 
 	List<const InternalCall *> generated_icall_funcs;
@@ -491,6 +517,8 @@ class BindingsGenerator {
 			return "Ref";
 		else if (p_type.is_object_type)
 			return "Obj";
+		else if (p_type.is_enum)
+			return "int";
 
 		return p_type.name;
 	}
@@ -500,11 +528,11 @@ class BindingsGenerator {
 	void _generate_header_icalls();
 	void _generate_method_icalls(const TypeInterface &p_itype);
 
-	const TypeInterface *_get_type_by_name_or_null(const StringName &p_cname);
-	const TypeInterface *_get_type_by_name_or_placeholder(const StringName &p_cname);
+	const TypeInterface *_get_type_or_null(const TypeReference &p_typeref);
+	const TypeInterface *_get_type_or_placeholder(const TypeReference &p_typeref);
 
-	void _default_argument_from_variant(const Variant &p_var, ArgumentInterface &r_iarg);
-	void _populate_builtin_type(TypeInterface &r_type, Variant::Type vtype);
+	void _default_argument_from_variant(const Variant &p_val, ArgumentInterface &r_iarg);
+	void _populate_builtin_type(TypeInterface &r_itype, Variant::Type vtype);
 
 	void _populate_object_type_interfaces();
 	void _populate_builtin_type_interfaces();
@@ -513,14 +541,14 @@ class BindingsGenerator {
 
 	Error _generate_cs_type(const TypeInterface &itype, const String &p_output_file);
 
-	Error _generate_cs_property(const TypeInterface &p_itype, const PropertyInterface &p_prop_doc, List<String> &p_output);
+	Error _generate_cs_property(const TypeInterface &p_itype, const PropertyInterface &p_iprop, List<String> &p_output);
 	Error _generate_cs_method(const TypeInterface &p_itype, const MethodInterface &p_imethod, int &p_method_bind_count, List<String> &p_output);
 
 	void _generate_global_constants(List<String> &p_output);
 
 	Error _generate_glue_method(const TypeInterface &p_itype, const MethodInterface &p_imethod, List<String> &p_output);
 
-	Error _save_file(const String &path, const List<String> &content);
+	Error _save_file(const String &p_path, const List<String> &p_content);
 
 	BindingsGenerator() {}
 
@@ -534,6 +562,9 @@ public:
 	Error generate_cs_core_project(const String &p_output_dir, bool p_verbose_output = true);
 	Error generate_cs_editor_project(const String &p_output_dir, const String &p_core_dll_path, bool p_verbose_output = true);
 	Error generate_glue(const String &p_output_dir);
+
+	static uint32_t get_version();
+	static uint32_t get_cs_glue_version();
 
 	void initialize();
 

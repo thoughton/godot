@@ -91,7 +91,7 @@ void NavigationPolygon::_set_polygons(const Array &p_array) {
 
 	polygons.resize(p_array.size());
 	for (int i = 0; i < p_array.size(); i++) {
-		polygons[i].indices = p_array[i];
+		polygons.write[i].indices = p_array[i];
 	}
 }
 
@@ -110,7 +110,7 @@ void NavigationPolygon::_set_outlines(const Array &p_array) {
 
 	outlines.resize(p_array.size());
 	for (int i = 0; i < p_array.size(); i++) {
-		outlines[i] = p_array[i];
+		outlines.write[i] = p_array[i];
 	}
 	rect_cache_dirty = true;
 }
@@ -166,7 +166,7 @@ int NavigationPolygon::get_outline_count() const {
 
 void NavigationPolygon::set_outline(int p_idx, const PoolVector<Vector2> &p_outline) {
 	ERR_FAIL_INDEX(p_idx, outlines.size());
-	outlines[p_idx] = p_outline;
+	outlines.write[p_idx] = p_outline;
 	rect_cache_dirty = true;
 }
 
@@ -312,9 +312,9 @@ void NavigationPolygon::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_set_outlines", "outlines"), &NavigationPolygon::_set_outlines);
 	ClassDB::bind_method(D_METHOD("_get_outlines"), &NavigationPolygon::_get_outlines);
 
-	ADD_PROPERTY(PropertyInfo(Variant::POOL_VECTOR3_ARRAY, "vertices", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_vertices", "get_vertices");
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "polygons", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "_set_polygons", "_get_polygons");
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "outlines", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "_set_outlines", "_get_outlines");
+	ADD_PROPERTY(PropertyInfo(Variant::POOL_VECTOR3_ARRAY, "vertices", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL), "set_vertices", "get_vertices");
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "polygons", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL), "_set_polygons", "_get_polygons");
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "outlines", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL), "_set_outlines", "_get_outlines");
 }
 
 NavigationPolygon::NavigationPolygon() :
@@ -432,8 +432,8 @@ void NavigationPolygonInstance::_notification(int p_what) {
 				{
 					PoolVector<Vector2>::Read vr = verts.read();
 					for (int i = 0; i < vsize; i++) {
-						vertices[i] = vr[i];
-						colors[i] = color;
+						vertices.write[i] = vr[i];
+						colors.write[i] = color;
 					}
 				}
 

@@ -3,16 +3,41 @@
 
 ## b2d_convexdecomp
 
-- Upstream: https://github.com/erincatto/Box2D (Contributions/Utilities/ConvexDecomposition)
-- Version: TBD
+- Upstream: https://github.com/erincatto/Box2D/tree/master/Contributions/Utilities/ConvexDecomposition
+- Version: git (25615e0, 2015) with modifications
 - License: zlib
+
+The files were adapted to Godot by removing the dependency on b2Math (replacing
+it by b2Glue.h) and commenting out some verbose printf calls.
+Upstream code has not changed in 10 years, no need to keep track of changes.
+
+Important: Some files have Godot-made changes.
+They are marked with `// -- GODOT start --` and `// -- GODOT end --`
+comments.
+
+
+## bullet
+
+- Upstream: https://github.com/bulletphysics/bullet3
+- Version: git (d05ad4b, 2017)
+- License: zlib
+
+Files extracted from upstream source:
+
+- src/* apart from CMakeLists.txt and premake4.lua files
+- LICENSE.txt
 
 
 ## certs
 
-- Upstream: ?
+- Upstream: Mozilla, via https://apps.fedoraproject.org/packages/ca-certificates
+- Version: 2018.2.22
+- License: MPL 2.0
 
-TODO.
+File extracted from a recent Fedora install:
+/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+(It can't be extracted directly from the package,
+as it's generated on the user's system.)
 
 
 ## enet
@@ -40,13 +65,17 @@ tarball before the next update.
 ## etc2comp
 
 - Upstream: https://github.com/google/etc2comp
-- Version: 9cd0f9c (git)
-- License: Apache
+- Version: git (9cd0f9c, 2017)
+- License: Apache 2.0
 
 Files extracted from upstream source:
 
 - all .cpp and .h files in EtcLib/
 - README.md, LICENSE, AUTHORS
+
+Important: Some files have Godot-made changes.
+They are marked with `// -- GODOT start --` and `// -- GODOT end --`
+comments.
 
 
 ## fonts
@@ -57,23 +86,25 @@ Files extracted from upstream source:
 - Version: 1.06
 - License: OFL-1.1
 
-Use UI font if exists, because it has tight vertical metrics and good for UI.
+Use UI font variant if available, because it has tight vertical metrics and good for UI.
 
 ### Hack Regular
 
 - Upstream: https://github.com/source-foundry/Hack
-- Version: 3.000
+- Version: 3.003
 - License: MIT + Bitstream Vera License
 
 ### DroidSans*.ttf
 
-- Upstream: ?
+- Upstream: https://android.googlesource.com/platform/frameworks/base/+/master/data/fonts/
+- Version: ? (pre-2014 commit when DroidSansJapanese.ttf was obsoleted)
+- License: Apache 2.0
 
 
 ## freetype
 
 - Upstream: https://www.freetype.org
-- Version: 2.8.1
+- Version: 2.9.1
 - License: FreeType License (BSD-like)
 
 Files extracted from upstream source:
@@ -86,7 +117,7 @@ Files extracted from upstream source:
 ## glad
 
 - Upstream: https://github.com/Dav1dde/glad
-- Version: 0.1.16a0
+- Version: 0.1.25
 - License: MIT
 
 The files we package are automatically generated.
@@ -108,7 +139,7 @@ Files extracted from upstream source:
 ## libogg
 
 - Upstream: https://www.xiph.org/ogg
-- Version: 1.3.2
+- Version: 1.3.3
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -121,7 +152,7 @@ Files extracted from upstream source:
 ## libpng
 
 - Upstream: http://libpng.org/pub/png/libpng.html
-- Version: 1.6.34
+- Version: 1.6.35
 - License: libpng/zlib
 
 Files extracted from upstream source:
@@ -130,17 +161,22 @@ Files extracted from upstream source:
   `example.c` and `pngtest.c`
 - the arm/ folder
 - `scripts/pnglibconf.h.prebuilt` as `pnglibconf.h`
+- `LICENSE`
 
 
 ## libsimplewebm
 
 - Upstream: https://github.com/zaps166/libsimplewebm
-- Version: 05cfdc2 (git)
+- Version: git (05cfdc2, 2016)
 - License: MIT, BSD-3-Clause
 
 Files extracted from upstream source:
 
 TODO.
+
+Important: Some files have Godot-made changes.
+They are marked with `// -- GODOT start --` and `// -- GODOT end --`
+comments.
 
 
 ## libtheora
@@ -159,7 +195,7 @@ Files extracted from upstream source:
 ## libvorbis
 
 - Upstream: https://www.xiph.org/vorbis
-- Version: 1.3.5
+- Version: 1.3.6
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -171,7 +207,7 @@ Files extracted from upstream source:
 
 ## libvpx
 
-- Upstream: http://www.webmproject.org/code/
+- Upstream: https://chromium.googlesource.com/webm/libvpx/
 - Version: 1.6.0
 - License: BSD-3-Clause
 
@@ -186,7 +222,7 @@ Godot-made change marked with `// -- GODOT --` comments.
 ## libwebp
 
 - Upstream: https://chromium.googlesource.com/webm/libwebp/
-- Version: 0.6.1
+- Version: 1.0.0
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -199,10 +235,56 @@ changes to ensure they build for Javascript/HTML5. Those
 changes are marked with `// -- GODOT --` comments.
 
 
+## libwebsockets
+
+- Upstream: https://github.com/warmcat/libwebsockets
+- Version: 3.0.0
+- License: LGPLv2.1 + static linking exception
+
+File extracted from upstream source:
+- From `lib/` into `thirdparty/libwebsockets`:
+  - Everything from `core`
+  - From `event-libs` only the `poll` subfolder
+  - From `misc` only `base64-decode.c`, `getifaddrs.c`, `getifaddrs.h`, `lejp.c`, and `sha-1.c`
+  - From `plat` only `lws-plat-unix.c` and `lws-plat-win.c`
+  - From `roles` only `private.h`, `h1`, `http`, `listen`, `pipe`, `raw`, `ws`
+    - From `roles/http` exclude `minilex.c`
+    - From `roles/http/server` exclude `access-log.c`, `lws-spa.c`, `ranges.c`, and `rewrite.c`
+    - From `roles/ws` exclude `ext` folder.
+  - From `tls` exclude `openssl` folder.
+- Also copy `win32helpers/` from `win32port/` inside `thirdparty/libwebsockets`
+- A small fix has been added in `libwebsockets/libwebsockets.h` to `#include <sys/socket.h>` for the BSD family.
+  This change has been PRed upstream, and should be merged before the next update. Remember to check and remove this line.
+
+Important: `lws_config.h` and `lws_config_private.h` contains custom
+Godot build configurations, check them out when updating.
+
+
+## mbedtls
+
+- Upstream: https://tls.mbed.org/
+- Version: 2.12.0
+- License: Apache 2.0
+
+File extracted from upstream release tarball `mbedtls-2.12.0-apache.tgz`:
+- All `*.h` from `include/mbedtls/` to `thirdparty/mbedtls/include/mbedtls/`
+- All `*.c` from `library/` to `thirdparty/mbedtls/library/`
+- Applied the patch in `thirdparty/mbedtls/1453.diff` (PR 1453). Soon to be merged upstream. Check it out at next update.
+
+
+## miniupnpc
+
+- Upstream: https://github.com/miniupnp/miniupnp/tree/master/miniupnpc
+- Version: 2.1 (git 25615e0, 2018-05-08) with modifications
+- License: BSD-3-Clause
+
+The only modified file is miniupnpcstrings.h, which was created for Godot (is usually autogenerated by cmake).
+
+
 ## minizip
 
 - Upstream: http://www.zlib.net
-- Version: 1.2.4 (zlib contrib)
+- Version: 1.2.11 (zlib contrib)
 - License: zlib
 
 Files extracted from the upstream source:
@@ -228,9 +310,13 @@ Collection of single-file libraries used in Godot components.
   * Upstream: http://episec.com/people/edelkind/c.html
   * Version: latest, as of April 2017
   * License: Public Domain
+ - `clipper.{cpp,hpp}`
+  * Upstream: https://sourceforge.net/projects/polyclipping
+  * Version: 6.4.2
+  * License: BSL-1.0
 - `fastlz.{c,h}`
-  * Upstream: https://code.google.com/archive/p/fastlz
-  * Version: svn (r12)
+  * Upstream: https://github.com/ariya/FastLZ
+  * Version: git (f121734, 2007)
   * License: MIT
 - `hq2x.{cpp,h}`
   * Upstream: https://github.com/brunexgeek/hqx
@@ -251,7 +337,7 @@ Collection of single-file libraries used in Godot components.
 - `smaz.{c,h}`
   * Upstream: https://github.com/antirez/smaz
   * Version: git (150e125, 2009)
-  * License: BSD 3-clause
+  * License: BSD-3-Clause
   * Modifications: use `const char*` instead of `char*` for input string
 - `triangulator.{cpp,h}`
   * Upstream: https://github.com/ivanfratric/polypartition (`src/polypartition.cpp`)
@@ -269,19 +355,6 @@ Collection of single-file libraries used in Godot components.
   * Version: ?
   * License: BSD
 
-### poshlib
-
-- Upstream: http://poshlib.hookatooka.com/poshlib/trac.cgi (username guest, password guest123)
-- Version: 1.3.002
-- License: MIT
-
-Files extracted from the upstream source:
-
-- posh.c
-- posh.h
-
-(no license file was included with the upstream distribution)
-
 ### scene
 
 - `mikktspace.{c,h}`
@@ -290,26 +363,12 @@ Files extracted from the upstream source:
   * License: zlib
 - `stb_truetype.h`
   * Upstream: https://github.com/nothings/stb
-  * Version: 1.17
+  * Version: 1.19
   * License: Public Domain (Unlicense) or MIT
 - `stb_vorbis.c`
   * Upstream: https://github.com/nothings/stb
-  * Version: 1.11
+  * Version: 1.14
   * License: Public Domain (Unlicense) or MIT
-
-## thekla_atlas
-
-- Upstream: https://github.com/Thekla/thekla_atlas
-- Version: 80a1430 (git)
-- License: zlib
-
-Files extracted from the upstream source:
-
-- Relevant sources from src/
-- License.txt
-
-Important: Some files have Godot-made changes, those
-changes are marked with `// -- GODOT --` comments.
 
 
 ## nanosvg
@@ -322,33 +381,6 @@ Files extracted from the upstream source:
 
 - All .h files in `src/`
 - LICENSE.txt
-
-
-## openssl
-
-- Upstream: https://www.openssl.org
-- Version: 1.0.2l
-- License: OpenSSL license / BSD-like
-
-Files extracted from the upstream source:
-
-- Our `openssl/`: contains the headers installed in /usr/include/openssl;
-  gather them in the source tarball with `make links` and
-  `cp -f include/openssl/*.h ../openssl/openssl/`
-- Our `crypto/`: copy of upstream `crypto/`, with some cleanup (see below).
-- Our `ssl/`: copy of upstream `ssl/`, with some cleanup (see below).
-- Cleanup:
-  ```
-  find \( -name "Makefile" -o -name "*.S" -o -name "*.bat" -o -name "*.bc" \
-    -o -name "*.com" -o -name "*.cnf" -o -name "*.ec" -o -name "*.fre" \
-    -o -name "*.gcc" -o -name "*.in" -o -name "*.lnx" -o -name "*.m4" \
-    -o -name "*.pl" -o -name "*.pod" -o -name "*.s" -o -name "*.sh" \
-    -o -name "*.sol" -o -name "*test*" \) -delete
-  cd openssl; for file in *.h; do find ../{crypto,ssl} -name "$file" -delete; done
-  ```
-  For the rest check the `git status` and decide.
-- e_os.h
-- Apply the Godot-specific patches in the `patches/` folder.
 
 
 ## opus
@@ -369,21 +401,24 @@ Files extracted from upstream source:
 ## pcre2
 
 - Upstream: http://www.pcre.org/
-- Version: 10.23
+- Version: 10.31
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
 
-- Files listed in NON-AUTOTOOLS-BUILD steps 1-4
+- Files listed in the file NON-AUTOTOOLS-BUILD steps 1-4
 - All .h files in src/
-- src/pcre2_jit_*.c and src/sljit/*
-- AUTHORS and COPYING
+- src/pcre2_jit_match.c
+- src/pcre2_jit_misc.c
+- src/pcre2_jit_maketables.c
+- src/sljit/*
+- AUTHORS and LICENCE
 
 
 ## pvrtccompressor
 
 - Upstream: https://bitbucket.org/jthlim/pvrtccompressor
-- Version: hg commit cf71777 - 2015-01-08
+- Version: hg (cf71777, 2015)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -395,8 +430,13 @@ Files extracted from upstream source:
 ## recastnavigation
 
 - Upstream: https://github.com/recastnavigation/recastnavigation
-- version: git commit ef3ea40f - 2016-02-06
+- version: git (ef3ea40f, 2017)
 - License: zlib
+
+Files extracted from upstream source:
+
+- `Recast/` folder
+- License.txt
 
 
 ## rtaudio
@@ -425,10 +465,25 @@ They are marked with `// -- GODOT start --` and `// -- GODOT end --`
 comments and a patch is provided in the squish/ folder.
 
 
+## thekla_atlas
+
+- Upstream: https://github.com/Thekla/thekla_atlas
+- Version: git (80a1430, 2017)
+- License: MIT
+
+Files extracted from the upstream source:
+
+- Relevant sources from src/
+- License.txt
+
+Important: Some files have Godot-made changes, those
+changes are marked with `// -- GODOT --` comments.
+
+
 ## tinyexr
 
 - Upstream: https://github.com/syoyo/tinyexr
-- Version: 0.9.5+ (git 9f784ca - 24 October 2017)
+- Version: git (e385dad, 2018)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -438,7 +493,7 @@ Files extracted from upstream source:
 
 ## zlib
 
-- Upstream: http://www.zlib.net/
+- Upstream: http://www.zlib.net
 - Version: 1.2.11
 - License: zlib
 
@@ -450,10 +505,10 @@ Files extracted from upstream source:
 ## zstd
 
 - Upstream: https://github.com/facebook/zstd
-- Version: 1.3.2
+- Version: 1.3.4
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
 
 - lib/{common/,compress/,decompress/,zstd.h}
-- README.md, LICENSE
+- LICENSE
