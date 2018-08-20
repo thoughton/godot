@@ -1,3 +1,6 @@
+# tlh
+Templates/
+
 # Godot auto generated files
 *.gen.*
 
@@ -308,7 +311,7 @@ platform/windows/godot_res.res
 
 # Visual Studio 2017 and Visual Studio Code workspace folder
 /.vs
-/.vscode
+#tlh /.vscode
 
 # Scons progress indicator
 .scons_node_count
