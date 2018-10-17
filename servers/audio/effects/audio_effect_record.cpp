@@ -44,7 +44,7 @@ void AudioEffectRecordInstance::process(const AudioFrame *p_src_frames, AudioFra
 	}
 }
 
-bool AudioEffectRecordInstance::process_silence() {
+bool AudioEffectRecordInstance::process_silence() const {
 	return true;
 }
 
@@ -233,7 +233,7 @@ Ref<AudioStreamSample> AudioEffectRecord::get_recording() const {
 			w[i * 2 + 1] = rr[i];
 		}
 	} else {
-		ERR_EXPLAIN("format not implemented");
+		ERR_PRINT("Format not implemented.");
 	}
 
 	Ref<AudioStreamSample> sample;

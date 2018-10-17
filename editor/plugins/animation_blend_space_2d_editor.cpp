@@ -1,10 +1,40 @@
+/*************************************************************************/
+/*  animation_blend_space_2d_editor.cpp                                  */
+/*************************************************************************/
+/*                       This file is part of:                           */
+/*                           GODOT ENGINE                                */
+/*                      https://godotengine.org                          */
+/*************************************************************************/
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/*                                                                       */
+/* Permission is hereby granted, free of charge, to any person obtaining */
+/* a copy of this software and associated documentation files (the       */
+/* "Software"), to deal in the Software without restriction, including   */
+/* without limitation the rights to use, copy, modify, merge, publish,   */
+/* distribute, sublicense, and/or sell copies of the Software, and to    */
+/* permit persons to whom the Software is furnished to do so, subject to */
+/* the following conditions:                                             */
+/*                                                                       */
+/* The above copyright notice and this permission notice shall be        */
+/* included in all copies or substantial portions of the Software.       */
+/*                                                                       */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
+/*************************************************************************/
+
 #include "animation_blend_space_2d_editor.h"
 
 #include "core/io/resource_loader.h"
+#include "core/math/delaunay.h"
+#include "core/os/input.h"
+#include "core/os/keyboard.h"
 #include "core/project_settings.h"
-#include "math/delaunay.h"
-#include "os/input.h"
-#include "os/keyboard.h"
 #include "scene/animation/animation_blend_tree.h"
 #include "scene/animation/animation_player.h"
 #include "scene/gui/menu_button.h"
@@ -13,7 +43,7 @@
 
 bool AnimationNodeBlendSpace2DEditor::can_edit(const Ref<AnimationNode> &p_node) {
 
-	Ref<AnimationNodeBlendSpace2D> bs2d=p_node;
+	Ref<AnimationNodeBlendSpace2D> bs2d = p_node;
 	return bs2d.is_valid();
 }
 
@@ -27,7 +57,7 @@ void AnimationNodeBlendSpace2DEditor::edit(const Ref<AnimationNode> &p_node) {
 }
 
 StringName AnimationNodeBlendSpace2DEditor::get_blend_position_path() const {
-	StringName path = AnimationTreeEditor::get_singleton()->get_base_path()+"blend_position";
+	StringName path = AnimationTreeEditor::get_singleton()->get_base_path() + "blend_position";
 	return path;
 }
 
@@ -73,7 +103,7 @@ void AnimationNodeBlendSpace2DEditor::_blend_space_gui_input(const Ref<InputEven
 			if (name == "Animation")
 				continue; // nope
 			int idx = menu->get_item_count();
-			menu->add_item(vformat("Add %s", name),idx);
+			menu->add_item(vformat("Add %s", name), idx);
 			menu->set_item_metadata(idx, E->get());
 		}
 
@@ -84,7 +114,6 @@ void AnimationNodeBlendSpace2DEditor::_blend_space_gui_input(const Ref<InputEven
 		}
 		menu->add_separator();
 		menu->add_item(TTR("Load.."), MENU_LOAD_FILE);
-
 
 		menu->set_global_position(blend_space_draw->get_global_transform().xform(mb->get_position()));
 		menu->popup();
@@ -211,7 +240,7 @@ void AnimationNodeBlendSpace2DEditor::_blend_space_gui_input(const Ref<InputEven
 		blend_pos *= (blend_space->get_max_space() - blend_space->get_min_space());
 		blend_pos += blend_space->get_min_space();
 
-		AnimationTreeEditor::get_singleton()->get_tree()->set(get_blend_position_path(),blend_pos);
+		AnimationTreeEditor::get_singleton()->get_tree()->set(get_blend_position_path(), blend_pos);
 
 		blend_space_draw->update();
 	}
@@ -246,7 +275,7 @@ void AnimationNodeBlendSpace2DEditor::_blend_space_gui_input(const Ref<InputEven
 		blend_pos *= (blend_space->get_max_space() - blend_space->get_min_space());
 		blend_pos += blend_space->get_min_space();
 
-		AnimationTreeEditor::get_singleton()->get_tree()->set(get_blend_position_path(),blend_pos);
+		AnimationTreeEditor::get_singleton()->get_tree()->set(get_blend_position_path(), blend_pos);
 
 		blend_space_draw->update();
 	}
@@ -350,7 +379,6 @@ void AnimationNodeBlendSpace2DEditor::_tool_switch(int p_tool) {
 			points.push_back(blend_space->get_blend_point_position(i));
 		}
 		Vector<Delaunay2D::Triangle> tr = Delaunay2D::triangulate(points);
-		print_line("triangleS: " + itos(tr.size()));
 		for (int i = 0; i < tr.size(); i++) {
 			blend_space->add_triangle(tr[i].points[0], tr[i].points[1], tr[i].points[2]);
 		}
@@ -406,7 +434,7 @@ void AnimationNodeBlendSpace2DEditor::_blend_space_draw() {
 
 		if (blend_space->get_snap().x > 0) {
 
-			int prev_idx;
+			int prev_idx = 0;
 			for (int i = 0; i < s.x; i++) {
 
 				float v = blend_space->get_min_space().x + i * (blend_space->get_max_space().x - blend_space->get_min_space().x) / s.x;
@@ -422,7 +450,7 @@ void AnimationNodeBlendSpace2DEditor::_blend_space_draw() {
 
 		if (blend_space->get_snap().y > 0) {
 
-			int prev_idx;
+			int prev_idx = 0;
 			for (int i = 0; i < s.y; i++) {
 
 				float v = blend_space->get_max_space().y - i * (blend_space->get_max_space().y - blend_space->get_min_space().y) / s.y;
@@ -750,11 +778,10 @@ void AnimationNodeBlendSpace2DEditor::_notification(int p_what) {
 		}
 	}
 
-	if (p_what==NOTIFICATION_VISIBILITY_CHANGED) {
+	if (p_what == NOTIFICATION_VISIBILITY_CHANGED) {
 		set_process(is_visible_in_tree());
 	}
 }
-
 
 void AnimationNodeBlendSpace2DEditor::_open_editor() {
 
@@ -804,7 +831,6 @@ void AnimationNodeBlendSpace2DEditor::_bind_methods() {
 	ClassDB::bind_method("_auto_triangles_toggled", &AnimationNodeBlendSpace2DEditor::_auto_triangles_toggled);
 
 	ClassDB::bind_method("_file_opened", &AnimationNodeBlendSpace2DEditor::_file_opened);
-
 }
 
 AnimationNodeBlendSpace2DEditor *AnimationNodeBlendSpace2DEditor::singleton = NULL;
@@ -1019,4 +1045,3 @@ AnimationNodeBlendSpace2DEditor::AnimationNodeBlendSpace2DEditor() {
 	dragging_selected = false;
 	dragging_selected_attempt = false;
 }
-

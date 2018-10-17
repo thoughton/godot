@@ -32,10 +32,8 @@
 
 #ifdef PULSEAUDIO_ENABLED
 
-#include <pulse/pulseaudio.h>
-
-#include "os/os.h"
-#include "project_settings.h"
+#include "core/os/os.h"
+#include "core/project_settings.h"
 
 void AudioDriverPulseAudio::pa_state_cb(pa_context *c, void *userdata) {
 	AudioDriverPulseAudio *ad = (AudioDriverPulseAudio *)userdata;
@@ -45,9 +43,12 @@ void AudioDriverPulseAudio::pa_state_cb(pa_context *c, void *userdata) {
 		case PA_CONTEXT_FAILED:
 			ad->pa_ready = -1;
 			break;
-
 		case PA_CONTEXT_READY:
 			ad->pa_ready = 1;
+			break;
+		default:
+			// TODO: Check if we want to handle some of the other
+			// PA context states like PA_CONTEXT_UNCONNECTED.
 			break;
 	}
 }
@@ -183,10 +184,8 @@ Error AudioDriverPulseAudio::init_device() {
 	buffer_frames = closest_power_of_2(latency * mix_rate / 1000);
 	pa_buffer_size = buffer_frames * pa_map.channels;
 
-	if (OS::get_singleton()->is_stdout_verbose()) {
-		print_line("PulseAudio: detected " + itos(pa_map.channels) + " channels");
-		print_line("PulseAudio: audio buffer frames: " + itos(buffer_frames) + " calculated latency: " + itos(buffer_frames * 1000 / mix_rate) + "ms");
-	}
+	print_verbose("PulseAudio: detected " + itos(pa_map.channels) + " channels");
+	print_verbose("PulseAudio: audio buffer frames: " + itos(buffer_frames) + " calculated latency: " + itos(buffer_frames * 1000 / mix_rate) + "ms");
 
 	pa_sample_spec spec;
 	spec.format = PA_SAMPLE_S16LE;
@@ -344,7 +343,7 @@ void AudioDriverPulseAudio::thread_func(void *p_udata) {
 					unsigned int out_idx = 0;
 
 					for (unsigned int i = 0; i < ad->buffer_frames; i++) {
-						for (unsigned int j = 0; j < ad->pa_map.channels - 1; j++) {
+						for (int j = 0; j < ad->pa_map.channels - 1; j++) {
 							ad->samples_out.write[out_idx++] = ad->samples_in[in_idx++] >> 16;
 						}
 						uint32_t l = ad->samples_in[in_idx++];
@@ -614,9 +613,7 @@ Error AudioDriverPulseAudio::capture_init_device() {
 			break;
 	}
 
-	if (OS::get_singleton()->is_stdout_verbose()) {
-		print_line("PulseAudio: detected " + itos(pa_rec_map.channels) + " input channels");
-	}
+	print_verbose("PulseAudio: detected " + itos(pa_rec_map.channels) + " input channels");
 
 	pa_sample_spec spec;
 

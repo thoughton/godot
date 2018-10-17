@@ -40,12 +40,13 @@ extern "C" {
 typedef enum {
 	GODOT_METHOD_RPC_MODE_DISABLED,
 	GODOT_METHOD_RPC_MODE_REMOTE,
-	GODOT_METHOD_RPC_MODE_SYNC,
 	GODOT_METHOD_RPC_MODE_MASTER,
-	GODOT_METHOD_RPC_MODE_SLAVE,
+	GODOT_METHOD_RPC_MODE_PUPPET,
+	GODOT_METHOD_RPC_MODE_SLAVE = GODOT_METHOD_RPC_MODE_PUPPET,
 	GODOT_METHOD_RPC_MODE_REMOTESYNC,
+	GODOT_METHOD_RPC_MODE_SYNC = GODOT_METHOD_RPC_MODE_REMOTESYNC,
 	GODOT_METHOD_RPC_MODE_MASTERSYNC,
-	GODOT_METHOD_RPC_MODE_SLAVESYNC,
+	GODOT_METHOD_RPC_MODE_PUPPETSYNC,
 } godot_method_rpc_mode;
 
 typedef enum {
@@ -229,6 +230,8 @@ const void GDAPI *godot_nativescript_get_type_tag(const godot_object *p_object);
 typedef struct {
 	GDCALLINGCONV void *(*alloc_instance_binding_data)(void *, const void *, godot_object *);
 	GDCALLINGCONV void (*free_instance_binding_data)(void *, void *);
+	GDCALLINGCONV void (*refcount_incremented_instance_binding)(void *, godot_object *);
+	GDCALLINGCONV bool (*refcount_decremented_instance_binding)(void *, godot_object *);
 	void *data;
 	GDCALLINGCONV void (*free_func)(void *);
 } godot_instance_binding_functions;
@@ -237,6 +240,8 @@ int GDAPI godot_nativescript_register_instance_binding_data_functions(godot_inst
 void GDAPI godot_nativescript_unregister_instance_binding_data_functions(int p_idx);
 
 void GDAPI *godot_nativescript_get_instance_binding_data(int p_idx, godot_object *p_object);
+
+void GDAPI godot_nativescript_profiling_add_data(const char *p_signature, uint64_t p_time);
 
 #ifdef __cplusplus
 }

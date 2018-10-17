@@ -1,3 +1,33 @@
+/*************************************************************************/
+/*  animation_tree.h                                                     */
+/*************************************************************************/
+/*                       This file is part of:                           */
+/*                           GODOT ENGINE                                */
+/*                      https://godotengine.org                          */
+/*************************************************************************/
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/*                                                                       */
+/* Permission is hereby granted, free of charge, to any person obtaining */
+/* a copy of this software and associated documentation files (the       */
+/* "Software"), to deal in the Software without restriction, including   */
+/* without limitation the rights to use, copy, modify, merge, publish,   */
+/* distribute, sublicense, and/or sell copies of the Software, and to    */
+/* permit persons to whom the Software is furnished to do so, subject to */
+/* the following conditions:                                             */
+/*                                                                       */
+/* The above copyright notice and this permission notice shall be        */
+/* included in all copies or substantial portions of the Software.       */
+/*                                                                       */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
+/*************************************************************************/
+
 #ifndef ANIMATION_GRAPH_PLAYER_H
 #define ANIMATION_GRAPH_PLAYER_H
 
@@ -55,7 +85,7 @@ public:
 
 	Vector<float> blends;
 	State *state;
-	String path;
+
 	float _pre_process(const StringName &p_base_path, AnimationNode *p_parent, State *p_state, float p_time, bool p_seek, const Vector<StringName> &p_connections);
 	void _pre_update_animations(HashMap<NodePath, int> *track_map);
 
@@ -256,7 +286,17 @@ private:
 	HashMap<StringName, HashMap<StringName, StringName> > property_parent_map;
 	HashMap<StringName, Variant> property_map;
 
+	struct Activity {
+		uint64_t last_pass;
+		float activity;
+	};
+
+	HashMap<StringName, Vector<Activity> > input_activity_map;
+	HashMap<StringName, Vector<Activity> *> input_activity_map_get;
+
 	void _update_properties_for_node(const String &p_base_path, Ref<AnimationNode> node);
+
+	ObjectID last_animation_player;
 
 protected:
 	bool _set(const StringName &p_name, const Variant &p_value);
@@ -289,6 +329,7 @@ public:
 
 	Transform get_root_motion_transform() const;
 
+	float get_connection_activity(const StringName &p_path, int p_connection) const;
 	void advance(float p_time);
 
 	void rename_parameter(const String &p_base, const String &p_new_base);

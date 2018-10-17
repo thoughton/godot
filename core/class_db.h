@@ -31,13 +31,17 @@
 #ifndef CLASS_DB_H
 #define CLASS_DB_H
 
-#include "method_bind.h"
-#include "object.h"
-#include "print_string.h"
+#include "core/method_bind.h"
+#include "core/object.h"
+#include "core/print_string.h"
 
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */
+
+/**	To bind more then 6 parameters include this:
+ *  #include "core/method_bind_ext.gen.inc"
+ */
 
 #define DEFVAL(m_defval) (m_defval)
 

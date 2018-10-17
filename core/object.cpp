@@ -30,14 +30,14 @@
 
 #include "object.h"
 
-#include "class_db.h"
-#include "core_string_names.h"
-#include "message_queue.h"
-#include "os/os.h"
-#include "print_string.h"
-#include "resource.h"
-#include "script_language.h"
-#include "translation.h"
+#include "core/class_db.h"
+#include "core/core_string_names.h"
+#include "core/message_queue.h"
+#include "core/os/os.h"
+#include "core/print_string.h"
+#include "core/resource.h"
+#include "core/script_language.h"
+#include "core/translation.h"
 
 #ifdef DEBUG_ENABLED
 
@@ -277,8 +277,8 @@ MethodInfo::MethodInfo(Variant::Type ret, const String &p_name, const PropertyIn
 
 MethodInfo::MethodInfo(const PropertyInfo &p_ret, const String &p_name) :
 		name(p_name),
-		flags(METHOD_FLAG_NORMAL),
 		return_val(p_ret),
+		flags(METHOD_FLAG_NORMAL),
 		id(0) {
 }
 
@@ -1254,7 +1254,10 @@ Error Object::emit_signal(const StringName &p_name, const Variant **p_args, int 
 			target->call(c.method, args, argc, ce);
 
 			if (ce.error != Variant::CallError::CALL_OK) {
-
+#ifdef DEBUG_ENABLED
+				if (c.flags & CONNECT_PERSIST && Engine::get_singleton()->is_editor_hint() && (script.is_null() || !Ref<Script>(script)->is_tool()))
+					continue;
+#endif
 				if (ce.error == Variant::CallError::CALL_ERROR_INVALID_METHOD && !ClassDB::class_exists(target->get_class_name())) {
 					//most likely object is not initialized yet, do not throw error.
 				} else {
@@ -1916,7 +1919,11 @@ void *Object::get_script_instance_binding(int p_script_language_index) {
 	//as it should not really affect performance much (won't be called too often), as in far most caes the condition below will be false afterwards
 
 	if (!_script_instance_bindings[p_script_language_index]) {
-		_script_instance_bindings[p_script_language_index] = ScriptServer::get_language(p_script_language_index)->alloc_instance_binding_data(this);
+		void *script_data = ScriptServer::get_language(p_script_language_index)->alloc_instance_binding_data(this);
+		if (script_data) {
+			atomic_increment(&instance_binding_count);
+			_script_instance_bindings[p_script_language_index] = script_data;
+		}
 	}
 
 	return _script_instance_bindings[p_script_language_index];
@@ -1931,6 +1938,7 @@ Object::Object() {
 	_instance_ID = ObjectDB::add_instance(this);
 	_can_translate = true;
 	_is_queued_for_deletion = false;
+	instance_binding_count = 0;
 	memset(_script_instance_bindings, 0, sizeof(void *) * MAX_SCRIPT_INSTANCE_BINDINGS);
 	script_instance = NULL;
 #ifdef TOOLS_ENABLED
@@ -2009,11 +2017,13 @@ ObjectID ObjectDB::add_instance(Object *p_object) {
 	ERR_FAIL_COND_V(p_object->get_instance_id() != 0, 0);
 
 	rw_lock->write_lock();
-	instances[++instance_counter] = p_object;
-	instance_checks[p_object] = instance_counter;
+	ObjectID instance_id = ++instance_counter;
+	instances[instance_id] = p_object;
+	instance_checks[p_object] = instance_id;
+
 	rw_lock->write_unlock();
 
-	return instance_counter;
+	return instance_id;
 }
 
 void ObjectDB::remove_instance(Object *p_object) {
@@ -2080,16 +2090,15 @@ void ObjectDB::cleanup() {
 
 				String node_name;
 				if (instances[*K]->is_class("Node"))
-					node_name = " - Node Name: " + String(instances[*K]->call("get_name"));
+					node_name = " - Node name: " + String(instances[*K]->call("get_name"));
 				if (instances[*K]->is_class("Resource"))
-					node_name = " - Resource Name: " + String(instances[*K]->call("get_name")) + " Path: " + String(instances[*K]->call("get_path"));
-				print_line("Leaked Instance: " + String(instances[*K]->get_class()) + ":" + itos(*K) + node_name);
+					node_name = " - Resource name: " + String(instances[*K]->call("get_name")) + " Path: " + String(instances[*K]->call("get_path"));
+				print_line("Leaked instance: " + String(instances[*K]->get_class()) + ":" + itos(*K) + node_name);
 			}
 		}
 	}
 	instances.clear();
 	instance_checks.clear();
 	rw_lock->write_unlock();
-
 	memdelete(rw_lock);
 }

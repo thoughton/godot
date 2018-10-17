@@ -31,8 +31,8 @@
 #include "bullet_physics_server.h"
 
 #include "bullet_utilities.h"
-#include "class_db.h"
 #include "cone_twist_joint_bullet.h"
+#include "core/class_db.h"
 #include "core/error_macros.h"
 #include "core/ustring.h"
 #include "generic_6dof_joint_bullet.h"
@@ -74,12 +74,6 @@
 	body->get_space()->add_constraint(joint, joint->is_disabled_collisions_between_bodies());
 // <--------------- Joint creation asserts
 
-btEmptyShape *BulletPhysicsServer::emptyShape(ShapeBullet::create_shape_empty());
-
-btEmptyShape *BulletPhysicsServer::get_empty_shape() {
-	return emptyShape;
-}
-
 void BulletPhysicsServer::_bind_methods() {
 	//ClassDB::bind_method(D_METHOD("DoTest"), &BulletPhysicsServer::DoTest);
 }
@@ -89,9 +83,7 @@ BulletPhysicsServer::BulletPhysicsServer() :
 		active(true),
 		active_spaces_count(0) {}
 
-BulletPhysicsServer::~BulletPhysicsServer() {
-	bulletdelete(emptyShape);
-}
+BulletPhysicsServer::~BulletPhysicsServer() {}
 
 RID BulletPhysicsServer::shape_create(ShapeType p_shape) {
 	ShapeBullet *shape = NULL;
@@ -161,6 +153,18 @@ Variant BulletPhysicsServer::shape_get_data(RID p_shape) const {
 	ShapeBullet *shape = shape_owner.get(p_shape);
 	ERR_FAIL_COND_V(!shape, Variant());
 	return shape->get_data();
+}
+
+void BulletPhysicsServer::shape_set_margin(RID p_shape, real_t p_margin) {
+	ShapeBullet *shape = shape_owner.get(p_shape);
+	ERR_FAIL_COND(!shape);
+	shape->set_margin(p_margin);
+}
+
+real_t BulletPhysicsServer::shape_get_margin(RID p_shape) const {
+	ShapeBullet *shape = shape_owner.get(p_shape);
+	ERR_FAIL_COND_V(!shape, 0.0);
+	return shape->get_margin();
 }
 
 real_t BulletPhysicsServer::shape_get_custom_solver_bias(RID p_shape) const {
@@ -326,7 +330,7 @@ Transform BulletPhysicsServer::area_get_shape_transform(RID p_area, int p_shape_
 void BulletPhysicsServer::area_remove_shape(RID p_area, int p_shape_idx) {
 	AreaBullet *area = area_owner.get(p_area);
 	ERR_FAIL_COND(!area);
-	return area->remove_shape(p_shape_idx);
+	return area->remove_shape_full(p_shape_idx);
 }
 
 void BulletPhysicsServer::area_clear_shapes(RID p_area) {
@@ -334,7 +338,7 @@ void BulletPhysicsServer::area_clear_shapes(RID p_area) {
 	ERR_FAIL_COND(!area);
 
 	for (int i = area->get_shape_count(); 0 < i; --i)
-		area->remove_shape(0);
+		area->remove_shape_full(0);
 }
 
 void BulletPhysicsServer::area_set_shape_disabled(RID p_area, int p_shape_idx, bool p_disabled) {
@@ -555,7 +559,7 @@ void BulletPhysicsServer::body_remove_shape(RID p_body, int p_shape_idx) {
 	RigidBodyBullet *body = rigid_body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
 
-	body->remove_shape(p_shape_idx);
+	body->remove_shape_full(p_shape_idx);
 }
 
 void BulletPhysicsServer::body_clear_shapes(RID p_body) {
@@ -861,12 +865,12 @@ PhysicsDirectBodyState *BulletPhysicsServer::body_get_direct_state(RID p_body) {
 	return BulletPhysicsDirectBodyState::get_singleton(body);
 }
 
-bool BulletPhysicsServer::body_test_motion(RID p_body, const Transform &p_from, const Vector3 &p_motion, bool p_infinite_inertia, MotionResult *r_result) {
+bool BulletPhysicsServer::body_test_motion(RID p_body, const Transform &p_from, const Vector3 &p_motion, bool p_infinite_inertia, MotionResult *r_result, bool p_exclude_raycast_shapes) {
 	RigidBodyBullet *body = rigid_body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body, false);
 	ERR_FAIL_COND_V(!body->get_space(), false);
 
-	return body->get_space()->test_body_motion(body, p_from, p_motion, p_infinite_inertia, r_result);
+	return body->get_space()->test_body_motion(body, p_from, p_motion, p_infinite_inertia, r_result, p_exclude_raycast_shapes);
 }
 
 int BulletPhysicsServer::body_test_ray_separation(RID p_body, const Transform &p_transform, bool p_infinite_inertia, Vector3 &r_recover_motion, SeparationResult *r_results, int p_result_max, float p_margin) {
@@ -989,11 +993,13 @@ void BulletPhysicsServer::soft_body_get_collision_exceptions(RID p_body, List<RI
 }
 
 void BulletPhysicsServer::soft_body_set_state(RID p_body, BodyState p_state, const Variant &p_variant) {
-	print_line("TODO MUST BE IMPLEMENTED");
+	// FIXME: Must be implemented.
+	WARN_PRINT("soft_body_state is not implemented yet in Bullet backend.");
 }
 
 Variant BulletPhysicsServer::soft_body_get_state(RID p_body, BodyState p_state) const {
-	print_line("TODO MUST BE IMPLEMENTED");
+	// FIXME: Must be implemented.
+	WARN_PRINT("soft_body_state is not implemented yet in Bullet backend.");
 	return Variant();
 }
 
@@ -1427,7 +1433,7 @@ RID BulletPhysicsServer::joint_create_generic_6dof(RID p_body_A, const Transform
 
 	ERR_FAIL_COND_V(body_A == body_B, RID());
 
-	JointBullet *joint = bulletnew(Generic6DOFJointBullet(body_A, body_B, p_local_frame_A, p_local_frame_B, true));
+	JointBullet *joint = bulletnew(Generic6DOFJointBullet(body_A, body_B, p_local_frame_A, p_local_frame_B));
 	AddJointToSpace(body_A, joint);
 
 	CreateThenReturnRID(joint_owner, joint);
@@ -1472,7 +1478,7 @@ void BulletPhysicsServer::free(RID p_rid) {
 
 		// Notify the shape is configured
 		for (Map<ShapeOwnerBullet *, int>::Element *element = shape->get_owners().front(); element; element = element->next()) {
-			static_cast<ShapeOwnerBullet *>(element->key())->remove_shape(shape);
+			static_cast<ShapeOwnerBullet *>(element->key())->remove_shape_full(shape);
 		}
 
 		shape_owner.free(p_rid);
@@ -1483,7 +1489,7 @@ void BulletPhysicsServer::free(RID p_rid) {
 
 		body->set_space(NULL);
 
-		body->remove_all_shapes(true);
+		body->remove_all_shapes(true, true);
 
 		rigid_body_owner.free(p_rid);
 		bulletdelete(body);
@@ -1503,7 +1509,7 @@ void BulletPhysicsServer::free(RID p_rid) {
 
 		area->set_space(NULL);
 
-		area->remove_all_shapes(true);
+		area->remove_all_shapes(true, true);
 
 		area_owner.free(p_rid);
 		bulletdelete(area);

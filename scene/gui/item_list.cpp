@@ -29,8 +29,8 @@
 /*************************************************************************/
 
 #include "item_list.h"
-#include "os/os.h"
-#include "project_settings.h"
+#include "core/os/os.h"
+#include "core/project_settings.h"
 
 void ItemList::add_item(const String &p_item, const Ref<Texture> &p_texture, bool p_selectable) {
 
@@ -502,7 +502,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 					bool selected = !items[j].selected;
 					select(j, false);
 					if (selected)
-						emit_signal("multi_selected", i, true);
+						emit_signal("multi_selected", j, true);
 				}
 
 				if (mb->get_button_index() == BUTTON_RIGHT) {

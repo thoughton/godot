@@ -122,7 +122,7 @@ Vector2 Vector2::rotated(real_t p_by) const {
 }
 
 Vector2 Vector2::project(const Vector2 &p_b) const {
-	return p_b * (dot(p_b) / p_b.dot(p_b));
+	return p_b * (dot(p_b) / p_b.length_squared());
 }
 
 Vector2 Vector2::snapped(const Vector2 &p_by) const {
@@ -167,7 +167,7 @@ Vector2 Vector2::cubic_interpolate(const Vector2 &p_b, const Vector2 &p_pre_a, c
 // slide returns the component of the vector along the given plane, specified by its normal vector.
 Vector2 Vector2::slide(const Vector2 &p_normal) const {
 #ifdef MATH_CHECKS
-	ERR_FAIL_COND_V(p_normal.is_normalized() == false, Vector2());
+	ERR_FAIL_COND_V(!p_normal.is_normalized(), Vector2());
 #endif
 	return *this - p_normal * this->dot(p_normal);
 }
@@ -178,7 +178,7 @@ Vector2 Vector2::bounce(const Vector2 &p_normal) const {
 
 Vector2 Vector2::reflect(const Vector2 &p_normal) const {
 #ifdef MATH_CHECKS
-	ERR_FAIL_COND_V(p_normal.is_normalized() == false, Vector2());
+	ERR_FAIL_COND_V(!p_normal.is_normalized(), Vector2());
 #endif
 	return 2.0 * p_normal * this->dot(p_normal) - *this;
 }

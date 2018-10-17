@@ -30,9 +30,9 @@
 
 #include "sprite_frames_editor_plugin.h"
 
+#include "core/io/resource_loader.h"
+#include "core/project_settings.h"
 #include "editor/editor_settings.h"
-#include "io/resource_loader.h"
-#include "project_settings.h"
 #include "scene/3d/sprite_3d.h"
 
 void SpriteFramesEditor::_gui_input(Ref<InputEvent> p_event) {
@@ -89,7 +89,6 @@ void SpriteFramesEditor::_file_load_request(const PoolVector<String> &p_path, in
 	}
 
 	if (resources.empty()) {
-		//print_line("added frames!");
 		return;
 	}
 
@@ -108,7 +107,6 @@ void SpriteFramesEditor::_file_load_request(const PoolVector<String> &p_path, in
 	undo_redo->add_undo_method(this, "_update_library");
 
 	undo_redo->commit_action();
-	//print_line("added frames!");
 }
 
 void SpriteFramesEditor::_load_pressed() {

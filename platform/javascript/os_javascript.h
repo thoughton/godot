@@ -32,10 +32,10 @@
 #define OS_JAVASCRIPT_H
 
 #include "audio_driver_javascript.h"
+#include "drivers/unix/os_unix.h"
 #include "main/input_default.h"
 #include "servers/audio_server.h"
 #include "servers/visual/rasterizer.h"
-#include "unix/os_unix.h"
 
 #include <emscripten/html5.h>
 
@@ -44,8 +44,8 @@ class OS_JavaScript : public OS_Unix {
 	VideoMode video_mode;
 	Vector2 windowed_size;
 	bool window_maximized;
-	bool soft_fullscreen_enabled;
-	bool canvas_size_adjustment_requested;
+	bool entering_fullscreen;
+	bool just_exited_fullscreen;
 
 	InputDefault *input;
 	Ref<InputEventKey> deferred_key_event;
@@ -59,7 +59,6 @@ class OS_JavaScript : public OS_Unix {
 	int64_t sync_wait_time;
 	int64_t last_sync_check_time;
 
-	static EM_BOOL browser_resize_callback(int p_event_type, const EmscriptenUiEvent *p_event, void *p_user_data);
 	static EM_BOOL fullscreen_change_callback(int p_event_type, const EmscriptenFullscreenChangeEvent *p_event, void *p_user_data);
 
 	static EM_BOOL keydown_callback(int p_event_type, const EmscriptenKeyboardEvent *p_event, void *p_user_data);
@@ -136,6 +135,7 @@ public:
 
 	virtual void alert(const String &p_alert, const String &p_title = "ALERT!");
 	virtual void set_window_title(const String &p_title);
+	virtual void set_icon(const Ref<Image> &p_icon);
 	String get_executable_path() const;
 	virtual Error shell_open(String p_uri);
 	virtual String get_name();

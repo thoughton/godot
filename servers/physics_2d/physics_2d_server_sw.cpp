@@ -32,9 +32,9 @@
 #include "broad_phase_2d_basic.h"
 #include "broad_phase_2d_hash_grid.h"
 #include "collision_solver_2d_sw.h"
-#include "os/os.h"
-#include "project_settings.h"
-#include "script_language.h"
+#include "core/os/os.h"
+#include "core/project_settings.h"
+#include "core/script_language.h"
 
 RID Physics2DServerSW::_shape_create(ShapeType p_shape) {
 
@@ -171,13 +171,14 @@ void Physics2DServerSW::_shape_col_cbk(const Vector2 &p_point_A, const Vector2 &
 		}
 		if (cbk->valid_dir.dot((p_point_A - p_point_B).normalized()) < 0.7071) {
 			cbk->invalid_by_dir++;
-			;
-			/*			print_line("A: "+p_point_A);
+
+			/*
+			print_line("A: "+p_point_A);
 			print_line("B: "+p_point_B);
 			print_line("discard too angled "+rtos(cbk->valid_dir.dot((p_point_A-p_point_B))));
 			print_line("resnorm: "+(p_point_A-p_point_B).normalized());
 			print_line("distance: "+rtos(p_point_A.distance_to(p_point_B)));
-*/
+			*/
 			return;
 		}
 	}

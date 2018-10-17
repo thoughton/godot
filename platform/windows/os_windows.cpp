@@ -28,27 +28,27 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
+// Must include Winsock before windows.h (included by os_windows.h)
+#include "drivers/unix/net_socket_posix.h"
+
 #include "os_windows.h"
 
+#include "core/io/marshalls.h"
+#include "core/version_generated.gen.h"
 #include "drivers/gles2/rasterizer_gles2.h"
 #include "drivers/gles3/rasterizer_gles3.h"
 #include "drivers/windows/dir_access_windows.h"
 #include "drivers/windows/file_access_windows.h"
 #include "drivers/windows/mutex_windows.h"
-#include "drivers/windows/packet_peer_udp_winsock.h"
 #include "drivers/windows/rw_lock_windows.h"
 #include "drivers/windows/semaphore_windows.h"
-#include "drivers/windows/stream_peer_tcp_winsock.h"
-#include "drivers/windows/tcp_server_winsock.h"
 #include "drivers/windows/thread_windows.h"
-#include "io/marshalls.h"
 #include "joypad.h"
 #include "lang_table.h"
 #include "main/main.h"
 #include "servers/audio_server.h"
 #include "servers/visual/visual_server_raster.h"
 #include "servers/visual/visual_server_wrap_mt.h"
-#include "version_generated.gen.h"
 #include "windows_terminal_logger.h"
 
 #include <process.h>
@@ -219,9 +219,7 @@ void OS_Windows::initialize_core() {
 	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_USERDATA);
 	DirAccess::make_default<DirAccessWindows>(DirAccess::ACCESS_FILESYSTEM);
 
-	TCPServerWinsock::make_default();
-	StreamPeerTCPWinsock::make_default();
-	PacketPeerUDPWinsock::make_default();
+	NetSocketPosix::make_default();
 
 	// We need to know how often the clock is updated
 	if (!QueryPerformanceFrequency((LARGE_INTEGER *)&ticks_per_second))
@@ -249,7 +247,11 @@ bool OS_Windows::can_draw() const {
 
 #define MI_WP_SIGNATURE 0xFF515700
 #define SIGNATURE_MASK 0xFFFFFF00
+// Keeping the name suggested by Microsoft, but this macro really answers:
+// Is this mouse event emulated from touch or pen input?
 #define IsPenEvent(dw) (((dw)&SIGNATURE_MASK) == MI_WP_SIGNATURE)
+// This one tells whether the event comes from touchscreen (and not from pen)
+#define IsTouchEvent(dw) (IsPenEvent(dw) && ((dw)&0x80))
 
 void OS_Windows::_touch_event(bool p_pressed, float p_x, float p_y, int idx) {
 
@@ -387,12 +389,89 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 				input->set_mouse_in_window(false);
 
 		} break;
+		case WM_INPUT: {
+			if (mouse_mode != MOUSE_MODE_CAPTURED || !use_raw_input) {
+				break;
+			}
+
+			UINT dwSize;
+
+			GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
+			LPBYTE lpb = new BYTE[dwSize];
+			if (lpb == NULL) {
+				return 0;
+			}
+
+			if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER)) != dwSize)
+				OutputDebugString(TEXT("GetRawInputData does not return correct size !\n"));
+
+			RAWINPUT *raw = (RAWINPUT *)lpb;
+
+			if (raw->header.dwType == RIM_TYPEMOUSE) {
+				Ref<InputEventMouseMotion> mm;
+				mm.instance();
+
+				mm->set_control(control_mem);
+				mm->set_shift(shift_mem);
+				mm->set_alt(alt_mem);
+
+				mm->set_button_mask(last_button_state);
+
+				Point2i c(video_mode.width / 2, video_mode.height / 2);
+
+				// centering just so it works as before
+				POINT pos = { (int)c.x, (int)c.y };
+				ClientToScreen(hWnd, &pos);
+				SetCursorPos(pos.x, pos.y);
+
+				mm->set_position(c);
+				mm->set_global_position(c);
+				input->set_mouse_position(c);
+				mm->set_speed(Vector2(0, 0));
+
+				if (raw->data.mouse.usFlags == MOUSE_MOVE_RELATIVE) {
+					mm->set_relative(Vector2(raw->data.mouse.lLastX, raw->data.mouse.lLastY));
+
+				} else if (raw->data.mouse.usFlags == MOUSE_MOVE_ABSOLUTE) {
+
+					int nScreenWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+					int nScreenHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+					int nScreenLeft = GetSystemMetrics(SM_XVIRTUALSCREEN);
+					int nScreenTop = GetSystemMetrics(SM_YVIRTUALSCREEN);
+
+					Vector2 abs_pos(
+							(double(raw->data.mouse.lLastX) - 65536.0 / (nScreenWidth)) * nScreenWidth / 65536.0 + nScreenLeft,
+							(double(raw->data.mouse.lLastY) - 65536.0 / (nScreenHeight)) * nScreenHeight / 65536.0 + nScreenTop);
+
+					POINT coords; //client coords
+					coords.x = abs_pos.x;
+					coords.y = abs_pos.y;
+
+					ScreenToClient(hWnd, &coords);
+
+					mm->set_relative(Vector2(coords.x - old_x, coords.y - old_y));
+					old_x = coords.x;
+					old_y = coords.y;
+
+					/*Input.mi.dx = (int)((((double)(pos.x)-nScreenLeft) * 65536) / nScreenWidth + 65536 / (nScreenWidth));
+					Input.mi.dy = (int)((((double)(pos.y)-nScreenTop) * 65536) / nScreenHeight + 65536 / (nScreenHeight));
+					*/
+				}
+
+				if (window_has_focus && main_loop && mm->get_relative() != Vector2())
+					input->parse_input_event(mm);
+			}
+			delete[] lpb;
+		} break;
 		case WM_MOUSEMOVE: {
+			if (mouse_mode == MOUSE_MODE_CAPTURED && use_raw_input) {
+				break;
+			}
 
 			if (input->is_emulating_mouse_from_touch()) {
 				// Universal translation enabled; ignore OS translation
 				LPARAM extra = GetMessageExtraInfo();
-				if (IsPenEvent(extra)) {
+				if (IsTouchEvent(extra)) {
 					break;
 				}
 			}
@@ -483,7 +562,7 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			if (input->is_emulating_mouse_from_touch()) {
 				// Universal translation enabled; ignore OS translations for left button
 				LPARAM extra = GetMessageExtraInfo();
-				if (IsPenEvent(extra)) {
+				if (IsTouchEvent(extra)) {
 					break;
 				}
 			}
@@ -618,7 +697,7 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			last_button_state = mb->get_button_mask();
 			mb->set_position(Vector2(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)));
 
-			if (mouse_mode == MOUSE_MODE_CAPTURED) {
+			if (mouse_mode == MOUSE_MODE_CAPTURED && !use_raw_input) {
 
 				mb->set_position(Vector2(old_x, old_y));
 			}
@@ -754,14 +833,6 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			if (ke.uMsg == WM_SYSKEYUP)
 				ke.uMsg = WM_KEYUP;
 
-			/*if (ke.uMsg==WM_KEYDOWN && alt_mem && uMsg!=WM_SYSKEYDOWN) {
-				//altgr hack for intl keyboards, not sure how good it is
-				//windows is weeeeird
-				ke.mod_state.alt=false;
-				ke.mod_state.control=false;
-				print_line("")
-			}*/
-
 			ke.wParam = wParam;
 			ke.lParam = lParam;
 			key_event_buffer[key_event_pos++] = ke;
@@ -769,7 +840,7 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		} break;
 		case WM_INPUTLANGCHANGEREQUEST: {
 
-			print_line("input lang change");
+			// FIXME: Do something?
 		} break;
 
 		case WM_TOUCH: {
@@ -1024,7 +1095,6 @@ Error OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int
 	WNDCLASSEXW wc;
 
 	if (is_hidpi_allowed()) {
-		print_line("hidpi aware?");
 		HMODULE Shcore = LoadLibraryW(L"Shcore.dll");
 
 		if (Shcore != NULL) {
@@ -1066,6 +1136,20 @@ Error OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int
 		return ERR_UNAVAILABLE;
 	}
 
+	use_raw_input = true;
+
+	RAWINPUTDEVICE Rid[1];
+
+	Rid[0].usUsagePage = 0x01;
+	Rid[0].usUsage = 0x02;
+	Rid[0].dwFlags = 0;
+	Rid[0].hwndTarget = 0;
+
+	if (RegisterRawInputDevices(Rid, 1, sizeof(Rid[0])) == FALSE) {
+		//registration failed.
+		use_raw_input = false;
+	}
+
 	pre_fs_valid = true;
 	if (video_mode.fullscreen) {
 
@@ -1084,8 +1168,6 @@ Error OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int
 
 		WindowRect.right = data.size.width;
 		WindowRect.bottom = data.size.height;
-
-		print_line("wr right " + itos(WindowRect.right) + ", " + itos(WindowRect.bottom));
 
 		/*  DEVMODE dmScreenSettings;
 		memset(&dmScreenSettings,0,sizeof(dmScreenSettings));
@@ -1171,21 +1253,74 @@ Error OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int
 	}
 
 #if defined(OPENGL_ENABLED)
+
+	bool gles3_context = true;
 	if (p_video_driver == VIDEO_DRIVER_GLES2) {
-		gl_context = memnew(ContextGL_Win(hWnd, false));
-		gl_context->initialize();
-
-		RasterizerGLES2::register_config();
-		RasterizerGLES2::make_current();
-	} else {
-		gl_context = memnew(ContextGL_Win(hWnd, true));
-		gl_context->initialize();
-
-		RasterizerGLES3::register_config();
-		RasterizerGLES3::make_current();
+		gles3_context = false;
 	}
 
-	video_driver_index = p_video_driver; // FIXME TODO - FIX IF DRIVER DETECTION HAPPENS AND GLES2 MUST BE USED
+	bool editor = Engine::get_singleton()->is_editor_hint();
+	bool gl_initialization_error = false;
+
+	gl_context = NULL;
+	while (!gl_context) {
+		gl_context = memnew(ContextGL_Win(hWnd, gles3_context));
+
+		if (gl_context->initialize() != OK) {
+			memdelete(gl_context);
+			gl_context = NULL;
+
+			if (GLOBAL_GET("rendering/quality/driver/driver_fallback") == "Best" || editor) {
+				if (p_video_driver == VIDEO_DRIVER_GLES2) {
+					gl_initialization_error = true;
+					break;
+				}
+
+				p_video_driver = VIDEO_DRIVER_GLES2;
+				gles3_context = false;
+			} else {
+				gl_initialization_error = true;
+				break;
+			}
+		}
+	}
+
+	while (true) {
+		if (gles3_context) {
+			if (RasterizerGLES3::is_viable() == OK) {
+				RasterizerGLES3::register_config();
+				RasterizerGLES3::make_current();
+				break;
+			} else {
+				if (GLOBAL_GET("rendering/quality/driver/driver_fallback") == "Best" || editor) {
+					p_video_driver = VIDEO_DRIVER_GLES2;
+					gles3_context = false;
+					continue;
+				} else {
+					gl_initialization_error = true;
+					break;
+				}
+			}
+		} else {
+			if (RasterizerGLES2::is_viable() == OK) {
+				RasterizerGLES2::register_config();
+				RasterizerGLES2::make_current();
+				break;
+			} else {
+				gl_initialization_error = true;
+				break;
+			}
+		}
+	}
+
+	if (gl_initialization_error) {
+		OS::get_singleton()->alert("Your video card driver does not support any of the supported OpenGL versions.\n"
+								   "Please update your drivers or if you have a very old or integrated GPU upgrade it.",
+				"Unable to initialize Video driver");
+		return ERR_UNAVAILABLE;
+	}
+
+	video_driver_index = p_video_driver;
 
 	gl_context->set_use_vsync(video_mode.use_vsync);
 #endif
@@ -1218,10 +1353,6 @@ Error OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int
 	power_manager = memnew(PowerWindows);
 
 	AudioDriverManager::initialize(p_audio_driver);
-
-#ifdef WINMIDI_ENABLED
-	driver_midi.open();
-#endif
 
 	TRACKMOUSEEVENT tme;
 	tme.cbSize = sizeof(TRACKMOUSEEVENT);
@@ -1374,12 +1505,6 @@ void OS_Windows::finalize() {
 	if (user_proc) {
 		SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)user_proc);
 	};
-
-	/*
-	if (debugger_connection_console) {
-		memdelete(debugger_connection_console);
-	}
-	*/
 }
 
 void OS_Windows::finalize_core() {
@@ -1387,9 +1512,7 @@ void OS_Windows::finalize_core() {
 	timeEndPeriod(1);
 
 	memdelete(process_map);
-
-	TCPServerWinsock::cleanup();
-	StreamPeerTCPWinsock::cleanup();
+	NetSocketPosix::cleanup();
 }
 
 void OS_Windows::alert(const String &p_alert, const String &p_title) {
@@ -1584,6 +1707,15 @@ void OS_Windows::set_window_position(const Point2 &p_position) {
 	RECT r;
 	GetWindowRect(hWnd, &r);
 	MoveWindow(hWnd, p_position.x, p_position.y, r.right - r.left, r.bottom - r.top, TRUE);
+
+	// Don't let the mouse leave the window when moved
+	if (mouse_mode == MOUSE_MODE_CONFINED) {
+		RECT rect;
+		GetClientRect(hWnd, &rect);
+		ClientToScreen(hWnd, (POINT *)&rect.left);
+		ClientToScreen(hWnd, (POINT *)&rect.right);
+		ClipCursor(&rect);
+	}
 }
 Size2 OS_Windows::get_window_size() const {
 
@@ -1612,7 +1744,7 @@ void OS_Windows::set_window_size(const Size2 p_size) {
 	RECT rect;
 	GetWindowRect(hWnd, &rect);
 
-	if (video_mode.borderless_window == false) {
+	if (!video_mode.borderless_window) {
 		RECT crect;
 		GetClientRect(hWnd, &crect);
 
@@ -1643,9 +1775,6 @@ void OS_Windows::set_window_fullscreen(bool p_enabled) {
 
 		if (pre_fs_valid) {
 			GetWindowRect(hWnd, &pre_fs_rect);
-			//print_line("A: "+itos(pre_fs_rect.left)+","+itos(pre_fs_rect.top)+","+itos(pre_fs_rect.right-pre_fs_rect.left)+","+itos(pre_fs_rect.bottom-pre_fs_rect.top));
-			//MapWindowPoints(hWnd, GetParent(hWnd), (LPPOINT) &pre_fs_rect, 2);
-			//print_line("B: "+itos(pre_fs_rect.left)+","+itos(pre_fs_rect.top)+","+itos(pre_fs_rect.right-pre_fs_rect.left)+","+itos(pre_fs_rect.bottom-pre_fs_rect.top));
 		}
 
 		int cs = get_current_screen();
@@ -2128,7 +2257,9 @@ void OS_Windows::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shap
 		}
 
 		ERR_FAIL_COND(!texture.is_valid());
+		ERR_FAIL_COND(p_hotspot.x < 0 || p_hotspot.y < 0);
 		ERR_FAIL_COND(texture_size.width > 256 || texture_size.height > 256);
+		ERR_FAIL_COND(p_hotspot.x > texture_size.width || p_hotspot.y > texture_size.height);
 
 		image = texture->get_data();
 
@@ -2180,8 +2311,10 @@ void OS_Windows::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shap
 
 		cursors[p_shape] = CreateIconIndirect(&iconinfo);
 
-		if (p_shape == CURSOR_ARROW) {
-			SetCursor(cursors[p_shape]);
+		if (p_shape == cursor_shape) {
+			if (mouse_mode == MOUSE_MODE_VISIBLE || mouse_mode == MOUSE_MODE_CONFINED) {
+				SetCursor(cursors[p_shape]);
+			}
 		}
 
 		if (hAndMask != NULL) {
@@ -2197,8 +2330,10 @@ void OS_Windows::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shap
 	} else {
 		// Reset to default system cursor
 		cursors[p_shape] = NULL;
+
+		CursorShape c = cursor_shape;
 		cursor_shape = CURSOR_MAX;
-		set_cursor_shape(p_shape);
+		set_cursor_shape(c);
 	}
 }
 
@@ -2602,7 +2737,7 @@ void OS_Windows::run() {
 	while (!force_quit) {
 
 		process_events(); // get rid of pending events
-		if (Main::iteration() == true)
+		if (Main::iteration())
 			break;
 	};
 
@@ -2777,7 +2912,7 @@ int OS_Windows::get_power_percent_left() {
 
 bool OS_Windows::_check_internal_feature_support(const String &p_feature) {
 
-	return p_feature == "pc" || p_feature == "s3tc";
+	return p_feature == "pc" || p_feature == "s3tc" || p_feature == "bptc";
 }
 
 void OS_Windows::disable_crash_handler() {

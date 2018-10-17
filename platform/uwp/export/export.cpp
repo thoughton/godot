@@ -29,16 +29,16 @@
 /*************************************************************************/
 
 #include "export.h"
-#include "bind/core_bind.h"
+#include "core/bind/core_bind.h"
+#include "core/io/marshalls.h"
+#include "core/io/zip_io.h"
+#include "core/object.h"
+#include "core/os/file_access.h"
+#include "core/project_settings.h"
+#include "core/version.h"
 #include "editor/editor_export.h"
 #include "editor/editor_node.h"
-#include "io/marshalls.h"
-#include "io/zip_io.h"
-#include "object.h"
-#include "os/file_access.h"
 #include "platform/uwp/logo.gen.h"
-#include "project_settings.h"
-#include "version.h"
 
 #include "thirdparty/minizip/unzip.h"
 #include "thirdparty/minizip/zip.h"
@@ -1087,8 +1087,8 @@ public:
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "tiles/show_name_on_wide310x150"), false));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "tiles/show_name_on_square310x310"), false));
 
-		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_template/debug", PROPERTY_HINT_GLOBAL_FILE, "zip"), ""));
-		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_template/release", PROPERTY_HINT_GLOBAL_FILE, "zip"), ""));
+		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_template/debug", PROPERTY_HINT_GLOBAL_FILE, "*.zip"), ""));
+		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_template/release", PROPERTY_HINT_GLOBAL_FILE, "*.zip"), ""));
 
 		// Capabilities
 		const char **basic = uwp_capabilities;
@@ -1452,6 +1452,9 @@ public:
 
 		r_features->push_back("pc");
 		r_features->push_back("UWP");
+	}
+
+	virtual void resolve_platform_feature_priorities(const Ref<EditorExportPreset> &p_preset, Set<String> &p_features) {
 	}
 
 	EditorExportUWP() {

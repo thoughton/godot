@@ -183,12 +183,6 @@ def configure_msvc(env, manual_msvc_config):
         env.Append(LINKFLAGS=['/SUBSYSTEM:CONSOLE'])
         env.Append(LINKFLAGS=['/OPT:REF'])
 
-    elif (env["target"] == "debug_release"):
-        env.Append(CCFLAGS=['/Z7', '/Od'])
-        env.Append(LINKFLAGS=['/DEBUG'])
-        env.Append(LINKFLAGS=['/SUBSYSTEM:WINDOWS'])
-        env.Append(LINKFLAGS=['/ENTRY:mainCRTStartup'])
-
     elif (env["target"] == "debug"):
         env.AppendUnique(CCFLAGS=['/Z7', '/Od', '/EHsc'])
         env.AppendUnique(CPPDEFINES = ['DEBUG_ENABLED', 'DEBUG_MEMORY_ENABLED',
@@ -214,8 +208,9 @@ def configure_msvc(env, manual_msvc_config):
                                    'RTAUDIO_ENABLED', 'WASAPI_ENABLED',
                                    'WINMIDI_ENABLED', 'TYPED_METHOD_BIND',
                                    'WIN32', 'MSVC',
-                                   {'WINVER' : '$target_win_version',
-                                    '_WIN32_WINNT': '$target_win_version'}])
+                                   'WINVER=$target_win_version',
+                                   '_WIN32_WINNT=$target_win_version'])
+    env.AppendUnique(CPPDEFINES=['NOMINMAX']) # disable bogus min/max WinDef.h macros
     if env["bits"] == "64":
         env.AppendUnique(CPPDEFINES=['_WIN64'])
 

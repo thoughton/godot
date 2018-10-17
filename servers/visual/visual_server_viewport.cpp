@@ -30,7 +30,7 @@
 
 #include "visual_server_viewport.h"
 
-#include "project_settings.h"
+#include "core/project_settings.h"
 #include "visual_server_canvas.h"
 #include "visual_server_global.h"
 #include "visual_server_scene.h"
@@ -137,7 +137,6 @@ void VisualServerViewport::_draw_viewport(Viewport *p_viewport, ARVRInterface::E
 				}
 			}
 
-			//print_line("lights: "+itos(light_count));
 			canvas_map[Viewport::CanvasKey(E->key(), E->get().layer)] = &E->get();
 		}
 
@@ -194,8 +193,6 @@ void VisualServerViewport::_draw_viewport(Viewport *p_viewport, ARVRInterface::E
 
 			VisualServerCanvas::Canvas *canvas = static_cast<VisualServerCanvas::Canvas *>(E->get()->canvas);
 
-			//print_line("canvas "+itos(i)+" size: "+itos(I->get()->canvas->child_items.size()));
-			//print_line("GT "+p_viewport->global_transform+". CT: "+E->get()->transform);
 			Transform2D xform = p_viewport->global_transform * E->get()->transform;
 
 			RasterizerCanvas::Light *canvas_lights = NULL;
@@ -297,7 +294,7 @@ void VisualServerViewport::draw_viewports() {
 				arvr_interface->commit_for_eye(ARVRInterface::EYE_RIGHT, vp->render_target, vp->viewport_to_screen_rect);
 			}
 
-			// and for our frame timing, mark when we've finished commiting our eyes
+			// and for our frame timing, mark when we've finished committing our eyes
 			ARVRServer::get_singleton()->_mark_commit();
 		} else {
 			VSG::rasterizer->set_current_render_target(vp->render_target);

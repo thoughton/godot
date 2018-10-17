@@ -1,13 +1,42 @@
+/*************************************************************************/
+/*  animation_blend_space_1d_editor.cpp                                  */
+/*************************************************************************/
+/*                       This file is part of:                           */
+/*                           GODOT ENGINE                                */
+/*                      https://godotengine.org                          */
+/*************************************************************************/
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/*                                                                       */
+/* Permission is hereby granted, free of charge, to any person obtaining */
+/* a copy of this software and associated documentation files (the       */
+/* "Software"), to deal in the Software without restriction, including   */
+/* without limitation the rights to use, copy, modify, merge, publish,   */
+/* distribute, sublicense, and/or sell copies of the Software, and to    */
+/* permit persons to whom the Software is furnished to do so, subject to */
+/* the following conditions:                                             */
+/*                                                                       */
+/* The above copyright notice and this permission notice shall be        */
+/* included in all copies or substantial portions of the Software.       */
+/*                                                                       */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
+/*************************************************************************/
+
 #include "animation_blend_space_1d_editor.h"
 
-#include "os/keyboard.h"
+#include "core/os/keyboard.h"
 #include "scene/animation/animation_blend_tree.h"
 
 StringName AnimationNodeBlendSpace1DEditor::get_blend_position_path() const {
-	StringName path = AnimationTreeEditor::get_singleton()->get_base_path()+"blend_position";
+	StringName path = AnimationTreeEditor::get_singleton()->get_base_path() + "blend_position";
 	return path;
 }
-
 
 void AnimationNodeBlendSpace1DEditor::_blend_space_gui_input(const Ref<InputEvent> &p_event) {
 	Ref<InputEventKey> k = p_event;
@@ -55,7 +84,7 @@ void AnimationNodeBlendSpace1DEditor::_blend_space_gui_input(const Ref<InputEven
 				continue;
 
 			int idx = menu->get_item_count();
-			menu->add_item(vformat("Add %s", name),idx);
+			menu->add_item(vformat("Add %s", name), idx);
 			menu->set_item_metadata(idx, E->get());
 		}
 
@@ -136,7 +165,7 @@ void AnimationNodeBlendSpace1DEditor::_blend_space_gui_input(const Ref<InputEven
 		blend_pos *= blend_space->get_max_space() - blend_space->get_min_space();
 		blend_pos += blend_space->get_min_space();
 
-		AnimationTreeEditor::get_singleton()->get_tree()->set(get_blend_position_path(),blend_pos);
+		AnimationTreeEditor::get_singleton()->get_tree()->set(get_blend_position_path(), blend_pos);
 		blend_space_draw->update();
 	}
 
@@ -159,7 +188,7 @@ void AnimationNodeBlendSpace1DEditor::_blend_space_gui_input(const Ref<InputEven
 		blend_pos *= blend_space->get_max_space() - blend_space->get_min_space();
 		blend_pos += blend_space->get_min_space();
 
-		AnimationTreeEditor::get_singleton()->get_tree()->set(get_blend_position_path(),blend_pos);
+		AnimationTreeEditor::get_singleton()->get_tree()->set(get_blend_position_path(), blend_pos);
 
 		blend_space_draw->update();
 	}
@@ -257,7 +286,6 @@ void AnimationNodeBlendSpace1DEditor::_blend_space_draw() {
 		}
 
 		float point = AnimationTreeEditor::get_singleton()->get_tree()->get(get_blend_position_path());
-
 
 		point = (point - blend_space->get_min_space()) / (blend_space->get_max_space() - blend_space->get_min_space());
 		point *= s.width;
@@ -501,8 +529,6 @@ void AnimationNodeBlendSpace1DEditor::_open_editor() {
 	}
 }
 
-
-
 void AnimationNodeBlendSpace1DEditor::_notification(int p_what) {
 	if (p_what == NOTIFICATION_ENTER_TREE || p_what == NOTIFICATION_THEME_CHANGED) {
 		error_panel->add_style_override("panel", get_stylebox("bg", "Tree"));
@@ -514,7 +540,6 @@ void AnimationNodeBlendSpace1DEditor::_notification(int p_what) {
 		tool_erase->set_icon(get_icon("Remove", "EditorIcons"));
 		snap->set_icon(get_icon("SnapGrid", "EditorIcons"));
 		open_editor->set_icon(get_icon("Edit", "EditorIcons"));
-
 	}
 
 	if (p_what == NOTIFICATION_PROCESS) {
@@ -536,7 +561,7 @@ void AnimationNodeBlendSpace1DEditor::_notification(int p_what) {
 		}
 	}
 
-	if (p_what==NOTIFICATION_VISIBILITY_CHANGED) {
+	if (p_what == NOTIFICATION_VISIBILITY_CHANGED) {
 		set_process(is_visible_in_tree());
 	}
 }
@@ -561,22 +586,17 @@ void AnimationNodeBlendSpace1DEditor::_bind_methods() {
 	ClassDB::bind_method("_open_editor", &AnimationNodeBlendSpace1DEditor::_open_editor);
 
 	ClassDB::bind_method("_file_opened", &AnimationNodeBlendSpace1DEditor::_file_opened);
-
-
-
 }
 
 bool AnimationNodeBlendSpace1DEditor::can_edit(const Ref<AnimationNode> &p_node) {
 
-	Ref<AnimationNodeBlendSpace1D> b1d=p_node;
+	Ref<AnimationNodeBlendSpace1D> b1d = p_node;
 	return b1d.is_valid();
 }
 
 void AnimationNodeBlendSpace1DEditor::edit(const Ref<AnimationNode> &p_node) {
 
-
-
-	blend_space=p_node;
+	blend_space = p_node;
 
 	if (!blend_space.is_null()) {
 		_update_space();
@@ -594,7 +614,6 @@ AnimationNodeBlendSpace1DEditor::AnimationNodeBlendSpace1DEditor() {
 
 	Ref<ButtonGroup> bg;
 	bg.instance();
-
 
 	tool_blend = memnew(ToolButton);
 	tool_blend->set_toggle_mode(true);

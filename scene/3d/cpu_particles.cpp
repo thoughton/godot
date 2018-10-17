@@ -1,9 +1,38 @@
+/*************************************************************************/
+/*  cpu_particles.cpp                                                    */
+/*************************************************************************/
+/*                       This file is part of:                           */
+/*                           GODOT ENGINE                                */
+/*                      https://godotengine.org                          */
+/*************************************************************************/
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/*                                                                       */
+/* Permission is hereby granted, free of charge, to any person obtaining */
+/* a copy of this software and associated documentation files (the       */
+/* "Software"), to deal in the Software without restriction, including   */
+/* without limitation the rights to use, copy, modify, merge, publish,   */
+/* distribute, sublicense, and/or sell copies of the Software, and to    */
+/* permit persons to whom the Software is furnished to do so, subject to */
+/* the following conditions:                                             */
+/*                                                                       */
+/* The above copyright notice and this permission notice shall be        */
+/* included in all copies or substantial portions of the Software.       */
+/*                                                                       */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
+/*************************************************************************/
+
 #include "cpu_particles.h"
 
-#include "particles.h"
 #include "scene/3d/camera.h"
-#include "scene/main/viewport.h"
-#include "scene/resources/surface_tool.h"
+#include "scene/3d/particles.h"
+#include "scene/resources/particles_material.h"
 #include "servers/visual_server.h"
 
 AABB CPUParticles::get_aabb() const {
@@ -442,10 +471,6 @@ static float rand_from_seed(uint32_t &seed) {
 	return float(seed % uint32_t(65536)) / 65535.0;
 }
 
-float rand_from_seed_m1_p1(uint32_t &seed) {
-	return rand_from_seed(seed) * 2.0 - 1.0;
-}
-
 void CPUParticles::_particles_process(float p_delta) {
 
 	p_delta *= speed_scale;
@@ -567,7 +592,7 @@ void CPUParticles::_particles_process(float p_delta) {
 
 				Vector3 direction_xz = Vector3(Math::sin(angle1_rad), 0, Math::cos(angle1_rad));
 				Vector3 direction_yz = Vector3(0, Math::sin(angle2_rad), Math::cos(angle2_rad));
-				direction_yz.z = direction_yz.z / Math::sqrt(direction_yz.z); //better uniform distribution
+				direction_yz.z = direction_yz.z / MAX(0.0001, Math::sqrt(ABS(direction_yz.z))); //better uniform distribution
 				Vector3 direction = Vector3(direction_xz.x * direction_yz.z, direction_yz.y, direction_xz.z * direction_yz.z);
 				direction.normalize();
 				p.velocity = direction * parameters[PARAM_INITIAL_LINEAR_VELOCITY] * Math::lerp(1.0f, float(Math::randf()), randomness[PARAM_INITIAL_LINEAR_VELOCITY]);
@@ -921,8 +946,6 @@ void CPUParticles::_update_particle_data_buffer() {
 				t = un_transform * t;
 			}
 
-			//			print_line(" particle " + itos(i) + ": " + String(r[idx].active ? "[x]" : "[ ]") + "\n\txform " + r[idx].transform + "\n\t" + r[idx].velocity + "\n\tcolor: " + r[idx].color);
-
 			if (r[idx].active) {
 				ptr[0] = t.basis.elements[0][0];
 				ptr[1] = t.basis.elements[0][1];
@@ -954,6 +977,8 @@ void CPUParticles::_update_particle_data_buffer() {
 
 			ptr += 17;
 		}
+
+		can_update = true;
 	}
 
 #ifndef NO_THREADS
@@ -966,8 +991,10 @@ void CPUParticles::_update_render_thread() {
 #ifndef NO_THREADS
 	update_mutex->lock();
 #endif
-
-	VS::get_singleton()->multimesh_set_as_bulk_array(multimesh, particle_data);
+	if (can_update) {
+		VS::get_singleton()->multimesh_set_as_bulk_array(multimesh, particle_data);
+		can_update = false; //wait for next time
+	}
 
 #ifndef NO_THREADS
 	update_mutex->unlock();
@@ -1009,7 +1036,7 @@ void CPUParticles::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_INTERNAL_PROCESS) {
 
-		if (particles.size() == 0)
+		if (particles.size() == 0 || !is_visible_in_tree())
 			return;
 
 		float delta = get_process_delta_time();
@@ -1038,6 +1065,8 @@ void CPUParticles::_notification(int p_what) {
 			}
 		}
 
+		bool processed = false;
+
 		if (time == 0 && pre_process_time > 0.0) {
 
 			float frame_time;
@@ -1050,6 +1079,7 @@ void CPUParticles::_notification(int p_what) {
 
 			while (todo >= 0) {
 				_particles_process(frame_time);
+				processed = true;
 				todo -= frame_time;
 			}
 		}
@@ -1068,6 +1098,7 @@ void CPUParticles::_notification(int p_what) {
 
 			while (todo >= frame_time) {
 				_particles_process(frame_time);
+				processed = true;
 				todo -= decr;
 			}
 
@@ -1075,9 +1106,12 @@ void CPUParticles::_notification(int p_what) {
 
 		} else {
 			_particles_process(delta);
+			processed = true;
 		}
 
-		_update_particle_data_buffer();
+		if (processed) {
+			_update_particle_data_buffer();
+		}
 	}
 }
 
@@ -1190,7 +1224,7 @@ void CPUParticles::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "lifetime", PROPERTY_HINT_EXP_RANGE, "0.01,600.0,0.01"), "set_lifetime", "get_lifetime");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "one_shot"), "set_one_shot", "get_one_shot");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "preprocess", PROPERTY_HINT_EXP_RANGE, "0.00,600.0,0.01"), "set_pre_process_time", "get_pre_process_time");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "speed_scale", PROPERTY_HINT_RANGE, "0.01,64,0.01"), "set_speed_scale", "get_speed_scale");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "speed_scale", PROPERTY_HINT_RANGE, "0,64,0.01"), "set_speed_scale", "get_speed_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "explosiveness", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_explosiveness_ratio", "get_explosiveness_ratio");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "randomness", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_randomness_ratio", "get_randomness_ratio");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "fixed_fps", PROPERTY_HINT_RANGE, "0,1000,1"), "set_fixed_fps", "get_fixed_fps");
@@ -1400,6 +1434,8 @@ CPUParticles::CPUParticles() {
 	for (int i = 0; i < FLAG_MAX; i++) {
 		flags[i] = false;
 	}
+
+	can_update = false;
 
 	set_color(Color(1, 1, 1, 1));
 

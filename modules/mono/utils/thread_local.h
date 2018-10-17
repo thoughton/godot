@@ -76,7 +76,7 @@ struct ThreadLocalStorage {
 	void *get_value() const;
 	void set_value(void *p_value) const;
 
-	void alloc(void (_CALLBACK_FUNC_ *p_dest_callback)(void *));
+	void alloc(void(_CALLBACK_FUNC_ *p_dest_callback)(void *));
 	void free();
 
 private:
@@ -95,7 +95,6 @@ class ThreadLocal {
 		memdelete(static_cast<T *>(tls_data));
 	}
 
-
 	T *_tls_get_value() const {
 		void *tls_data = storage.get_value();
 
@@ -109,17 +108,23 @@ class ThreadLocal {
 		return data;
 	}
 
-public:
-	ThreadLocal() :
-			ThreadLocal(T()) {}
-
-	ThreadLocal(const T &p_init_val) :
-			init_val(p_init_val) {
+	void _initialize(const T &p_init_val) {
+		init_val = p_init_val;
 		storage.alloc(&destr_callback);
 	}
 
-	ThreadLocal(const ThreadLocal &other) :
-			ThreadLocal(*other._tls_get_value()) {}
+public:
+	ThreadLocal() {
+		_initialize(T());
+	}
+
+	ThreadLocal(const T &p_init_val) {
+		_initialize(p_init_val);
+	}
+
+	ThreadLocal(const ThreadLocal &other) {
+		_initialize(*other._tls_get_value());
+	}
 
 	~ThreadLocal() {
 		storage.free();

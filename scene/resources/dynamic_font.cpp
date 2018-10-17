@@ -30,8 +30,8 @@
 
 #ifdef FREETYPE_ENABLED
 #include "dynamic_font.h"
-#include "os/file_access.h"
-#include "os/os.h"
+#include "core/os/file_access.h"
+#include "core/os/os.h"
 
 #include FT_STROKER_H
 
@@ -434,8 +434,6 @@ DynamicFontAtSize::TexturePosition DynamicFontAtSize::_find_texture_pos_for_glyp
 		ret.index = i;
 		break;
 	}
-
-	//print_line("CHAR: "+String::chr(p_char)+" TEX INDEX: "+itos(tex_index)+" X: "+itos(tex_x)+" Y: "+itos(tex_y));
 
 	if (ret.index == -1) {
 		//could not find texture to fit, create one
@@ -1036,6 +1034,8 @@ SelfList<DynamicFont>::List DynamicFont::dynamic_fonts;
 DynamicFont::DynamicFont() :
 		font_list(this) {
 
+	cache_id.size = 16;
+	outline_cache_id.size = 16;
 	spacing_top = 0;
 	spacing_bottom = 0;
 	spacing_char = 0;
@@ -1083,8 +1083,19 @@ void DynamicFont::update_oversampling() {
 				E->self()->outline_data_at_size->update_oversampling();
 			}
 
+			for (int i = 0; i < E->self()->fallback_data_at_size.size(); i++) {
+				if (E->self()->fallback_data_at_size[i].is_valid()) {
+					E->self()->fallback_data_at_size.write[i]->update_oversampling();
+
+					if (E->self()->has_outline() && E->self()->fallback_outline_data_at_size[i].is_valid()) {
+						E->self()->fallback_outline_data_at_size.write[i]->update_oversampling();
+					}
+				}
+			}
+
 			changed.push_back(Ref<DynamicFont>(E->self()));
 		}
+
 		E = E->next();
 	}
 

@@ -30,10 +30,10 @@
 
 #include "array.h"
 
-#include "hashfuncs.h"
-#include "object.h"
-#include "variant.h"
-#include "vector.h"
+#include "core/hashfuncs.h"
+#include "core/object.h"
+#include "core/variant.h"
+#include "core/vector.h"
 
 class ArrayPrivate {
 public:
@@ -355,11 +355,58 @@ Variant Array::pop_front() {
 	return Variant();
 }
 
+Variant Array::min() const {
+
+	Variant minval;
+	for (int i = 0; i < size(); i++) {
+		if (i == 0) {
+			minval = get(i);
+		} else {
+			bool valid;
+			Variant ret;
+			Variant test = get(i);
+			Variant::evaluate(Variant::OP_LESS, test, minval, ret, valid);
+			if (!valid) {
+				return Variant(); //not a valid comparison
+			}
+			if (bool(ret)) {
+				//is less
+				minval = test;
+			}
+		}
+	}
+	return minval;
+}
+
+Variant Array::max() const {
+
+	Variant maxval;
+	for (int i = 0; i < size(); i++) {
+		if (i == 0) {
+			maxval = get(i);
+		} else {
+			bool valid;
+			Variant ret;
+			Variant test = get(i);
+			Variant::evaluate(Variant::OP_GREATER, test, maxval, ret, valid);
+			if (!valid) {
+				return Variant(); //not a valid comparison
+			}
+			if (bool(ret)) {
+				//is less
+				maxval = test;
+			}
+		}
+	}
+	return maxval;
+}
+
 Array::Array(const Array &p_from) {
 
 	_p = NULL;
 	_ref(p_from);
 }
+
 Array::Array() {
 
 	_p = memnew(ArrayPrivate);

@@ -421,7 +421,16 @@ void EditorAssetLibraryItemDownload::_notification(int p_what) {
 		int cstatus = download->get_http_client_status();
 
 		if (cstatus == HTTPClient::STATUS_BODY) {
-			status->set_text(vformat(TTR("Downloading (%s / %s)..."), String::humanize_size(download->get_downloaded_bytes()), String::humanize_size(download->get_body_size())));
+			if (download->get_body_size() > 0) {
+				status->set_text(
+						vformat(
+								TTR("Downloading (%s / %s)..."),
+								String::humanize_size(download->get_downloaded_bytes()),
+								String::humanize_size(download->get_body_size())));
+			} else {
+				// Total file size is unknown, so it cannot be displayed
+				status->set_text(TTR("Downloading..."));
+			}
 		}
 
 		if (cstatus != prev_status) {
@@ -952,6 +961,9 @@ void EditorAssetLibrary::_search_text_entered(const String &p_text) {
 HBoxContainer *EditorAssetLibrary::_make_pages(int p_page, int p_page_count, int p_page_len, int p_total_items, int p_current_items) {
 
 	HBoxContainer *hbc = memnew(HBoxContainer);
+
+	if (p_page_count < 2)
+		return hbc;
 
 	//do the mario
 	int from = p_page - 5;

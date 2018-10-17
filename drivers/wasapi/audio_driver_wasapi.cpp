@@ -32,8 +32,8 @@
 
 #include "audio_driver_wasapi.h"
 
-#include "os/os.h"
-#include "project_settings.h"
+#include "core/os/os.h"
+#include "core/project_settings.h"
 
 #include <functiondiscoverykeys.h>
 
@@ -65,7 +65,6 @@ const IID IID_IAudioCaptureClient = __uuidof(IAudioCaptureClient);
 
 #define CAPTURE_BUFFER_CHANNELS 2
 
-static StringName capture_device_id;
 static bool default_render_device_changed = false;
 static bool default_capture_device_changed = false;
 
@@ -128,7 +127,6 @@ public:
 				default_render_device_changed = true;
 			} else if (flow == eCapture) {
 				default_capture_device_changed = true;
-				capture_device_id = String(pwstrDeviceId);
 			}
 		}
 
@@ -321,10 +319,8 @@ Error AudioDriverWASAPI::init_render_device(bool reinit) {
 	input_position = 0;
 	input_size = 0;
 
-	if (OS::get_singleton()->is_stdout_verbose()) {
-		print_line("WASAPI: detected " + itos(channels) + " channels");
-		print_line("WASAPI: audio buffer frames: " + itos(buffer_frames) + " calculated latency: " + itos(buffer_frames * 1000 / mix_rate) + "ms");
-	}
+	print_verbose("WASAPI: detected " + itos(channels) + " channels");
+	print_verbose("WASAPI: audio buffer frames: " + itos(buffer_frames) + " calculated latency: " + itos(buffer_frames * 1000 / mix_rate) + "ms");
 
 	return OK;
 }
@@ -661,6 +657,9 @@ void AudioDriverWASAPI::thread_func(void *p_udata) {
 			if (err == OK) {
 				ad->start();
 			}
+
+			avail_frames = 0;
+			write_ofs = 0;
 		}
 
 		if (ad->audio_input.active) {
@@ -797,19 +796,18 @@ Error AudioDriverWASAPI::capture_start() {
 		return err;
 	}
 
-	if (audio_input.active == false) {
-		audio_input.audio_client->Start();
-		audio_input.active = true;
-
-		return OK;
+	if (audio_input.active) {
+		return FAILED;
 	}
 
-	return FAILED;
+	audio_input.audio_client->Start();
+	audio_input.active = true;
+	return OK;
 }
 
 Error AudioDriverWASAPI::capture_stop() {
 
-	if (audio_input.active == true) {
+	if (audio_input.active) {
 		audio_input.audio_client->Stop();
 		audio_input.active = false;
 

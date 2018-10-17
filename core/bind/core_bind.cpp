@@ -30,14 +30,14 @@
 
 #include "core_bind.h"
 
+#include "core/io/file_access_compressed.h"
+#include "core/io/file_access_encrypted.h"
+#include "core/io/json.h"
+#include "core/io/marshalls.h"
+#include "core/math/geometry.h"
+#include "core/os/keyboard.h"
+#include "core/os/os.h"
 #include "core/project_settings.h"
-#include "geometry.h"
-#include "io/file_access_compressed.h"
-#include "io/file_access_encrypted.h"
-#include "io/json.h"
-#include "io/marshalls.h"
-#include "os/keyboard.h"
-#include "os/os.h"
 
 #include "thirdparty/misc/base64.h"
 
@@ -238,6 +238,14 @@ String _OS::get_audio_driver_name(int p_driver) const {
 
 PoolStringArray _OS::get_connected_midi_inputs() {
 	return OS::get_singleton()->get_connected_midi_inputs();
+}
+
+void _OS::open_midi_inputs() {
+	return OS::get_singleton()->open_midi_inputs();
+}
+
+void _OS::close_midi_inputs() {
+	return OS::get_singleton()->close_midi_inputs();
 }
 
 void _OS::set_video_mode(const Size2 &p_size, bool p_fullscreen, bool p_resizeable, int p_screen) {
@@ -1085,6 +1093,8 @@ void _OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_audio_driver_count"), &_OS::get_audio_driver_count);
 	ClassDB::bind_method(D_METHOD("get_audio_driver_name", "driver"), &_OS::get_audio_driver_name);
 	ClassDB::bind_method(D_METHOD("get_connected_midi_inputs"), &_OS::get_connected_midi_inputs);
+	ClassDB::bind_method(D_METHOD("open_midi_inputs"), &_OS::open_midi_inputs);
+	ClassDB::bind_method(D_METHOD("close_midi_inputs"), &_OS::close_midi_inputs);
 
 	ClassDB::bind_method(D_METHOD("get_screen_count"), &_OS::get_screen_count);
 	ClassDB::bind_method(D_METHOD("get_current_screen"), &_OS::get_current_screen);
@@ -2477,7 +2487,7 @@ _Thread::~_Thread() {
 	if (active) {
 		ERR_EXPLAIN("Reference to a Thread object object was lost while the thread is still running...");
 	}
-	ERR_FAIL_COND(active == true);
+	ERR_FAIL_COND(active);
 }
 /////////////////////////////////////
 

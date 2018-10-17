@@ -1,3 +1,33 @@
+/*************************************************************************/
+/*  animation_blend_tree.cpp                                             */
+/*************************************************************************/
+/*                       This file is part of:                           */
+/*                           GODOT ENGINE                                */
+/*                      https://godotengine.org                          */
+/*************************************************************************/
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/*                                                                       */
+/* Permission is hereby granted, free of charge, to any person obtaining */
+/* a copy of this software and associated documentation files (the       */
+/* "Software"), to deal in the Software without restriction, including   */
+/* without limitation the rights to use, copy, modify, merge, publish,   */
+/* distribute, sublicense, and/or sell copies of the Software, and to    */
+/* permit persons to whom the Software is furnished to do so, subject to */
+/* the following conditions:                                             */
+/*                                                                       */
+/* The above copyright notice and this permission notice shall be        */
+/* included in all copies or substantial portions of the Software.       */
+/*                                                                       */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
+/*************************************************************************/
+
 #include "animation_blend_tree.h"
 #include "scene/scene_string_names.h"
 
@@ -985,17 +1015,6 @@ void AnimationNodeBlendTree::disconnect_node(const StringName &p_node, int p_inp
 	ERR_FAIL_INDEX(p_input_index, nodes[p_node].connections.size());
 
 	nodes[p_node].connections.write[p_input_index] = StringName();
-}
-
-float AnimationNodeBlendTree::get_connection_activity(const StringName &p_input_node, int p_input_index) const {
-
-	ERR_FAIL_COND_V(!nodes.has(p_input_node), 0);
-
-	Ref<AnimationNode> input = nodes[p_input_node].node;
-	ERR_FAIL_INDEX_V(p_input_index, nodes[p_input_node].connections.size(), 0);
-
-	//return input->get_input_activity(p_input_index);
-	return 0;
 }
 
 AnimationNodeBlendTree::ConnectionError AnimationNodeBlendTree::can_connect_node(const StringName &p_input_node, int p_input_index, const StringName &p_output_node) const {

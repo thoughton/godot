@@ -30,10 +30,10 @@
 
 #include "color.h"
 
-#include "color_names.inc"
-#include "map.h"
-#include "math_funcs.h"
-#include "print_string.h"
+#include "core/color_names.inc"
+#include "core/map.h"
+#include "core/math/math_funcs.h"
+#include "core/print_string.h"
 
 uint32_t Color::to_argb32() const {
 
@@ -251,6 +251,21 @@ Color Color::hex64(uint64_t p_hex) {
 	float r = (p_hex & 0xFFFF) / 65535.0;
 
 	return Color(r, g, b, a);
+}
+
+Color Color::from_rgbe9995(uint32_t p_rgbe) {
+
+	float r = p_rgbe & 0x1ff;
+	float g = (p_rgbe >> 9) & 0x1ff;
+	float b = (p_rgbe >> 18) & 0x1ff;
+	float e = (p_rgbe >> 27);
+	float m = Math::pow(2, e - 15.0 - 9.0);
+
+	float rd = r * m;
+	float gd = g * m;
+	float bd = b * m;
+
+	return Color(rd, gd, bd, 1.0f);
 }
 
 static float _parse_col(const String &p_str, int p_ofs) {
@@ -506,8 +521,11 @@ Color Color::from_hsv(float p_h, float p_s, float p_v, float p_a) {
 	return Color(m + r, m + g, m + b, p_a);
 }
 
+// FIXME: Remove once Godot 3.1 has been released
 float Color::gray() const {
 
+	ERR_EXPLAIN("Color.gray() is deprecated and will be removed in a future version. Use Color.get_v() for a better grayscale approximation.");
+	WARN_DEPRECATED
 	return (r + g + b) / 3.0;
 }
 
