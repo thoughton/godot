@@ -355,7 +355,7 @@ void ScriptEditorDebugger::_video_mem_request() {
 Size2 ScriptEditorDebugger::get_minimum_size() const {
 
 	Size2 ms = Control::get_minimum_size();
-	ms.y = MAX(ms.y, 250);
+	ms.y = MAX(ms.y, 250 * EDSCALE);
 	return ms;
 }
 void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_data) {
@@ -1272,7 +1272,7 @@ void ScriptEditorDebugger::stop() {
 	breaked = false;
 
 	server->stop();
-
+	_clear_remote_objects();
 	ppeer->set_stream_peer(Ref<StreamPeer>());
 
 	if (connection.is_valid()) {
