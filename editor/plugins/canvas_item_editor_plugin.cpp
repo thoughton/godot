@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -456,7 +456,7 @@ void CanvasItemEditor::_find_canvas_items_at_pos(const Point2 &p_pos, Node *p_no
 	if (Object::cast_to<Viewport>(p_node))
 		return;
 
-	const real_t grab_distance = EDITOR_DEF("editors/poly_editor/point_grab_radius", 8);
+	const real_t grab_distance = EDITOR_GET("editors/poly_editor/point_grab_radius");
 	CanvasItem *canvas_item = Object::cast_to<CanvasItem>(p_node);
 
 	for (int i = p_node->get_child_count() - 1; i >= 0; i--) {
@@ -2033,16 +2033,19 @@ bool CanvasItemEditor::_gui_input_select(const Ref<InputEvent> &p_event) {
 
 			// Find the item to select
 			CanvasItem *canvas_item = NULL;
-			Vector<_SelectResult> selection;
-
-			// Retrieve the items
-			_get_canvas_items_at_pos(click, selection);
 
 			// Retrieve the bones
+			Vector<_SelectResult> selection = Vector<_SelectResult>();
 			_get_bones_at_pos(click, selection);
-
 			if (!selection.empty()) {
 				canvas_item = selection[0].item;
+			} else {
+				// Retrieve the canvas items
+				selection = Vector<_SelectResult>();
+				_get_canvas_items_at_pos(click, selection);
+				if (!selection.empty()) {
+					canvas_item = selection[0].item;
+				}
 			}
 
 			if (!canvas_item) {
@@ -4606,7 +4609,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 
 	warning_child_of_container = memnew(Label);
 	warning_child_of_container->hide();
-	warning_child_of_container->set_text("Warning: Children of a container get their position and size determined only by their parent");
+	warning_child_of_container->set_text(TTR("Warning: Children of a container get their position and size determined only by their parent."));
 	add_control_to_info_overlay(warning_child_of_container);
 
 	h_scroll = memnew(HScrollBar);
@@ -4626,19 +4629,19 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	zoom_minus = memnew(ToolButton);
 	zoom_hb->add_child(zoom_minus);
 	zoom_minus->connect("pressed", this, "_button_zoom_minus");
-	zoom_minus->set_shortcut(ED_SHORTCUT("canvas_item_editor/zoom_minus", TTR("Zoom out"), KEY_MASK_CMD | KEY_MINUS));
+	zoom_minus->set_shortcut(ED_SHORTCUT("canvas_item_editor/zoom_minus", TTR("Zoom Out"), KEY_MASK_CMD | KEY_MINUS));
 	zoom_minus->set_focus_mode(FOCUS_NONE);
 
 	zoom_reset = memnew(ToolButton);
 	zoom_hb->add_child(zoom_reset);
 	zoom_reset->connect("pressed", this, "_button_zoom_reset");
-	zoom_reset->set_shortcut(ED_SHORTCUT("canvas_item_editor/zoom_reset", TTR("Zoom reset"), KEY_MASK_CMD | KEY_0));
+	zoom_reset->set_shortcut(ED_SHORTCUT("canvas_item_editor/zoom_reset", TTR("Zoom Reset"), KEY_MASK_CMD | KEY_0));
 	zoom_reset->set_focus_mode(FOCUS_NONE);
 
 	zoom_plus = memnew(ToolButton);
 	zoom_hb->add_child(zoom_plus);
 	zoom_plus->connect("pressed", this, "_button_zoom_plus");
-	zoom_plus->set_shortcut(ED_SHORTCUT("canvas_item_editor/zoom_plus", TTR("Zoom in"), KEY_MASK_CMD | KEY_EQUAL)); // Usually direct access key for PLUS
+	zoom_plus->set_shortcut(ED_SHORTCUT("canvas_item_editor/zoom_plus", TTR("Zoom In"), KEY_MASK_CMD | KEY_EQUAL)); // Usually direct access key for PLUS
 	zoom_plus->set_focus_mode(FOCUS_NONE);
 
 	updating_scroll = false;

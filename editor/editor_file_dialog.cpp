@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -830,11 +830,12 @@ void EditorFileDialog::update_file_list() {
 			d["name"] = files.front()->get();
 			d["dir"] = false;
 			String fullpath = cdir.plus_file(files.front()->get());
+			d["path"] = fullpath;
+			item_list->set_item_metadata(item_list->get_item_count() - 1, d);
+
 			if (display_mode == DISPLAY_THUMBNAILS) {
 				EditorResourcePreview::get_singleton()->queue_resource_preview(fullpath, this, "_thumbnail_result", fullpath);
 			}
-			d["path"] = fullpath;
-			item_list->set_item_metadata(item_list->get_item_count() - 1, d);
 
 			if (file->get_text() == files.front()->get())
 				item_list->set_current(item_list->get_item_count() - 1);
@@ -1698,6 +1699,12 @@ EditorFileDialog::~EditorFileDialog() {
 	memdelete(dir_access);
 }
 
+void EditorLineEditFileChooser::_notification(int p_what) {
+
+	if (p_what == NOTIFICATION_ENTER_TREE || p_what == NOTIFICATION_THEME_CHANGED)
+		button->set_icon(get_icon("Folder", "EditorIcons"));
+}
+
 void EditorLineEditFileChooser::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_browse"), &EditorLineEditFileChooser::_browse);
@@ -1724,7 +1731,6 @@ EditorLineEditFileChooser::EditorLineEditFileChooser() {
 	add_child(line_edit);
 	line_edit->set_h_size_flags(SIZE_EXPAND_FILL);
 	button = memnew(Button);
-	button->set_text(" .. ");
 	add_child(button);
 	button->connect("pressed", this, "_browse");
 	dialog = memnew(EditorFileDialog);

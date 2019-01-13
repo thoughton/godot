@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -5746,16 +5746,21 @@ bool GDScriptParser::_is_type_compatible(const DataType &p_container, const Data
 	if (p_container.kind == DataType::BUILTIN && p_expression.kind == DataType::BUILTIN) {
 		bool valid = p_container.builtin_type == p_expression.builtin_type;
 		if (p_allow_implicit_conversion) {
-			valid = valid || (p_container.builtin_type == Variant::INT && p_expression.builtin_type == Variant::REAL);
-			valid = valid || (p_container.builtin_type == Variant::REAL && p_expression.builtin_type == Variant::INT);
-			valid = valid || (p_container.builtin_type == Variant::STRING && p_expression.builtin_type == Variant::NODE_PATH);
-			valid = valid || (p_container.builtin_type == Variant::NODE_PATH && p_expression.builtin_type == Variant::STRING);
-			valid = valid || (p_container.builtin_type == Variant::BOOL && p_expression.builtin_type == Variant::REAL);
-			valid = valid || (p_container.builtin_type == Variant::BOOL && p_expression.builtin_type == Variant::INT);
-			valid = valid || (p_container.builtin_type == Variant::INT && p_expression.builtin_type == Variant::BOOL);
-			valid = valid || (p_container.builtin_type == Variant::REAL && p_expression.builtin_type == Variant::BOOL);
+			valid = valid || Variant::can_convert_strict(p_expression.builtin_type, p_container.builtin_type);
 		}
 		return valid;
+	}
+
+	if (p_container.kind == DataType::BUILTIN && p_container.builtin_type == Variant::OBJECT) {
+		// Object built-in is a special case, it's compatible with any object and with null
+		if (p_expression.kind == DataType::BUILTIN && p_expression.builtin_type == Variant::NIL) {
+			return true;
+		}
+		if (p_expression.kind == DataType::BUILTIN) {
+			return false;
+		}
+		// If it's not a built-in, must be an object
+		return true;
 	}
 
 	if (p_container.kind == DataType::BUILTIN || (p_expression.kind == DataType::BUILTIN && p_expression.builtin_type != Variant::NIL)) {

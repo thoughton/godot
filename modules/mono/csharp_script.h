@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -115,6 +115,7 @@ class CSharpScript : public Script {
 	Map<StringName, Variant> exported_members_defval_cache; // member_default_values_cache
 	Set<PlaceHolderScriptInstance *> placeholders;
 	bool source_changed_cache;
+	bool placeholder_fallback_enabled;
 	bool exports_invalidated;
 	void _update_exports_values(Map<StringName, Variant> &values, List<PropertyInfo> &propnames);
 	virtual void _placeholder_erased(PlaceHolderScriptInstance *p_placeholder);
@@ -174,11 +175,15 @@ public:
 	virtual Ref<Script> get_base_script() const;
 	virtual ScriptLanguage *get_language() const;
 
-	/* TODO */ virtual void get_script_method_list(List<MethodInfo> *p_list) const {}
+	virtual void get_script_method_list(List<MethodInfo> *p_list) const;
 	bool has_method(const StringName &p_method) const;
-	/* TODO */ MethodInfo get_method_info(const StringName &p_method) const { return MethodInfo(); }
+	MethodInfo get_method_info(const StringName &p_method) const;
 
 	virtual int get_member_line(const StringName &p_member) const;
+
+#ifdef TOOLS_ENABLED
+	virtual bool is_placeholder_fallback_enabled() const { return placeholder_fallback_enabled; }
+#endif
 
 	Error load_source_code(const String &p_path);
 
@@ -398,6 +403,7 @@ public:
 };
 
 class ResourceFormatLoaderCSharpScript : public ResourceFormatLoader {
+	GDCLASS(ResourceFormatLoaderCSharpScript, ResourceFormatLoader)
 public:
 	virtual RES load(const String &p_path, const String &p_original_path = "", Error *r_error = NULL);
 	virtual void get_recognized_extensions(List<String> *p_extensions) const;
@@ -406,6 +412,7 @@ public:
 };
 
 class ResourceFormatSaverCSharpScript : public ResourceFormatSaver {
+	GDCLASS(ResourceFormatSaverCSharpScript, ResourceFormatSaver)
 public:
 	virtual Error save(const String &p_path, const RES &p_resource, uint32_t p_flags = 0);
 	virtual void get_recognized_extensions(const RES &p_resource, List<String> *p_extensions) const;

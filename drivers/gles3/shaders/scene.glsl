@@ -306,6 +306,10 @@ void main() {
 	uv2_interp = uv2_attrib;
 #endif
 
+#ifdef OVERRIDE_POSITION
+	highp vec4 position;
+#endif
+
 #if defined(USE_INSTANCING) && defined(ENABLE_INSTANCE_CUSTOM)
 	vec4 instance_custom = instance_custom_data;
 #else
@@ -461,7 +465,11 @@ VERTEX_SHADER_CODE
 
 #endif //RENDER_DEPTH
 
+#ifdef OVERRIDE_POSITION
+	gl_Position = position;
+#else
 	gl_Position = projection_matrix * vec4(vertex_interp, 1.0);
+#endif
 
 	position_interp = gl_Position;
 
@@ -1565,6 +1573,7 @@ void main() {
 
 	//lay out everything, whathever is unused is optimized away anyway
 	highp vec3 vertex = vertex_interp;
+	vec3 view = -normalize(vertex_interp);
 	vec3 albedo = vec3(1.0);
 	vec3 transmission = vec3(0.0);
 	float metallic = 0.0;
@@ -1699,7 +1708,7 @@ FRAGMENT_SHADER_CODE
 	vec3 ambient_light;
 	vec3 env_reflection_light = vec3(0.0, 0.0, 0.0);
 
-	vec3 eye_vec = -normalize(vertex_interp);
+	vec3 eye_vec = view;
 
 #ifdef USE_RADIANCE_MAP
 
@@ -2027,7 +2036,7 @@ FRAGMENT_SHADER_CODE
 		//apply fog
 
 		if (fog_depth_enabled) {
-			float fog_far = fog_depth_end > 0 ? fog_depth_end : z_far;
+			float fog_far = fog_depth_end > 0.0 ? fog_depth_end : z_far;
 
 			float fog_z = smoothstep(fog_depth_begin, fog_far, length(vertex));
 

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -56,6 +56,7 @@ public:
 	void environment_set_background(RID p_env, VS::EnvironmentBG p_bg) {}
 	void environment_set_sky(RID p_env, RID p_sky) {}
 	void environment_set_sky_custom_fov(RID p_env, float p_scale) {}
+	void environment_set_sky_orientation(RID p_env, const Basis &p_orientation) {}
 	void environment_set_bg_color(RID p_env, const Color &p_color) {}
 	void environment_set_bg_energy(RID p_env, float p_energy) {}
 	void environment_set_canvas_max_layer(RID p_env, int p_max_layer) {}
