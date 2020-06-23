@@ -646,12 +646,9 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 					if (path.find("::") != -1) {
 						// built-in resource
 						String base_path = path.get_slice("::", 0);
-						if (ResourceLoader::get_resource_type(base_path) == "PackedScene") {
-							if (!EditorNode::get_singleton()->is_scene_open(base_path)) {
-								EditorNode::get_singleton()->load_scene(base_path);
-							}
-						} else {
-							EditorNode::get_singleton()->load_resource(base_path);
+						RES dependency = ResourceLoader::load(base_path);
+						if (dependency.is_valid()) {
+							remote_dependencies.insert(dependency);
 						}
 					}
 					var = ResourceLoader::load(path);
@@ -1326,12 +1323,15 @@ void ScriptEditorDebugger::_notification(int p_what) {
 				} else {
 					errors_tab->set_name(TTR("Errors") + " (" + itos(error_count + warning_count) + ")");
 					debugger_button->set_text(TTR("Debugger") + " (" + itos(error_count + warning_count) + ")");
-					if (error_count == 0) {
-						debugger_button->set_icon(get_icon("Warning", "EditorIcons"));
-						tabs->set_tab_icon(errors_tab->get_index(), get_icon("Warning", "EditorIcons"));
-					} else {
+					if (error_count >= 1 && warning_count >= 1) {
+						debugger_button->set_icon(get_icon("ErrorWarning", "EditorIcons"));
+						tabs->set_tab_icon(errors_tab->get_index(), get_icon("ErrorWarning", "EditorIcons"));
+					} else if (error_count >= 1) {
 						debugger_button->set_icon(get_icon("Error", "EditorIcons"));
 						tabs->set_tab_icon(errors_tab->get_index(), get_icon("Error", "EditorIcons"));
+					} else {
+						debugger_button->set_icon(get_icon("Warning", "EditorIcons"));
+						tabs->set_tab_icon(errors_tab->get_index(), get_icon("Warning", "EditorIcons"));
 					}
 				}
 				last_error_count = error_count;
@@ -2141,6 +2141,7 @@ void ScriptEditorDebugger::_clear_remote_objects() {
 		memdelete(E->value());
 	}
 	remote_objects.clear();
+	remote_dependencies.clear();
 }
 
 void ScriptEditorDebugger::_clear_errors_list() {

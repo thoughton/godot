@@ -262,6 +262,13 @@ void Main::print_help(const char *p_binary) {
 	OS::get_singleton()->print("  --no-window                      Disable window creation (Windows only). Useful together with --script.\n");
 	OS::get_singleton()->print("  --enable-vsync-via-compositor    When vsync is enabled, vsync via the OS' window compositor (Windows only).\n");
 	OS::get_singleton()->print("  --disable-vsync-via-compositor   Disable vsync via the OS' window compositor (Windows only).\n");
+	OS::get_singleton()->print("  --tablet-driver                  Tablet input driver (");
+	for (int i = 0; i < OS::get_singleton()->get_tablet_driver_count(); i++) {
+		if (i != 0)
+			OS::get_singleton()->print(", ");
+		OS::get_singleton()->print("'%s'", OS::get_singleton()->get_tablet_driver_name(i).utf8().get_data());
+	}
+	OS::get_singleton()->print(") (Windows only).\n");
 	OS::get_singleton()->print("\n");
 #endif
 
@@ -389,6 +396,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 	String video_driver = "";
 	String audio_driver = "";
+	String tablet_driver = "";
 	String project_path = ".";
 	bool upwards = false;
 	String debug_mode;
@@ -604,6 +612,26 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		} else if (I->get() == "--no-window") { // disable window creation (Windows only)
 
 			OS::get_singleton()->set_no_window_mode(true);
+		} else if (I->get() == "--tablet-driver") {
+			if (I->next()) {
+				tablet_driver = I->next()->get();
+				bool found = false;
+				for (int i = 0; i < OS::get_singleton()->get_tablet_driver_count(); i++) {
+					if (tablet_driver == OS::get_singleton()->get_tablet_driver_name(i)) {
+						found = true;
+					}
+				}
+
+				if (!found) {
+					OS::get_singleton()->print("Unknown tablet driver '%s', aborting.\n", tablet_driver.utf8().get_data());
+					goto error;
+				}
+
+				N = I->next()->next();
+			} else {
+				OS::get_singleton()->print("Missing tablet driver argument, aborting.\n");
+				goto error;
+			}
 		} else if (I->get() == "--enable-vsync-via-compositor") {
 
 			video_mode.vsync_via_compositor = true;
@@ -990,8 +1018,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 	GLOBAL_DEF("rendering/quality/driver/fallback_to_gles2", false);
 
-	// Assigning here even though it's GLES2-specific, to be sure that it appears in docs
-	GLOBAL_DEF("rendering/quality/2d/gles2_use_nvidia_rect_flicker_workaround", false);
+	// Assigning here, to be sure that it appears in docs
+	GLOBAL_DEF("rendering/quality/2d/use_nvidia_rect_flicker_workaround", false);
 
 	GLOBAL_DEF("display/window/size/width", 1024);
 	ProjectSettings::get_singleton()->set_custom_property_info("display/window/size/width", PropertyInfo(Variant::INT, "display/window/size/width", PROPERTY_HINT_RANGE, "0,7680,or_greater")); // 8K resolution
@@ -1047,6 +1075,21 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 
 	OS::get_singleton()->_vsync_via_compositor = video_mode.vsync_via_compositor;
+
+	if (tablet_driver == "") { // specified in project.godot
+		tablet_driver = GLOBAL_DEF_RST("display/window/tablet_driver", OS::get_singleton()->get_tablet_driver_name(0));
+	}
+
+	for (int i = 0; i < OS::get_singleton()->get_tablet_driver_count(); i++) {
+		if (tablet_driver == OS::get_singleton()->get_tablet_driver_name(i)) {
+			OS::get_singleton()->set_current_tablet_driver(OS::get_singleton()->get_tablet_driver_name(i));
+			break;
+		}
+	}
+
+	if (tablet_driver == "") {
+		OS::get_singleton()->set_current_tablet_driver(OS::get_singleton()->get_tablet_driver_name(0));
+	}
 
 	OS::get_singleton()->_allow_layered = GLOBAL_DEF("display/window/per_pixel_transparency/allowed", false);
 	video_mode.layered = GLOBAL_DEF("display/window/per_pixel_transparency/enabled", false);
@@ -1161,6 +1204,7 @@ error:
 
 	video_driver = "";
 	audio_driver = "";
+	tablet_driver = "";
 	project_path = "";
 
 	args.clear();
@@ -1226,6 +1270,9 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 	// also init our arvr_server from here
 	arvr_server = memnew(ARVRServer);
+
+	// and finally setup this property under visual_server
+	VisualServer::get_singleton()->set_render_loop_enabled(!disable_render_loop);
 
 	register_core_singletons();
 
@@ -1443,7 +1490,11 @@ bool Main::start() {
 		} else if (args[i].length() && args[i][0] != '-' && positional_arg == "") {
 			positional_arg = args[i];
 
-			if (args[i].ends_with(".scn") || args[i].ends_with(".tscn") || args[i].ends_with(".escn")) {
+			if (args[i].ends_with(".scn") ||
+					args[i].ends_with(".tscn") ||
+					args[i].ends_with(".escn") ||
+					args[i].ends_with(".res") ||
+					args[i].ends_with(".tres")) {
 				// Only consider the positional argument to be a scene path if it ends with
 				// a file extension associated with Godot scenes. This makes it possible
 				// for projects to parse command-line arguments for custom CLI arguments
@@ -1506,7 +1557,11 @@ bool Main::start() {
 		print_line("Loading docs...");
 
 		for (int i = 0; i < _doc_data_class_path_count; i++) {
-			String path = doc_tool.plus_file(_doc_data_class_paths[i].path);
+			// Custom modules are always located by absolute path.
+			String path = _doc_data_class_paths[i].path;
+			if (path.is_rel_path()) {
+				path = doc_tool.plus_file(path);
+			}
 			String name = _doc_data_class_paths[i].name;
 			doc_data_classes[name] = path;
 			if (!checked_paths.has(path)) {
@@ -1773,7 +1828,14 @@ bool Main::start() {
 			sml->set_quit_on_go_back(GLOBAL_DEF("application/config/quit_on_go_back", true));
 			String appname = ProjectSettings::get_singleton()->get("application/config/name");
 			appname = TranslationServer::get_singleton()->translate(appname);
+#ifdef DEBUG_ENABLED
+			// Append a suffix to the window title to denote that the project is running
+			// from a debug build (including the editor). Since this results in lower performance,
+			// this should be clearly presented to the user.
+			OS::get_singleton()->set_window_title(vformat("%s (DEBUG)", appname));
+#else
 			OS::get_singleton()->set_window_title(appname);
+#endif
 
 			int shadow_atlas_size = GLOBAL_GET("rendering/quality/shadow_atlas/size");
 			int shadow_atlas_q0_subdiv = GLOBAL_GET("rendering/quality/shadow_atlas/quadrant_0_subdiv");
@@ -2042,7 +2104,7 @@ bool Main::iteration() {
 
 	VisualServer::get_singleton()->sync(); //sync if still drawing from previous frames.
 
-	if (OS::get_singleton()->can_draw() && !disable_render_loop) {
+	if (OS::get_singleton()->can_draw() && VisualServer::get_singleton()->is_render_loop_enabled()) {
 
 		if ((!force_redraw_requested) && OS::get_singleton()->is_in_low_processor_usage_mode()) {
 			if (VisualServer::get_singleton()->has_changed()) {
