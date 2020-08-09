@@ -14,10 +14,14 @@ iphone_lib = [
     "in_app_store.mm",
     "icloud.mm",
     "ios.mm",
+    "gl_view_gesture_recognizer.m",
 ]
 
 env_ios = env.Clone()
 ios_lib = env_ios.add_library("iphone", iphone_lib)
+
+# (iOS) Enable module support
+env_ios.Append(CCFLAGS=["-fmodules", "-fcxx-modules"])
 
 
 def combine_libs(target=None, source=None, env=None):

@@ -116,27 +116,25 @@ void FindReplaceBar::_notification(int p_what) {
 void FindReplaceBar::_unhandled_input(const Ref<InputEvent> &p_event) {
 
 	Ref<InputEventKey> k = p_event;
-	if (k.is_valid()) {
+	if (!k.is_valid() || !k->is_pressed()) {
+		return;
+	}
 
-		if (k->is_pressed() && (text_edit->has_focus() || vbc_lineedit->is_a_parent_of(get_focus_owner()))) {
+	Control *focus_owner = get_focus_owner();
+	if (text_edit->has_focus() || (focus_owner && vbc_lineedit->is_a_parent_of(focus_owner))) {
+		bool accepted = true;
 
-			bool accepted = true;
+		switch (k->get_scancode()) {
+			case KEY_ESCAPE: {
+				_hide_bar();
+			} break;
+			default: {
+				accepted = false;
+			} break;
+		}
 
-			switch (k->get_scancode()) {
-
-				case KEY_ESCAPE: {
-
-					_hide_bar();
-				} break;
-				default: {
-
-					accepted = false;
-				} break;
-			}
-
-			if (accepted) {
-				accept_event();
-			}
+		if (accepted) {
+			accept_event();
 		}
 	}
 }
@@ -1561,7 +1559,7 @@ void CodeTextEditor::_toggle_scripts_pressed() {
 void CodeTextEditor::_error_pressed(const Ref<InputEvent> &p_event) {
 	Ref<InputEventMouseButton> mb = p_event;
 	if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == BUTTON_LEFT) {
-		emit_signal("error_pressed");
+		goto_error();
 	}
 }
 
@@ -1688,7 +1686,6 @@ void CodeTextEditor::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("validate_script"));
 	ADD_SIGNAL(MethodInfo("load_theme_settings"));
 	ADD_SIGNAL(MethodInfo("show_warnings_panel"));
-	ADD_SIGNAL(MethodInfo("error_pressed"));
 }
 
 void CodeTextEditor::set_code_complete_func(CodeTextEditorCodeCompleteFunc p_code_complete_func, void *p_ud) {

@@ -41,12 +41,14 @@
 # Anas <anas.ghamdi61@gmail.com>, 2020.
 # R-K <raouf9005@gmail.com>, 2020.
 # HeroFight dev <abdkafi2002@gmail.com>, 2020.
+# أحمد مصطفى الطبراني <eltabaraniahmed@gmail.com>, 2020.
+# ChemicalInk <aladdinalkhafaji@gmail.com>, 2020.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2020-06-09 02:02+0000\n"
-"Last-Translator: HeroFight dev <abdkafi2002@gmail.com>\n"
+"PO-Revision-Date: 2020-07-21 13:41+0000\n"
+"Last-Translator: ChemicalInk <aladdinalkhafaji@gmail.com>\n"
 "Language-Team: Arabic <https://hosted.weblate.org/projects/godot-engine/"
 "godot/ar/>\n"
 "Language: ar\n"
@@ -55,7 +57,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 4.1-dev\n"
+"X-Generator: Weblate 4.2-dev\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -785,9 +787,8 @@ msgid "Method in target node must be specified."
 msgstr "يجب تحديد الدالة في العقدة المستهدفة."
 
 #: editor/connections_dialog.cpp
-#, fuzzy
 msgid "Method name must be a valid identifier."
-msgstr "هذا الاسم ليس مُعرفاً مميزاً صالحاً:"
+msgstr "اسم الدالة يجب أن تكون مميزاً و صالحاً."
 
 #: editor/connections_dialog.cpp
 msgid ""
@@ -1482,7 +1483,7 @@ msgstr "اعادة ترتيب التحميلات التلقائية"
 
 #: editor/editor_autoload_settings.cpp
 msgid "Can't add autoload:"
-msgstr ""
+msgstr "لا يمكن اضافة التحميل التلقائي"
 
 #: editor/editor_autoload_settings.cpp
 msgid "Add AutoLoad"
@@ -2343,10 +2344,6 @@ msgid "There is no defined scene to run."
 msgstr "ليس هناك مشهد محدد ليتم تشغيله."
 
 #: editor/editor_node.cpp
-msgid "Current scene was never saved, please save it prior to running."
-msgstr "المشهد الحالي لم يتم حفظه. الرجاء حفظ المشهد قبل تشغيله و اختباره."
-
-#: editor/editor_node.cpp
 msgid "Could not start subprocess!"
 msgstr "لا يمكن بدء عملية جانبية!"
 
@@ -2431,15 +2428,16 @@ msgid "Can't reload a scene that was never saved."
 msgstr "لا يمكن إعادة تحميل مشهد لم يتم حفظه من قبل."
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Reload Saved Scene"
-msgstr "حفظ المشهد"
+msgstr "إعادة تحميل المشهد المحفوظ"
 
 #: editor/editor_node.cpp
 msgid ""
 "The current scene has unsaved changes.\n"
 "Reload the saved scene anyway? This action cannot be undone."
 msgstr ""
+"يحتوي المشهد الحالي على تغييرات غير محفوظة.\n"
+"إعادة تحميل المشهد المحفوظ على أي حال؟ لا يمكن التراجع عن هذا الإجراء."
 
 #: editor/editor_node.cpp
 msgid "Quick Run Scene..."
@@ -3366,11 +3364,9 @@ msgid "Did you forget the '_run' method?"
 msgstr "هل نسيت الطريقة '_run' ؟"
 
 #: editor/editor_spin_slider.cpp
-#, fuzzy
 msgid "Hold Ctrl to round to integers. Hold Shift for more precise changes."
 msgstr ""
-"اضغط مطولاً على Ctrl لإسقاط جالب Getter. اضغط مطولاً على Shift لإسقاط توقيع "
-"عام generic signature."
+"امسك Ctrl للتدوير للأعداد الصحيحة. اضغط على Shift لإجراء تغييرات أكثر دقة."
 
 #: editor/editor_sub_scene.cpp
 msgid "Select Node(s) to Import"
@@ -3967,7 +3963,7 @@ msgstr "خطأ في تشغيل الكود الملصق- المستورد:"
 
 #: editor/import/resource_importer_scene.cpp
 msgid "Did you return a Node-derived object in the `post_import()` method?"
-msgstr ""
+msgstr "هل قمت بإرجاع كائن مشتق من العقدة في دالة`post_import ()`؟"
 
 #: editor/import/resource_importer_scene.cpp
 msgid "Saving..."
@@ -4186,14 +4182,12 @@ msgid "Move Node Point"
 msgstr "تحريك نقطة العقدة"
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
-#, fuzzy
 msgid "Change BlendSpace1D Limits"
-msgstr "تغيير وقت الدمج"
+msgstr "تغيير حدود BlendSpace1D"
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
-#, fuzzy
 msgid "Change BlendSpace1D Labels"
-msgstr "تغيير وقت الدمج"
+msgstr "تغيير ملصقات BlendSpace1D"
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
@@ -4209,9 +4203,8 @@ msgstr "إضافة نقطة العقدة"
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
-#, fuzzy
 msgid "Add Animation Point"
-msgstr "أضف حركة"
+msgstr "أضف نقطة حركة"
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 msgid "Remove BlendSpace1D Point"
@@ -4245,7 +4238,6 @@ msgstr "حدد وحرك النقاط، أنشئ النقاط باستخدام RM
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp scene/gui/graph_edit.cpp
-#, fuzzy
 msgid "Enable snap and show grid."
 msgstr "تمكين المحاذاة وإظهار الشبكة."
 
@@ -4457,14 +4449,12 @@ msgid "Remove Animation"
 msgstr "مسح الحركة"
 
 #: editor/plugins/animation_player_editor_plugin.cpp
-#, fuzzy
 msgid "Invalid animation name!"
-msgstr "خطأ: إسم حركة خاطئ!"
+msgstr "خطأ: إسم الرسوم المتحركة خاطئ!"
 
 #: editor/plugins/animation_player_editor_plugin.cpp
-#, fuzzy
 msgid "Animation name already exists!"
-msgstr "خطأ: إسم الحركة موجود بالفعل!"
+msgstr "اسم الحركة موجود بالفعل!"
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 #: editor/plugins/sprite_frames_editor_plugin.cpp
@@ -4680,19 +4670,16 @@ msgid "Start and end nodes are needed for a sub-transition."
 msgstr "عُقد البداية والنهاية مطلوبة لأجل الانتقال الجزيئ sub-transition."
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "No playback resource set at path: %s."
-msgstr "ليس في مسار الموارد."
+msgstr "لم يتم تعيين موارد التشغيل في المسار:٪ s."
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Node Removed"
-msgstr "مُسِح:"
+msgstr "مُسِحت العقدة"
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Transition Removed"
-msgstr "عقدة التنقل"
+msgstr "تمت إزالة النقل"
 
 #: editor/plugins/animation_state_machine_editor.cpp
 msgid "Set Start Node (Autoplay)"
@@ -4709,19 +4696,16 @@ msgstr ""
 "LMB + Shift (زر الفأرة الأيسر) لإنشاء الوصلات."
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Create new nodes."
-msgstr "إنشاء %s جديد"
+msgstr "إنشاء عُقد جديدة."
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Connect nodes."
-msgstr "صلها بالعقدة:"
+msgstr "توصيل عقد."
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Remove selected node or transition."
-msgstr "ازالة المسار المحدد."
+msgstr "ازالة الكائن المحدد او الإنتقال المحدد."
 
 #: editor/plugins/animation_state_machine_editor.cpp
 msgid "Toggle autoplay this animation on start, restart or seek to zero."
@@ -4735,19 +4719,17 @@ msgstr ""
 "تحديد الرسومية المتحركة الخاصة بالنهاية. سيكون ذلك مفيداً للحركات الفرعية."
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Transition: "
-msgstr "تحول"
+msgstr "الانتقال: "
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Play Mode:"
-msgstr "وضع السحب"
+msgstr "وضع اللعب:"
 
 #: editor/plugins/animation_tree_editor_plugin.cpp
 #: editor/plugins/animation_tree_player_editor_plugin.cpp
 msgid "AnimationTree"
-msgstr "مسارات  التحريك"
+msgstr "شجرة التحريك"
 
 #: editor/plugins/animation_tree_player_editor_plugin.cpp
 msgid "New name:"
@@ -4914,14 +4896,12 @@ msgid "Request failed, return code:"
 msgstr "فشل إتمام الطلب٫ الرمز الذي تم إرجاعه:"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Request failed."
 msgstr "فشل الطلب."
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Cannot save response to:"
-msgstr "لا يمكن المسح:"
+msgstr "لا يمكن الحفظ بسبب:"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Write error."
@@ -4932,19 +4912,16 @@ msgid "Request failed, too many redirects"
 msgstr "فشل الطلب٫ السبب هو اعادة التحويل مرات اكثر من اللازم"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Redirect loop."
 msgstr "اعادة توجيه حلقة التكرار."
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Request failed, timeout"
-msgstr "فشل إتمام الطلب٫ الرمز الذي تم إرجاعه:"
+msgstr "فشل الطلب ، انتهت المهلة"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Timeout."
-msgstr "الوقت"
+msgstr "إنتهى الوقت"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Bad download hash, assuming file has been tampered with."
@@ -4967,14 +4944,12 @@ msgid "Asset Download Error:"
 msgstr "خطأ في تنزيل الأصول:"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Downloading (%s / %s)..."
-msgstr "جاري التنزيل"
+msgstr "جاري التنزيل (%s / %s)..."
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Downloading..."
-msgstr "جاري التنزيل"
+msgstr "‫جاري التنزيل..."
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Resolving..."
@@ -4989,9 +4964,8 @@ msgid "Idle"
 msgstr "عاطل"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Install..."
-msgstr "تثبيت"
+msgstr "تثبيت..."
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Retry"
@@ -5022,24 +4996,20 @@ msgid "Name (Z-A)"
 msgstr "الاسم (ترتيب ألف بائي معكوس)"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "License (A-Z)"
-msgstr "الرخصة"
+msgstr "الرخصة (أ-ي)"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "License (Z-A)"
-msgstr "الرخصة"
+msgstr "الرخصة (ي-أ)"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "First"
 msgstr "الأول"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Previous"
-msgstr "التبويب السابق"
+msgstr "السابق"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Next"
@@ -5058,14 +5028,12 @@ msgid "No results for \"%s\"."
 msgstr "لا نتائج من أجل \"%s\"."
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Import..."
-msgstr "إستيراد"
+msgstr "استيراد..."
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Plugins..."
-msgstr "إضافات"
+msgstr "إضافات..."
 
 #: editor/plugins/asset_library_editor_plugin.cpp editor/project_manager.cpp
 msgid "Sort:"
@@ -5081,9 +5049,8 @@ msgid "Site:"
 msgstr "الموقع:"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Support"
-msgstr "الدعم..."
+msgstr "الدعم"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Official"
@@ -5094,9 +5061,8 @@ msgid "Testing"
 msgstr "أختبار"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Loading..."
-msgstr "تحميل"
+msgstr "جاري التحميل..."
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Assets ZIP File"
@@ -5609,9 +5575,8 @@ msgid "Scale mask for inserting keys."
 msgstr "قناع التحجيم لأجل إدخال المفاتيح."
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Insert keys (based on mask)."
-msgstr "أدخل مفتاح (مسارات موجودة بالفعل)"
+msgstr "أدخل المفاتيح (على أساس القناع)."
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid ""
@@ -5681,9 +5646,8 @@ msgid "Error instancing scene from %s"
 msgstr "خطأ في توضيح المشهد من %s"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Change Default Type"
-msgstr "غير النوع الإفتراضي"
+msgstr "تغير النوع الإفتراضي"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid ""
@@ -5768,9 +5732,8 @@ msgid "Emission Colors"
 msgstr "الوان الإنبعاث"
 
 #: editor/plugins/cpu_particles_editor_plugin.cpp
-#, fuzzy
 msgid "CPUParticles"
-msgstr "جسيمات"
+msgstr "جزيئات وحدة المعالجة المركزية"
 
 #: editor/plugins/cpu_particles_editor_plugin.cpp
 #: editor/plugins/particles_editor_plugin.cpp
@@ -5831,9 +5794,8 @@ msgid "Right Linear"
 msgstr "الخط اليميني"
 
 #: editor/plugins/curve_editor_plugin.cpp
-#, fuzzy
 msgid "Load Preset"
-msgstr "تحميل الإعداد المعد مسبقاً"
+msgstr "تحميل إعداد مسبق"
 
 #: editor/plugins/curve_editor_plugin.cpp
 msgid "Remove Curve Point"
@@ -5989,9 +5951,8 @@ msgstr ""
 "هذا هو الخيار الأكثر دقة (لكنه الأبطئ) لأجل للكشف عن وقوع التصادم."
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
-#, fuzzy
 msgid "Create Single Convex Collision Sibling"
-msgstr "إنشاء متصادم محدب قريب"
+msgstr "إنشاء شقيق تصادم محدب مفرد"
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 msgid ""
@@ -6066,9 +6027,8 @@ msgid ""
 msgstr "تحديث من المشهد"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
-#, fuzzy
 msgid "Mesh Library"
-msgstr "مكتبة الميش..."
+msgstr "مكتبة المجسم"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
 #: editor/plugins/theme_editor_plugin.cpp
@@ -10632,6 +10592,11 @@ msgstr "حفظ المشهد"
 
 #: editor/scene_tree_dock.cpp
 #, fuzzy
+msgid "Delete %d nodes and any children?"
+msgstr "حذف العُقدة \"%s\" مع جميع أبنائها؟"
+
+#: editor/scene_tree_dock.cpp
+#, fuzzy
 msgid "Delete %d nodes?"
 msgstr "إنشاء عقدة"
 
@@ -12387,6 +12352,12 @@ msgstr ""
 "يجب تزويد  ال CollisionShape2D بإحدى الأشكال (من نوع Shape2D) لتعمل بالشكل "
 "المطلوب. الرجاء تكوين و ضبط الشكل لها اولا!"
 
+#: scene/2d/collision_shape_2d.cpp
+msgid ""
+"Polygon-based shapes are not meant be used nor edited directly through the "
+"CollisionShape2D node. Please use the CollisionPolygon2D node instead."
+msgstr ""
+
 #: scene/2d/cpu_particles_2d.cpp
 msgid ""
 "CPUParticles2D animation requires the usage of a CanvasItemMaterial with "
@@ -12865,6 +12836,9 @@ msgstr "يمكن تعيين المتغيرات فقط في الذروة ."
 #: servers/visual/shader_language.cpp
 msgid "Constants cannot be modified."
 msgstr "لا يمكن تعديل الثوابت."
+
+#~ msgid "Current scene was never saved, please save it prior to running."
+#~ msgstr "المشهد الحالي لم يتم حفظه. الرجاء حفظ المشهد قبل تشغيله و اختباره."
 
 #~ msgid "Not in resource path."
 #~ msgstr "ليس في مسار الموارد."
